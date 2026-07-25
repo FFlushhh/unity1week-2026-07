@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class TestMachida : MonoBehaviour
 {
-    const int age = 5;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,9 +16,6 @@ public class TestMachida : MonoBehaviour
 
     void TestFunc()
     {
-        for (int i = 0; i < age; ++i)
-        {
-            Debug.Log("" + i);
-        }
+        Debug.Log("TestMachida");
     }
 }
