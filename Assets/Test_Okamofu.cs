@@ -13,5 +13,7 @@ public class Test_Okamofu : MonoBehaviour
     {
         int i = 0;
         int j = 0;
+        int k = 0;
+        
     }
 }
