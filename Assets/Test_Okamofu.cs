@@ -1,0 +1,19 @@
+using UnityEngine;
+
+public class Test_Okamofu : MonoBehaviour
+{
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        
+    }
+}
