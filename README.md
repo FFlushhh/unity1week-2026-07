@@ -16,6 +16,7 @@
 | 項目 | バージョン |
 |---|---|
 | Unity | 6000.5.5f1 |
+| .NET SDK | 10.0.302 |
 
 ------------------------------------------------------------------------
 
@@ -27,15 +28,78 @@
 git clone https://github.com/FFlushhh/unity1week-2026-07.git
 ```
 
-### 2. コミットテンプレートを設定
+### 2. 必要な開発ツールを導入
 
-``` bash
-git config --local commit.template .github/commit-message-template.txt
+- Unity HubからUnity `6000.5.5f1`を導入してください。
+- .NET SDK `10.0.302`を導入してください。プロジェクトの品質チェックに使用します。
+- VS Codeを使う場合は、推奨拡張機能のCSharpierを導入してください。C#保存時に自動整形されます。
+
+### 3. Unityでプロジェクトを一度開く
+
+Unity HubからプロジェクトをUnity `6000.5.5f1`で一度開いてください。UnityがC#プロジェクトファイル（`.slnx`・`.csproj`）を生成します。
+
+### 4. 開発環境を設定
+
+macOS・Linux・Git Bashでは、次を実行します。
+
+```bash
+./scripts/setup.sh
 ```
 
-### 3. Unityでプロジェクトを開く
+Windows PowerShellでは、次を実行します。
 
-Unity Hubからプロジェクトを開いてください。
+```powershell
+.\scripts\setup.ps1
+```
+
+実行ポリシーによりスクリプトを実行できない場合は、現在のプロセスに限って許可して実行してください。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
+
+セットアップスクリプトは、次の処理を行います。
+
+- リポジトリローカルのコミットテンプレートと`.githooks`を設定
+- CSharpierなどのリポジトリローカル.NETツールを復元
+- `ProjectSettings/ProjectVersion.txt`からUnityバージョンを取得
+- UnityYAMLMergeを検出し、Unity YAMLファイル用のGitマージドライバーとして登録
+
+UnityYAMLMergeが自動検出されない場合は、環境変数`UNITY_YAML_MERGE_PATH`で実行ファイルを指定できます。
+
+```bash
+UNITY_YAML_MERGE_PATH="/path/to/UnityYAMLMerge" ./scripts/setup.sh
+```
+
+```powershell
+$env:UNITY_YAML_MERGE_PATH = "C:\path\to\UnityYAMLMerge.exe"
+.\scripts\setup.ps1
+```
+
+初回セットアップ時と、Gitフックやマージドライバーが動かなくなった場合に再実行してください。設定はこのリポジトリのみに適用されます。
+
+## コード品質チェック
+
+ローカルとGitHub Actionsで、次のチェックを実施します。
+
+| 実行タイミング | 内容 | 失敗時の扱い |
+|---|---|---|
+| `git commit`前 | CSharpierによるC#整形、Unity Analyzerの重大エラー検出 | 整形された場合やエラーがある場合はコミットを停止 |
+| `git push`前 | Unityが生成したC#プロジェクトのコンパイル確認 | コンパイルまたはAnalyzerエラーでpushを停止 |
+| Pull Request・mainへのpush | CSharpierの整形確認、Semgrepによる静的解析 | 違反・検出時はCIを失敗 |
+
+フォーマッターがファイルを変更した場合は、内容を確認してから再ステージし、もう一度コミットしてください。
+
+```bash
+git add <変更したファイル>
+git commit
+```
+
+部分ステージ済みのC#ファイルは、未ステージの変更を保護するためコミットを停止します。対象ファイルの変更をすべてステージしてから再試行してください。
+
+### CIの制約
+
+GitHub ActionsではUnity Editorを起動しません。そのため、Unity固有のコンパイル・テスト・プレイヤービルドはCIでは実行せず、ローカルのpre-pushフックとUnity Editorで確認します。CIはフォーマットとUnity非依存の静的解析を最終チェックとして担当します。
 
 ------------------------------------------------------------------------
 

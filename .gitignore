@@ -106,3 +106,12 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# AI local settings
+.codex/
+
+# IDE settings
+.idea/
+
+# OS dependent files
+**/.DS_Store
