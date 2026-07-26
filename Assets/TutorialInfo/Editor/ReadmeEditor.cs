@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+﻿using System.IO;
 using UnityEditor;
-using System.IO;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 [CustomEditor(typeof(Readme))]
@@ -10,8 +10,7 @@ sealed class ReadmeEditor : Editor
     const string k_ShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
     const string k_ReadmeSourceDirectory = "Assets/TutorialInfo";
 
-    static ReadmeEditor()
-        => EditorApplication.delayCall += SelectReadmeAutomatically;
+    static ReadmeEditor() => EditorApplication.delayCall += SelectReadmeAutomatically;
 
     static void SelectReadmeAutomatically()
     {
@@ -22,7 +21,9 @@ sealed class ReadmeEditor : Editor
 
             if (readme && !readme.loadedLayout)
             {
-                EditorUtility.LoadWindowLayout(Path.Combine(Application.dataPath, "TutorialInfo/Layout.wlt"));
+                EditorUtility.LoadWindowLayout(
+                    Path.Combine(Application.dataPath, "TutorialInfo/Layout.wlt")
+                );
                 readme.loadedLayout = true;
             }
         }
@@ -41,14 +42,17 @@ sealed class ReadmeEditor : Editor
         Selection.objects = new UnityEngine.Object[] { readmeObject };
         return (Readme)readmeObject;
     }
-    
+
     void RemoveTutorial()
     {
-        if (EditorUtility.DisplayDialog("Remove Readme Assets",
-            
-            $"All contents under {k_ReadmeSourceDirectory} will be removed, are you sure you want to proceed?",
-            "Proceed",
-            "Cancel"))
+        if (
+            EditorUtility.DisplayDialog(
+                "Remove Readme Assets",
+                $"All contents under {k_ReadmeSourceDirectory} will be removed, are you sure you want to proceed?",
+                "Proceed",
+                "Cancel"
+            )
+        )
         {
             if (Directory.Exists(k_ReadmeSourceDirectory))
             {
@@ -74,6 +78,7 @@ sealed class ReadmeEditor : Editor
 
     //Remove ImGUI
     protected sealed override void OnHeaderGUI() { }
+
     public sealed override void OnInspectorGUI() { }
 
     public override VisualElement CreateInspectorGUI()

@@ -68,9 +68,9 @@
         "*.slnx": "*.csproj"
     },
     "dotnet.defaultSolution": "unity1week-2026-07.slnx",
-        "[csharp]": {
+    "[csharp]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-dotnettools.csharp"
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
     },
     "files.eol": "\n",
     "files.insertFinalNewline": true,

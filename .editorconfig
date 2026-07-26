@@ -1,0 +1,37 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Keep the layout consistent across Unity-supported IDEs.
+csharp_new_line_before_open_brace = all
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+dotnet_diagnostic.IDE0055.severity = warning
+
+# Microsoft.Unity.Analyzers rules are warnings by default. Promote only clear
+# correctness issues to errors; style and performance guidance remains visible
+# without blocking the team.
+dotnet_analyzer_diagnostic.category-Unity.severity = warning
+dotnet_diagnostic.UNT0006.severity = error
+dotnet_diagnostic.UNT0007.severity = error
+dotnet_diagnostic.UNT0008.severity = error
+dotnet_diagnostic.UNT0010.severity = error
+dotnet_diagnostic.UNT0011.severity = error
+dotnet_diagnostic.UNT0014.severity = error
+dotnet_diagnostic.UNT0015.severity = error
+dotnet_diagnostic.UNT0020.severity = error
+dotnet_diagnostic.UNT0023.severity = error
+dotnet_diagnostic.UNT0029.severity = error
+dotnet_diagnostic.UNT0030.severity = error
+dotnet_diagnostic.UNT0033.severity = error
+dotnet_diagnostic.UNT0040.severity = error
+dotnet_diagnostic.UNT0043.severity = error
