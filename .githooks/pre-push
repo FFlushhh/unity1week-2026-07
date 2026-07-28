@@ -1,0 +1,62 @@
+#!/bin/sh
+# push 対象に C# のコンパイル結果へ影響する変更がある場合だけ検証する。
+
+set -eu
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+cd "$PROJECT_ROOT"
+SOLUTION_FILE="unity1week-2026-07.slnx"
+ZERO_SHA="0000000000000000000000000000000000000000"
+needs_check=false
+
+is_compilation_input() {
+    case "$1" in
+        *.cs|*.asmdef|*.asmref|.editorconfig|global.json|.config/dotnet-tools.json|Packages/manifest.json|Packages/packages-lock.json|ProjectSettings/ProjectVersion.txt|Assets/Analyzers/*|Assets/Editor/UnityAnalyzerProjectPostprocessor.cs) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ -n "$local_sha" ] || continue
+    [ "$local_sha" = "$ZERO_SHA" ] && continue
+
+    if [ "$remote_sha" = "$ZERO_SHA" ]; then
+        # 新規ブランチでは比較元がない。先頭コミットだけを見ると途中の C# 変更を
+        # 取り逃すため、必ずコンパイル確認を実行する。
+        needs_check=true
+        break
+    elif ! files=$(git diff --name-only "$remote_sha" "$local_sha" 2>/dev/null); then
+        # 祖先コミットがローカルにない場合、検証を省略せず安全側へ倒す。
+        needs_check=true
+        break
+    fi
+
+    while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        if is_compilation_input "$file"; then
+            needs_check=true
+            break 2
+        fi
+    done <<EOF
+$files
+EOF
+done
+
+if [ "$needs_check" = false ]; then
+    exit 0
+fi
+
+if ! command -v dotnet >/dev/null 2>&1; then
+    echo "Unity コンパイル確認を実行できません: .NET SDK 10.0.302 をインストールしてください。"
+    echo "導入後に ./scripts/setup.sh を実行してください。"
+    exit 1
+fi
+
+if [ ! -f "$SOLUTION_FILE" ] || [ ! -f "Assembly-CSharp.csproj" ]; then
+    echo "Unity が生成するソリューションまたは C# プロジェクトが見つかりません。"
+    echo "Unity Editor でこのプロジェクトを一度開いて C# プロジェクトを生成してから、再度 push してください。"
+    exit 1
+fi
+
+echo "Unity C# のコンパイル確認を実行しています..."
+dotnet build "$SOLUTION_FILE" --nologo

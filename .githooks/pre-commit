@@ -1,0 +1,63 @@
+#!/bin/sh
+# C# に関係する変更だけ、整形と Roslyn Analyzer を含むビルドを行う。
+
+set -eu
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+cd "$PROJECT_ROOT"
+SOLUTION_FILE="unity1week-2026-07.slnx"
+
+if git diff --cached --quiet -- \
+    '*.cs' '*.asmdef' '*.asmref' .editorconfig global.json .config/dotnet-tools.json \
+    Packages/manifest.json Packages/packages-lock.json Assets/Analyzers \
+    Assets/Editor/UnityAnalyzerProjectPostprocessor.cs; then
+    exit 0
+fi
+
+if ! command -v dotnet >/dev/null 2>&1; then
+    echo "品質チェックを実行できません: .NET SDK 10.0.302 をインストールしてください。"
+    echo "導入後に ./scripts/setup.sh を実行してください。"
+    exit 1
+fi
+
+if [ ! -f "$SOLUTION_FILE" ] || [ ! -f "Assembly-CSharp.csproj" ]; then
+    echo "Unity が生成するソリューションまたは C# プロジェクトが見つかりません。"
+    echo "Unity Editor でこのプロジェクトを一度開いて C# プロジェクトを生成してから、再度コミットしてください。"
+    exit 1
+fi
+
+if ! dotnet tool run csharpier --version >/dev/null 2>&1; then
+    echo "CSharpier が復元されていません。./scripts/setup.sh を実行してください。"
+    exit 1
+fi
+
+# 部分ステージされた C# ファイルを整形すると、未ステージの変更を誤って
+# ステージ対象に含めるおそれがあるため、明示的に止める。ファイル名は NUL
+# 区切りで渡すため、空白を含むパスにも対応する。
+if ! git diff --cached --quiet --diff-filter=ACMR -- '*.cs'; then
+    if ! git diff --cached --name-only -z --diff-filter=ACMR -- '*.cs' |
+        xargs -0 -n 1 sh -c '
+            if ! git diff --quiet -- "$1"; then
+                echo "部分ステージされた C# ファイルがあります: $1"
+                exit 1
+            fi
+        ' sh; then
+        echo "未ステージの変更を退避またはステージしてから、再度コミットしてください。"
+        exit 1
+    fi
+
+    echo "C# コードを整形しています..."
+    # ステージ済み C# だけを NUL 区切りで CSharpier に渡す。
+    git diff --cached --name-only -z --diff-filter=ACMR -- '*.cs' |
+        xargs -0 dotnet csharpier format
+
+    # 整形対象だけを確認するため、無関係な Assets の未ステージ変更では止めない。
+    if ! git diff --cached --name-only -z --diff-filter=ACMR -- '*.cs' |
+        xargs -0 -n 1 sh -c 'git diff --quiet -- "$1"' sh; then
+        echo "C# コードを整形しました。変更内容を確認して git add し、再度コミットしてください。"
+        exit 1
+    fi
+fi
+
+echo "Unity C# の静的解析を実行しています..."
+dotnet build "$SOLUTION_FILE" --nologo
