@@ -11,7 +11,7 @@ namespace ResultScene
 
         [Header("撮影情報")]
         public string LocationName;
-        public Sprite CapturedImage;
+        public Texture2D CapturedImage;
 
         [Header("スコア情報")]
         public int BaseScore; // 基礎点

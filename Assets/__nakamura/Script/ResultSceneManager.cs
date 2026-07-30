@@ -25,11 +25,19 @@ namespace ResultScene
 
         [Header("Master Data")]
         [SerializeField]
-        private List<BonusScoreMaster> _bonusMaster = new List<BonusScoreMaster>();
+        private List<BonusScoreMaster> _bonusMaster = new List<BonusScoreMaster>()
+        {
+            new BonusScoreMaster { BonusName = "犬", ScorePerItem = 500 },
+            new BonusScoreMaster { BonusName = "汚れた服の人", ScorePerItem = -600 },
+            new BonusScoreMaster { BonusName = "狂犬", ScorePerItem = -800 },
+            new BonusScoreMaster { BonusName = "ビニール袋", ScorePerItem = -100 },
+            new BonusScoreMaster { BonusName = "鳥", ScorePerItem = 800 },
+            new BonusScoreMaster { BonusName = "スズメ", ScorePerItem = 5 },
+        };
 
         [Header("Left Panel (SNS)")]
         [SerializeField]
-        private Image _snsImage;
+        private RawImage _snsImage;
 
         [SerializeField]
         private TextMeshProUGUI _userNameText;
@@ -194,11 +202,15 @@ namespace ResultScene
             {
                 foreach (var bonus in data.Bonuses.Where(b => b.Count > 0))
                 {
-                    int scorePerItem =
-                        _bonusMaster
-                            .FirstOrDefault(m => m.BonusName == bonus.BonusName)
-                            ?.ScorePerItem
-                        ?? 0;
+                    var master = _bonusMaster.FirstOrDefault(m => m.BonusName == bonus.BonusName);
+                    if (master == null)
+                    {
+                        Debug.LogError(
+                            $"[ResultSceneManager] Data/Configuration Error: Unknown bonus type '{bonus.BonusName}'."
+                        );
+                        continue;
+                    }
+                    int scorePerItem = master.ScorePerItem;
                     string itemName =
                         bonus.Count > 1 ? $"{bonus.BonusName} × {bonus.Count}" : bonus.BonusName;
                     int calculatedScore = scorePerItem * bonus.Count;
@@ -239,7 +251,7 @@ namespace ResultScene
         private void InitializeUI(ResultData data)
         {
             if (_snsImage != null && data.CapturedImage != null)
-                _snsImage.sprite = data.CapturedImage;
+                _snsImage.texture = data.CapturedImage;
             if (_userNameText != null)
                 _userNameText.text = data.PlayerName;
             if (_postText != null)
