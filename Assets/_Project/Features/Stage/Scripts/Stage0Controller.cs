@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 /// <summary>
@@ -34,19 +37,32 @@ public sealed class Stage0Controller : MonoBehaviour
     private GameObject gameOverPanel;
 
     private Stage0State currentState;
-    private float startMessageEndTime;
     private bool hasInitialized;
 
     public Stage0State CurrentState => currentState;
 
     private void Start()
     {
-        TransitionTo(Stage0State.StartMessage);
+        RunStartMessageAsync(destroyCancellationToken).Forget();
     }
 
-    private void Update()
+    private async UniTaskVoid RunStartMessageAsync(CancellationToken cancellationToken)
     {
-        if (currentState == Stage0State.StartMessage && Time.time >= startMessageEndTime)
+        TransitionTo(Stage0State.StartMessage);
+
+        try
+        {
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(startMessageDuration),
+                cancellationToken: cancellationToken
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (currentState == Stage0State.StartMessage)
         {
             TransitionTo(Stage0State.Playing);
         }
@@ -88,11 +104,6 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         var previousState = currentState;
         currentState = nextState;
-
-        if (nextState == Stage0State.StartMessage)
-        {
-            startMessageEndTime = Time.time + startMessageDuration;
-        }
 
         ApplyUiFor(nextState);
         if (hasInitialized)
