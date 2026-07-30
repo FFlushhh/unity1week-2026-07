@@ -655,6 +655,7 @@ MonoBehaviour:
   photoFrame: {fileID: 211000}
   shutterButton: {fileID: 218000}
   gameOverPanel: {fileID: 220000}
+  timerText: {fileID: 216002}
 --- !u!1 &207000
 GameObject:
   m_ObjectHideFlags: 0
