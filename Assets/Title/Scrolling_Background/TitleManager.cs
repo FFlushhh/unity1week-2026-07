@@ -75,7 +75,10 @@ public class TitleManager : MonoBehaviour
         // 【テスト条件対応】Absent Fade References: 参照が欠損していても例外を出さずに遷移する
         if (_fadeSprite == null)
         {
-            Debug.LogWarning("暗転用の SpriteRenderer が割り当てられていません。フェードをスキップしてシーン移動します。");
+            Debug.LogWarning(
+                "暗転用の SpriteRenderer が割り当てられていません。フェードをスキップしてシーン移動します。"
+            );
+
             TriggerSceneLoad();
             yield break;
         }
