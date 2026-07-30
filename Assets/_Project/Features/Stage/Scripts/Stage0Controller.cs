@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// Scene0の進行状態と、状態ごとのUI表示を管理します。
+/// Game_Stage0の進行状態と、状態ごとのUI表示を管理します。
 /// </summary>
 public sealed class Stage0Controller : MonoBehaviour
 {
