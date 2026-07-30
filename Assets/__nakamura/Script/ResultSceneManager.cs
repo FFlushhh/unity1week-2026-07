@@ -139,6 +139,13 @@ namespace ResultScene
             {
                 PlayResult(ResultDataTransporter.CurrentData);
             }
+            else
+            {
+                Debug.LogError(
+                    "[ResultSceneManager] ResultDataTransporter.CurrentData is null! Falling back to the next scene."
+                );
+                OnNextButtonClicked();
+            }
         }
 
         private void Update()
