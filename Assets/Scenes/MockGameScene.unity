@@ -395,7 +395,7 @@ MonoBehaviour:
   MockData:
     PlayerName: "\u30C6\u30B9\u30BF\u30FC"
     LocationName: "\u79CB\u8449\u539F"
-    CapturedImage: {fileID: -1701500213465907276, guid: 487188ed9f756ed488018734b3e57313, type: 3}
+    CapturedImage: {fileID: 2800000, guid: 487188ed9f756ed488018734b3e57313, type: 3}
     BaseScore: 1000
     Bonuses:
     - BonusName: "\u72AC"

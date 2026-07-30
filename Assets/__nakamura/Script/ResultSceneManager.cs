@@ -118,7 +118,7 @@ namespace ResultScene
         private GameObject _nextButton;
 
         [SerializeField]
-        private Camera _mainCamera;
+        private RectTransform _shakeTarget;
 
         [SerializeField]
         private string _nextSceneName = "MockGameScene";
@@ -131,13 +131,14 @@ namespace ResultScene
 
         private void Start()
         {
-            if (_useTestData) //デバッグ用
-            {
-                PlayResult(_testData);
-            }
-            else if (ResultDataTransporter.CurrentData != null)
+            if (ResultDataTransporter.CurrentData != null)
             {
                 PlayResult(ResultDataTransporter.CurrentData);
+                ResultDataTransporter.CurrentData = null; // 受け取ったデータをクリア
+            }
+            else if (_useTestData) //デバッグ用
+            {
+                PlayResult(_testData);
             }
             else
             {
@@ -248,7 +249,7 @@ namespace ResultScene
             yield return StampAnimationSequenceCoroutine();
 
             if (!_isSkipped)
-                StartCoroutine(CameraShakeCoroutine(0.2f, 0.3f));
+                StartCoroutine(UIShakeCoroutine(0.2f, 15f));
 
             yield return WaitOrSkipCoroutine(0.5f);
 
@@ -395,7 +396,8 @@ namespace ResultScene
 
         private void UpdateScoreTexts(int score)
         {
-            string scoreStr = score.ToString();
+            int displayScore = Mathf.Max(0, score);
+            string scoreStr = displayScore.ToString();
             if (_totalScoreText != null)
                 _totalScoreText.text = scoreStr;
             if (_likeCountText != null)
@@ -444,26 +446,22 @@ namespace ResultScene
             }
         }
 
-        private IEnumerator CameraShakeCoroutine(float duration, float magnitude)
+        private IEnumerator UIShakeCoroutine(float duration, float magnitude)
         {
-            if (_mainCamera == null)
+            if (_shakeTarget == null)
                 yield break;
-            Vector3 originalPos = _mainCamera.transform.localPosition;
+            Vector2 originalPos = _shakeTarget.anchoredPosition;
             float elapsed = 0.0f;
 
             while (elapsed < duration && !_isSkipped)
             {
                 float x = Random.Range(-1f, 1f) * magnitude;
                 float y = Random.Range(-1f, 1f) * magnitude;
-                _mainCamera.transform.localPosition = new Vector3(
-                    originalPos.x + x,
-                    originalPos.y + y,
-                    originalPos.z
-                );
+                _shakeTarget.anchoredPosition = new Vector2(originalPos.x + x, originalPos.y + y);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            _mainCamera.transform.localPosition = originalPos;
+            _shakeTarget.anchoredPosition = originalPos;
         }
 
         private void FinishSequence()

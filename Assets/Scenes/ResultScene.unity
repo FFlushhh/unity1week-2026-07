@@ -1186,9 +1186,17 @@ MonoBehaviour:
   _bonusMaster:
   - BonusName: "\u72AC"
     ScorePerItem: 500
+  - BonusName: "\u6C5A\u308C\u305F\u670D\u306E\u4EBA"
+    ScorePerItem: -600
+  - BonusName: "\u72C2\u72AC"
+    ScorePerItem: -800
+  - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
+    ScorePerItem: -100
   - BonusName: "\u9CE5"
     ScorePerItem: 800
-  _snsImage: {fileID: 44390063}
+  - BonusName: "\u30B9\u30BA\u30E1"
+    ScorePerItem: 5
+  _snsImage: {fileID: 0}
   _userNameText: {fileID: 301994809}
   _postText: {fileID: 1645326716}
   _likeCountText: {fileID: 1597735463}
@@ -1213,7 +1221,7 @@ MonoBehaviour:
   _seStamp: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
   _seScoreCount: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
   _nextButton: {fileID: 1281648621}
-  _mainCamera: {fileID: 1573646196}
+  _shakeTarget: {fileID: 2105531581}
   _nextSceneName: MockGameScene
 --- !u!1 &1414148865
 GameObject:
@@ -2130,7 +2138,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 71.75
+  m_fontSize: 72
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
