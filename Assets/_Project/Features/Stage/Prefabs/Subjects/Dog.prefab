@@ -105,5 +105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d08b7204b6c342e2920b4cb9c374f42e, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  moveDirection: 0
   moveSpeed: 2
-  destroyPositionX: 10
+  despawnPositionX: 10
