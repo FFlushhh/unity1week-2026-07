@@ -530,5 +530,14 @@ namespace ResultScene
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
         }
+
+        private void OnDestroy()
+        {
+            if (_snsImage != null && _snsImage.texture != null)
+            {
+                Destroy(_snsImage.texture);
+                _snsImage.texture = null;
+            }
+        }
     }
 }
