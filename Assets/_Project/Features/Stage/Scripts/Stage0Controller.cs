@@ -40,6 +40,15 @@ public sealed class Stage0Controller : MonoBehaviour
     [SerializeField]
     private GameObject gameOverPanel;
 
+    [SerializeField, Min(0f)]
+    private float gameOverFadeDuration = 0.5f;
+
+    [SerializeField]
+    private CanvasGroup gameOverFade;
+
+    [SerializeField]
+    private GameObject gameOverContent;
+
     [SerializeField]
     private TMP_Text timerText;
 
@@ -149,13 +158,68 @@ public sealed class Stage0Controller : MonoBehaviour
 
     private void ApplyUiFor(Stage0State state)
     {
-        var isGameplayVisible = state != Stage0State.GameOver;
-
         SetActive(startMessage, state == Stage0State.StartMessage);
-        SetActive(timer, isGameplayVisible);
-        SetActive(photoFrame, isGameplayVisible);
+
+        if (state == Stage0State.GameOver)
+        {
+            BeginGameOverPresentation();
+            return;
+        }
+
+        SetActive(timer, true);
+        SetActive(photoFrame, true);
         SetActive(shutterButton, state == Stage0State.Playing);
-        SetActive(gameOverPanel, state == Stage0State.GameOver);
+        ResetGameOverPresentation();
+    }
+
+    private void BeginGameOverPresentation()
+    {
+        if (gameOverPanel == null || gameOverFade == null || gameOverContent == null)
+        {
+            Debug.LogError("[Stage0Controller] Game over UI is not assigned.", this);
+            SetActive(gameOverPanel, true);
+            return;
+        }
+
+        SetActive(gameOverPanel, true);
+        SetActive(gameOverContent, false);
+        gameOverFade.alpha = 0f;
+        RunGameOverPresentationAsync(destroyCancellationToken).Forget();
+    }
+
+    private async UniTask RunGameOverPresentationAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var elapsedTime = 0f;
+            while (elapsedTime < gameOverFadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                gameOverFade.alpha = Mathf.Clamp01(elapsedTime / gameOverFadeDuration);
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        gameOverFade.alpha = 1f;
+        SetActive(timer, false);
+        SetActive(photoFrame, false);
+        SetActive(shutterButton, false);
+        SetActive(gameOverContent, true);
+    }
+
+    private void ResetGameOverPresentation()
+    {
+        if (gameOverFade != null)
+        {
+            gameOverFade.alpha = 1f;
+        }
+
+        SetActive(gameOverContent, true);
+        SetActive(gameOverPanel, false);
     }
 
     private void UpdateTimer()

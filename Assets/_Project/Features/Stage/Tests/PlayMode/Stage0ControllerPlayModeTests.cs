@@ -36,7 +36,37 @@ public sealed class Stage0ControllerPlayModeTests
 
         Assert.That(controller.RemainingTime, Is.Zero);
         Assert.That(GetPrivateField<GameObject>(controller, "gameOverPanel").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "photoFrame").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "gameOverContent").activeSelf, Is.True);
+        Assert.That(GetPrivateField<CanvasGroup>(controller, "gameOverFade").alpha, Is.EqualTo(1f));
         Assert.That(GetPrivateField<TMP_Text>(controller, "timerText").text, Is.EqualTo("0.0"));
+    }
+
+    [UnityTest]
+    public IEnumerator GameOverHidesContentUntilTheBlackFadeCompletes()
+    {
+        var controller = CreateController(startMessageDuration: 0f, playingDuration: 0f);
+        SetPrivateField(controller, "gameOverFadeDuration", 0.1f);
+
+        yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
+
+        Assert.That(
+            GetPrivateField<GameObject>(controller, "gameOverContent").activeSelf,
+            Is.False
+        );
+        Assert.That(
+            GetPrivateField<CanvasGroup>(controller, "gameOverFade").alpha,
+            Is.LessThan(1f)
+        );
+
+        yield return new WaitForSeconds(0.2f);
+
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "photoFrame").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "gameOverContent").activeSelf, Is.True);
+        Assert.That(GetPrivateField<CanvasGroup>(controller, "gameOverFade").alpha, Is.EqualTo(1f));
     }
 
     [UnityTest]
@@ -85,9 +115,12 @@ public sealed class Stage0ControllerPlayModeTests
         var photoFrame = CreateGameObject("PhotoFrame");
         var shutterButton = CreateGameObject("ShutterButton");
         var gameOverPanel = CreateGameObject("GameOverPanel");
+        var gameOverContent = CreateGameObject("GameOverContent");
+        var gameOverFade = gameOverPanel.AddComponent<CanvasGroup>();
         var timerText = timerObject.AddComponent<TextMeshProUGUI>();
         var controller = controllerObject.AddComponent<Stage0Controller>();
 
+        gameOverContent.transform.SetParent(gameOverPanel.transform);
         gameOverPanel.SetActive(false);
         SetPrivateField(controller, "startMessageDuration", startMessageDuration);
         SetPrivateField(controller, "playingDuration", playingDuration);
@@ -96,6 +129,9 @@ public sealed class Stage0ControllerPlayModeTests
         SetPrivateField(controller, "photoFrame", photoFrame);
         SetPrivateField(controller, "shutterButton", shutterButton);
         SetPrivateField(controller, "gameOverPanel", gameOverPanel);
+        SetPrivateField(controller, "gameOverFadeDuration", 0f);
+        SetPrivateField(controller, "gameOverFade", gameOverFade);
+        SetPrivateField(controller, "gameOverContent", gameOverContent);
         SetPrivateField(controller, "timerText", timerText);
 
         return controller;
