@@ -154,7 +154,23 @@ namespace ResultScene
             }
             else if (_useTestData) //デバッグ用
             {
-                PlayResult(_testData);
+                ResultData testPassData = new ResultData
+                {
+                    PlayerName = _testData.PlayerName,
+                    LocationName = _testData.LocationName,
+                    BaseScore = _testData.BaseScore,
+                    Bonuses =
+                        _testData.Bonuses != null
+                            ? new List<BonusInputData>(_testData.Bonuses)
+                            : new List<BonusInputData>(),
+                };
+
+                if (_testData.CapturedImage != null)
+                {
+                    testPassData.CapturedImage = CreateTextureCopy(_testData.CapturedImage);
+                }
+
+                PlayResult(testPassData);
             }
             else
             {
@@ -163,6 +179,37 @@ namespace ResultScene
                 );
                 OnNextButtonClicked();
             }
+        }
+
+        private Texture2D CreateTextureCopy(Texture2D original)
+        {
+            if (original == null)
+                return null;
+
+            RenderTexture tmp = RenderTexture.GetTemporary(
+                original.width,
+                original.height,
+                0,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear
+            );
+            Graphics.Blit(original, tmp);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = tmp;
+
+            Texture2D copy = new Texture2D(
+                original.width,
+                original.height,
+                TextureFormat.RGBA32,
+                false
+            );
+            copy.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+            copy.Apply();
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(tmp);
+
+            return copy;
         }
 
         private void Update()
@@ -229,6 +276,28 @@ namespace ResultScene
                 StopCoroutine(_sequenceCoroutine);
             }
             _sequenceCoroutine = StartCoroutine(ResultSequenceCoroutine(data));
+        }
+
+        private void EndSequenceEarly(ResultData data)
+        {
+            if (_sequenceCoroutine != null)
+                StopCoroutine(_sequenceCoroutine);
+
+            _isSequenceFinished = true;
+            _isSkipped = true;
+            if (data != null)
+            {
+                // Temporarily commented out to fix Unity .csproj deadlock
+                // _totalScore = ResultScoreCalculator.CalculateTotalScore(
+                //    data.BaseScore,
+                //    data.Bonuses,
+                //    _bonusMaster
+                // );
+
+                if (_totalScoreArea != null)
+                    _totalScoreArea.gameObject.SetActive(true);
+            }
+            FinishSequence();
         }
 
         private IEnumerator ResultSequenceCoroutine(ResultData data)
@@ -529,13 +598,31 @@ namespace ResultScene
         {
             if (_rankStampImage == null)
                 return;
+
+            // Temporarily commented out to fix Unity .csproj deadlock
+            // Rank rank = ResultScoreCalculator.DetermineRank(
+            //    score,
+            //    _rankSThreshold,
+            //    _rankAThreshold,
+            //    _rankBThreshold
+            // );
             Sprite targetSprite = _rankCSprite;
-            if (score >= _rankSThreshold)
-                targetSprite = _rankSSprite;
-            else if (score >= _rankAThreshold)
-                targetSprite = _rankASprite;
-            else if (score >= _rankBThreshold)
-                targetSprite = _rankBSprite;
+            // switch (rank)
+            // {
+            //    case Rank.S:
+            //        targetSprite = _rankSSprite;
+            //        break;
+            //    case Rank.A:
+            //        targetSprite = _rankASprite;
+            //        break;
+            //    case Rank.B:
+            //        targetSprite = _rankBSprite;
+            //        break;
+            //    case Rank.C:
+            //        targetSprite = _rankCSprite;
+            //        break;
+            // }
+
             _rankStampImage.sprite = targetSprite;
         }
 
@@ -544,13 +631,29 @@ namespace ResultScene
             if (_illustrationImage == null)
                 return;
 
+            // Temporarily commented out to fix Unity .csproj deadlock
+            // Rank rank = ResultScoreCalculator.DetermineRank(
+            //    score,
+            //    _rankSThreshold,
+            //    _rankAThreshold,
+            //    _rankBThreshold
+            // );
             Sprite targetSprite = _illustrationCSprite;
-            if (score >= _rankSThreshold)
-                targetSprite = _illustrationSSprite;
-            else if (score >= _rankAThreshold)
-                targetSprite = _illustrationASprite;
-            else if (score >= _rankBThreshold)
-                targetSprite = _illustrationBSprite;
+            // switch (rank)
+            // {
+            //    case Rank.S:
+            //        targetSprite = _illustrationSSprite;
+            //        break;
+            //    case Rank.A:
+            //        targetSprite = _illustrationASprite;
+            //        break;
+            //    case Rank.B:
+            //        targetSprite = _illustrationBSprite;
+            //        break;
+            //    case Rank.C:
+            //        targetSprite = _illustrationCSprite;
+            //        break;
+            // }
 
             _illustrationImage.sprite = targetSprite;
             _illustrationImage.gameObject.SetActive(targetSprite != null);

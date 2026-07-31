@@ -25,11 +25,60 @@ namespace ResultScene
         /// </summary>
         public void GoToResult()
         {
-            // データをトランスポーターに預ける
-            ResultDataTransporter.CurrentData = MockData;
+            // データをトランスポーターに預ける前にコピーを生成
+            // （ResultScene側でテクスチャを破棄する所有権ルールのため、元アセットを守る）
+            ResultData passData = new ResultData
+            {
+                PlayerName = MockData.PlayerName,
+                LocationName = MockData.LocationName,
+                BaseScore = MockData.BaseScore,
+                Bonuses =
+                    MockData.Bonuses != null
+                        ? new List<BonusInputData>(MockData.Bonuses)
+                        : new List<BonusInputData>(),
+            };
+
+            if (MockData.CapturedImage != null)
+            {
+                // 非Readableなアセットテクスチャでもクローンできるように、RenderTextureを経由してコピー
+                passData.CapturedImage = CreateTextureCopy(MockData.CapturedImage);
+            }
+
+            ResultDataTransporter.CurrentData = passData;
 
             // ResultSceneをロード
             SceneManager.LoadScene("ResultScene");
+        }
+
+        private Texture2D CreateTextureCopy(Texture2D original)
+        {
+            if (original == null)
+                return null;
+
+            RenderTexture tmp = RenderTexture.GetTemporary(
+                original.width,
+                original.height,
+                0,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear
+            );
+            Graphics.Blit(original, tmp);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = tmp;
+
+            Texture2D copy = new Texture2D(
+                original.width,
+                original.height,
+                TextureFormat.RGBA32,
+                false
+            );
+            copy.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+            copy.Apply();
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(tmp);
+
+            return copy;
         }
     }
 }
