@@ -1,67 +1,73 @@
 using System.Collections;
 using UnityEngine;
+// 新しいInput Systemを使用するための名前空間を追加
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
     [Header("フェード用Sprite")]
     [SerializeField]
-    private SpriteRenderer _fadeSprite; // 暗転用のSpriteRenderer
+    private SpriteRenderer _fadeSprite; // 暗転用のSpriteRenderer[cite: 1]
 
     [SerializeField]
-    private float _fadeDuration = 1.0f; // 暗転にかかる時間（秒）
+    private float _fadeDuration = 1.0f; // 暗転にかかる時間（秒）[cite: 1]
 
     [Header("遷移先")]
     [SerializeField]
-    private string _nextSceneName = "GameScene"; // 遷移したいシーン名
+    private string _nextSceneName = "GameScene"; // 遷移したいシーン名[cite: 1]
 
-    private bool _isFading = false;
-
+    private bool _isFading = false; //[cite: 1]
     #region テスト検証・設定用プロパティ (Test Runner用)
-    /// <summary>
-    /// 現在フェード中（または処理中）かどうかを取得
-    /// </summary>
-    public bool IsFading => _isFading;
-
-    /// <summary>
-    /// テスト等からフェード時間を動的に変更/検証するためのプロパティ
-    /// </summary>
+    public bool IsFading => _isFading; //[cite: 1]
     public float FadeDuration
     {
         get => _fadeDuration;
         set => _fadeDuration = value;
-    }
-
-    /// <summary>
-    /// テスト等から遷移先シーン名を動的に変更/検証するためのプロパティ
-    /// </summary>
+    } //[cite: 1]
     public string NextSceneName
     {
         get => _nextSceneName;
         set => _nextSceneName = value;
-    }
-
-    /// <summary>
-    /// シーン遷移処理が最後まで完了したかどうかのフラグ（テスト用）
-    /// </summary>
-    public bool IsTransitionCompleted { get; private set; } = false;
+    } //[cite: 1]
+    public bool IsTransitionCompleted { get; private set; } = false; //[cite: 1]
     #endregion
 
     private void Start()
     {
-        // 開始時はフェード用Spriteを完全に透明（アルファ値 = 0）にしておく
-        if (_fadeSprite != null)
+        if (_fadeSprite != null) //[cite: 1]
         {
-            Color color = _fadeSprite.color;
-            color.a = 0f;
-            _fadeSprite.color = color;
+            Color color = _fadeSprite.color; //[cite: 1]
+            color.a = 0f; //[cite: 1]
+            _fadeSprite.color = color; //[cite: 1]
         }
     }
 
-    // ボタンの OnClick() などから呼び出すメソッド
+    private void Update()
+    {
+        // 新しいInput Systemでのキーボード入力監視
+        var keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            // Spaceキー、またはEnterキー（Return/テンキーのEnter）が「このフレームで押されたか」を判定
+            if (
+                keyboard.spaceKey.wasPressedThisFrame
+                || keyboard.enterKey.wasPressedThisFrame
+                || keyboard.numpadEnterKey.wasPressedThisFrame
+            )
+            {
+                StartGameProcess();
+            }
+        }
+    }
+
     public void OnStartButtonClicked()
     {
-        // 連続押し防止（Repeat Activation の抑制）
+        StartGameProcess();
+    }
+
+    private void StartGameProcess()
+    {
         if (_isFading)
             return;
 
@@ -70,53 +76,47 @@ public class TitleManager : MonoBehaviour
 
     private IEnumerator FadeAndLoadScene()
     {
-        _isFading = true;
+        _isFading = true; //[cite: 1]
 
-        // 【テスト条件対応】Absent Fade References: 参照が欠損していても例外を出さずに遷移する
-        if (_fadeSprite == null)
+        if (_fadeSprite == null) //[cite: 1]
         {
             Debug.LogWarning(
                 "暗転用の SpriteRenderer が割り当てられていません。フェードをスキップしてシーン移動します。"
-            );
-
-            TriggerSceneLoad();
-            yield break;
+            ); //[cite: 1]
+            TriggerSceneLoad(); //[cite: 1]
+            yield break; //[cite: 1]
         }
 
-        // 【テスト条件対応】Zero-duration Fades: 時間が0以下の場合はループせずに即時真っ黒にする
-        if (_fadeDuration <= 0f)
+        if (_fadeDuration <= 0f) //[cite: 1]
         {
-            Color c = _fadeSprite.color;
-            c.a = 1f;
-            _fadeSprite.color = c;
+            Color c = _fadeSprite.color; //[cite: 1]
+            c.a = 1f; //[cite: 1]
+            _fadeSprite.color = c; //[cite: 1]
         }
         else
         {
-            float time = 0f;
-            Color color = _fadeSprite.color;
+            float time = 0f; //[cite: 1]
+            Color color = _fadeSprite.color; //[cite: 1]
 
-            // 時間経過で Alpha（透明度）を 0 から 1 へ（徐々に暗転）
-            while (time < _fadeDuration)
+            while (time < _fadeDuration) //[cite: 1]
             {
-                time += Time.deltaTime;
-                color.a = Mathf.Clamp01(time / _fadeDuration);
-                _fadeSprite.color = color;
-                yield return null; // 1フレーム待機
+                time += Time.deltaTime; //[cite: 1]
+                color.a = Mathf.Clamp01(time / _fadeDuration); //[cite: 1]
+                _fadeSprite.color = color; //[cite: 1]
+                yield return null; //[cite: 1]
             }
         }
 
-        // シーン切り替えを実行
-        TriggerSceneLoad();
+        TriggerSceneLoad(); //[cite: 1]
     }
 
     private void TriggerSceneLoad()
     {
-        IsTransitionCompleted = true;
+        IsTransitionCompleted = true; //[cite: 1]
 
-        // Build Settingsに登録されていないシーン名でのロードによるクラッシュを防ぐガード（必要に応じて）
-        if (!string.IsNullOrEmpty(_nextSceneName))
+        if (!string.IsNullOrEmpty(_nextSceneName)) //[cite: 1]
         {
-            SceneManager.LoadScene(_nextSceneName);
+            SceneManager.LoadScene(_nextSceneName); //[cite: 1]
         }
     }
 }
