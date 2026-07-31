@@ -68,6 +68,26 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(spawnRoot.childCount, Is.EqualTo(1));
     }
 
+    [UnityTest]
+    public IEnumerator GameOverStopsSpawnedDog()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
+
+        yield return null;
+
+        var dog = spawnRoot.GetChild(0);
+        stageController.EnterGameOver();
+        yield return null;
+        var stoppedPositionX = dog.position.x;
+
+        yield return null;
+
+        Assert.That(dog.position.x, Is.EqualTo(stoppedPositionX));
+    }
+
     private Stage0Controller CreateStageController(Stage0Controller.Stage0State state)
     {
         var stageController = CreateGameObject("Stage0Controller").AddComponent<Stage0Controller>();

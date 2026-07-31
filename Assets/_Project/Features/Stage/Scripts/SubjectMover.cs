@@ -20,14 +20,27 @@ public sealed class SubjectMover : MonoBehaviour
     [SerializeField, Min(0f)]
     private float despawnPositionX = 10f;
 
+    private bool isStopped;
+
     public void Configure(SubjectMoveDirection direction, float speed)
     {
         moveDirection = direction;
         moveSpeed = Mathf.Max(0f, speed);
+        isStopped = false;
+    }
+
+    public void Stop()
+    {
+        isStopped = true;
     }
 
     private void Update()
     {
+        if (isStopped)
+        {
+            return;
+        }
+
         if (HasReachedDespawnPosition())
         {
             Destroy(gameObject);

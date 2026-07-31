@@ -2321,3 +2321,33 @@ MonoBehaviour:
     moveDirection: 0
     moveSpeed: 2
     scale: 1
+  - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
+    spawnTimeSeconds: 2
+    spawnPosition: {x: -10, y: 2}
+    moveDirection: 0
+    moveSpeed: 1.5
+    scale: 1
+  - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
+    spawnTimeSeconds: 3
+    spawnPosition: {x: 10, y: -1}
+    moveDirection: 1
+    moveSpeed: 2.5
+    scale: 1
+  - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
+    spawnTimeSeconds: 4.5
+    spawnPosition: {x: -10, y: -2}
+    moveDirection: 0
+    moveSpeed: 1.8
+    scale: 1
+  - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
+    spawnTimeSeconds: 6
+    spawnPosition: {x: 10, y: 2}
+    moveDirection: 1
+    moveSpeed: 3
+    scale: 1
+  - subjectPrefab: {fileID: 440001, guid: be4bf6ac0a774ff2a099eeb4fbcf275c, type: 3}
+    spawnTimeSeconds: 8
+    spawnPosition: {x: -10, y: 1}
+    moveDirection: 0
+    moveSpeed: 3
+    scale: 1

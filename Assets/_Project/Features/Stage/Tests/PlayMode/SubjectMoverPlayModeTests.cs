@@ -59,6 +59,19 @@ public sealed class SubjectMoverPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator StopKeepsSubjectAtItsCurrentPosition()
+    {
+        var mover = CreateMover(positionX: -1f, moveSpeed: 2f);
+        mover.Stop();
+        var stoppedPositionX = subject.transform.position.x;
+
+        yield return null;
+
+        Assert.That(subject, Is.Not.Null);
+        Assert.That(subject.transform.position.x, Is.EqualTo(stoppedPositionX));
+    }
+
+    [UnityTest]
     public IEnumerator ReachingRightDespawnPositionDestroysSubject()
     {
         CreateMover(positionX: 10f, moveSpeed: 2f);

@@ -54,22 +54,33 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private readonly List<GameObject> spawnedSubjects = new();
     private bool[] hasSpawned;
+    private bool hasStoppedForGameOver;
     private float elapsedTimeSeconds;
 
     private void Start()
     {
         ResetTimeline();
-        RunTimelineAsync(destroyCancellationToken).Forget();
-    }
 
-    private async UniTask RunTimelineAsync(CancellationToken cancellationToken)
-    {
         if (stageController == null)
         {
             Debug.LogError("[SubjectTimelineController] Stage controller is not assigned.", this);
             return;
         }
 
+        stageController.StateChanged += HandleStageStateChanged;
+        RunTimelineAsync(destroyCancellationToken).Forget();
+    }
+
+    private void OnDestroy()
+    {
+        if (stageController != null)
+        {
+            stageController.StateChanged -= HandleStageStateChanged;
+        }
+    }
+
+    private async UniTask RunTimelineAsync(CancellationToken cancellationToken)
+    {
         var previousState = stageController.CurrentState;
 
         try
@@ -83,6 +94,12 @@ public sealed class SubjectTimelineController : MonoBehaviour
                 )
                 {
                     ResetTimeline();
+                }
+
+                if (currentState == Stage0Controller.Stage0State.GameOver && !hasStoppedForGameOver)
+                {
+                    StopSpawnedSubjects();
+                    hasStoppedForGameOver = true;
                 }
 
                 if (IsTimelineRunning(currentState))
@@ -101,6 +118,17 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
     }
 
+    private void HandleStageStateChanged(Stage0Controller.Stage0State state)
+    {
+        if (state != Stage0Controller.Stage0State.GameOver || hasStoppedForGameOver)
+        {
+            return;
+        }
+
+        StopSpawnedSubjects();
+        hasStoppedForGameOver = true;
+    }
+
     private static bool IsTimelineRunning(Stage0Controller.Stage0State state)
     {
         return state == Stage0Controller.Stage0State.Playing
@@ -111,6 +139,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
     {
         elapsedTimeSeconds = 0f;
         hasSpawned = new bool[spawnSettings?.Length ?? 0];
+        hasStoppedForGameOver = false;
         DestroySpawnedSubjects();
     }
 
@@ -149,7 +178,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
         var subject = Instantiate(spawnSetting.SubjectPrefab, subjectSpawnRoot);
         subject.transform.localPosition = spawnSetting.SpawnPosition;
-        subject.transform.localScale = Vector3.one * spawnSetting.Scale;
+        subject.transform.localScale *= spawnSetting.Scale;
 
         var subjectMover = subject.GetComponent<SubjectMover>();
         if (subjectMover == null)
@@ -164,6 +193,20 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
         subjectMover.Configure(spawnSetting.MoveDirection, spawnSetting.MoveSpeed);
         spawnedSubjects.Add(subject);
+    }
+
+    private void StopSpawnedSubjects()
+    {
+        foreach (var spawnedSubject in spawnedSubjects)
+        {
+            if (
+                spawnedSubject != null
+                && spawnedSubject.TryGetComponent<SubjectMover>(out var subjectMover)
+            )
+            {
+                subjectMover.Stop();
+            }
+        }
     }
 
     private void DestroySpawnedSubjects()

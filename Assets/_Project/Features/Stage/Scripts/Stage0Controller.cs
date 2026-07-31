@@ -51,6 +51,8 @@ public sealed class Stage0Controller : MonoBehaviour
 
     public float RemainingTime => remainingTime;
 
+    public event Action<Stage0State> StateChanged;
+
     private void Start()
     {
         RunStartMessageAsync(destroyCancellationToken).Forget();
@@ -125,6 +127,7 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         var previousState = currentState;
         currentState = nextState;
+        StateChanged?.Invoke(currentState);
 
         if (nextState == Stage0State.Playing)
         {
