@@ -82,7 +82,7 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         if (
             currentState == Stage0State.Playing
-            || currentState == Stage0State.CapturedWaitingForTimeout
+            || (currentState == Stage0State.CapturedWaitingForTimeout && remainingTime > 0f)
         )
         {
             UpdateTimer();
