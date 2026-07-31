@@ -212,9 +212,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 44390060}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
   m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_RaycastTarget: 1
@@ -223,16 +223,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!1 &169824210
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,7 +1193,7 @@ MonoBehaviour:
     ScorePerItem: 800
   - BonusName: "\u30B9\u30BA\u30E1"
     ScorePerItem: 5
-  _snsImage: {fileID: 0}
+  _snsImage: {fileID: 44390063}
   _userNameText: {fileID: 301994809}
   _postText: {fileID: 1645326716}
   _likeCountText: {fileID: 1597735463}
@@ -1221,7 +1218,7 @@ MonoBehaviour:
   _seStamp: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
   _seScoreCount: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
   _nextButton: {fileID: 1281648621}
-  _shakeTarget: {fileID: 2105531581}
+  _shakeTarget: {fileID: 235239936}
   _nextSceneName: MockGameScene
 --- !u!1 &1414148865
 GameObject:
