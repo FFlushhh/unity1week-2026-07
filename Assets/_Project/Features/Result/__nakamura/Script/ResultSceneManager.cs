@@ -84,6 +84,19 @@ namespace ResultScene
         [SerializeField]
         private int _rankBThreshold = 5000;
 
+        [Header("Post Texts")]
+        [SerializeField, TextArea(2, 4)]
+        private string _postTextRankS = "奇跡の一枚が撮れた！最高！！";
+
+        [SerializeField, TextArea(2, 4)]
+        private string _postTextRankA = "かなり良い写真かも！";
+
+        [SerializeField, TextArea(2, 4)]
+        private string _postTextRankB = "まあまあかな。次はもっと頑張る";
+
+        [SerializeField, TextArea(2, 4)]
+        private string _postTextRankC = "うーん、ちょっとタイミングが悪かったかも…";
+
         [Header("Rank Sprites")]
         [SerializeField]
         private Sprite _rankSSprite;
@@ -287,12 +300,11 @@ namespace ResultScene
             _isSkipped = true;
             if (data != null)
             {
-                // Temporarily commented out to fix Unity .csproj deadlock
-                // _totalScore = ResultScoreCalculator.CalculateTotalScore(
-                //    data.BaseScore,
-                //    data.Bonuses,
-                //    _bonusMaster
-                // );
+                _totalScore = ResultScoreCalculator.CalculateTotalScore(
+                    data.BaseScore,
+                    data.Bonuses,
+                    _bonusMaster
+                );
 
                 if (_totalScoreArea != null)
                     _totalScoreArea.gameObject.SetActive(true);
@@ -395,12 +407,19 @@ namespace ResultScene
 
         private void GenerateSnsContent(ResultData data)
         {
-            string autoText = _totalScore switch
+            Rank rank = ResultScoreCalculator.DetermineRank(
+                _totalScore,
+                _rankSThreshold,
+                _rankAThreshold,
+                _rankBThreshold
+            );
+            string autoText = rank switch
             {
-                var s when s >= _rankSThreshold => "奇跡の一枚が撮れた！最高！！",
-                var s when s >= _rankAThreshold => "かなり良い写真かも！",
-                var s when s >= _rankBThreshold => "まあまあかな。次はもっと頑張る",
-                _ => "うーん、ちょっとタイミングが悪かったかも…",
+                Rank.S => _postTextRankS,
+                Rank.A => _postTextRankA,
+                Rank.B => _postTextRankB,
+                Rank.C => _postTextRankC,
+                _ => _postTextRankC,
             };
 
             if (_postText != null)
@@ -599,29 +618,28 @@ namespace ResultScene
             if (_rankStampImage == null)
                 return;
 
-            // Temporarily commented out to fix Unity .csproj deadlock
-            // Rank rank = ResultScoreCalculator.DetermineRank(
-            //    score,
-            //    _rankSThreshold,
-            //    _rankAThreshold,
-            //    _rankBThreshold
-            // );
+            Rank rank = ResultScoreCalculator.DetermineRank(
+                score,
+                _rankSThreshold,
+                _rankAThreshold,
+                _rankBThreshold
+            );
             Sprite targetSprite = _rankCSprite;
-            // switch (rank)
-            // {
-            //    case Rank.S:
-            //        targetSprite = _rankSSprite;
-            //        break;
-            //    case Rank.A:
-            //        targetSprite = _rankASprite;
-            //        break;
-            //    case Rank.B:
-            //        targetSprite = _rankBSprite;
-            //        break;
-            //    case Rank.C:
-            //        targetSprite = _rankCSprite;
-            //        break;
-            // }
+            switch (rank)
+            {
+                case Rank.S:
+                    targetSprite = _rankSSprite;
+                    break;
+                case Rank.A:
+                    targetSprite = _rankASprite;
+                    break;
+                case Rank.B:
+                    targetSprite = _rankBSprite;
+                    break;
+                case Rank.C:
+                    targetSprite = _rankCSprite;
+                    break;
+            }
 
             _rankStampImage.sprite = targetSprite;
         }
@@ -631,29 +649,28 @@ namespace ResultScene
             if (_illustrationImage == null)
                 return;
 
-            // Temporarily commented out to fix Unity .csproj deadlock
-            // Rank rank = ResultScoreCalculator.DetermineRank(
-            //    score,
-            //    _rankSThreshold,
-            //    _rankAThreshold,
-            //    _rankBThreshold
-            // );
+            Rank rank = ResultScoreCalculator.DetermineRank(
+                score,
+                _rankSThreshold,
+                _rankAThreshold,
+                _rankBThreshold
+            );
             Sprite targetSprite = _illustrationCSprite;
-            // switch (rank)
-            // {
-            //    case Rank.S:
-            //        targetSprite = _illustrationSSprite;
-            //        break;
-            //    case Rank.A:
-            //        targetSprite = _illustrationASprite;
-            //        break;
-            //    case Rank.B:
-            //        targetSprite = _illustrationBSprite;
-            //        break;
-            //    case Rank.C:
-            //        targetSprite = _illustrationCSprite;
-            //        break;
-            // }
+            switch (rank)
+            {
+                case Rank.S:
+                    targetSprite = _illustrationSSprite;
+                    break;
+                case Rank.A:
+                    targetSprite = _illustrationASprite;
+                    break;
+                case Rank.B:
+                    targetSprite = _illustrationBSprite;
+                    break;
+                case Rank.C:
+                    targetSprite = _illustrationCSprite;
+                    break;
+            }
 
             _illustrationImage.sprite = targetSprite;
             _illustrationImage.gameObject.SetActive(targetSprite != null);
