@@ -2,6 +2,7 @@
   "name": "Project.Stage.PhotoPreview.PlayModeTests",
   "rootNamespace": "",
   "references": [
+    "Project.Stage",
     "UnityEngine.UI"
   ],
   "includePlatforms": [],
