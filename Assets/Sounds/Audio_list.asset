@@ -45,4 +45,4 @@ MonoBehaviour:
   - clip: {fileID: 8300000, guid: 506cfe5685db5074f8ba690837ab3303, type: 3}
     volume: 1
   - clip: {fileID: 8300000, guid: ccad0a16bc9684a41b9cda2841c6a2d8, type: 3}
-    volume: 0
+    volume: 1
