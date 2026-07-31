@@ -73,7 +73,7 @@ public class TitleManager : MonoBehaviour
             return;
 
         StartCoroutine(FadeAndLoadScene());
-        SoundManager.Instance.PlaySE(12);
+        SoundManager.Instance.PlaySE(14);
     }
 
     private IEnumerator FadeAndLoadScene()
