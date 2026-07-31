@@ -97,6 +97,22 @@ namespace ResultScene
         [SerializeField]
         private Sprite _rankCSprite;
 
+        [Header("Rank Illustration")]
+        [SerializeField]
+        private Image _illustrationImage;
+
+        [SerializeField]
+        private Sprite _illustrationSSprite;
+
+        [SerializeField]
+        private Sprite _illustrationASprite;
+
+        [SerializeField]
+        private Sprite _illustrationBSprite;
+
+        [SerializeField]
+        private Sprite _illustrationCSprite;
+
         [Header("Audio")]
         [SerializeField]
         private AudioSource _audioSource;
@@ -261,6 +277,7 @@ namespace ResultScene
             if (_rankLabel != null)
                 _rankLabel.SetActive(true);
             SetRankStamp(_totalScore);
+            SetIllustration(_totalScore);
 
             if (!_isSkipped)
                 PlaySound(_seStamp);
@@ -295,6 +312,8 @@ namespace ResultScene
                 _rankStampImage.gameObject.SetActive(false);
             if (_rankLabel != null)
                 _rankLabel.SetActive(false);
+            if (_illustrationImage != null)
+                _illustrationImage.gameObject.SetActive(false);
             if (_nextButton != null)
                 _nextButton.SetActive(false);
 
@@ -494,6 +513,8 @@ namespace ResultScene
                 _rankLabel.SetActive(true);
 
             SetRankStamp(_totalScore);
+            SetIllustration(_totalScore);
+
             if (_rankStampImage != null)
             {
                 _rankStampImage.gameObject.SetActive(true);
@@ -516,6 +537,23 @@ namespace ResultScene
             else if (score >= _rankBThreshold)
                 targetSprite = _rankBSprite;
             _rankStampImage.sprite = targetSprite;
+        }
+
+        private void SetIllustration(int score)
+        {
+            if (_illustrationImage == null)
+                return;
+
+            Sprite targetSprite = _illustrationCSprite;
+            if (score >= _rankSThreshold)
+                targetSprite = _illustrationSSprite;
+            else if (score >= _rankAThreshold)
+                targetSprite = _illustrationASprite;
+            else if (score >= _rankBThreshold)
+                targetSprite = _illustrationBSprite;
+
+            _illustrationImage.sprite = targetSprite;
+            _illustrationImage.gameObject.SetActive(targetSprite != null);
         }
 
         private void PlaySound(AudioClip clip)
