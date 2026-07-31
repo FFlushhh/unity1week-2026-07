@@ -41,6 +41,7 @@ public class TitleManager : MonoBehaviour
             color.a = 0f; //[cite: 1]
             _fadeSprite.color = color; //[cite: 1]
         }
+        SoundManager.Instance.PlayBGM(0);
     }
 
     private void Update()
@@ -72,6 +73,7 @@ public class TitleManager : MonoBehaviour
             return;
 
         StartCoroutine(FadeAndLoadScene());
+        SoundManager.Instance.PlaySE(12);
     }
 
     private IEnumerator FadeAndLoadScene()
