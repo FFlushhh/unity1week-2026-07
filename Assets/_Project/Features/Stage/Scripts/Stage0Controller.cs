@@ -56,7 +56,7 @@ public sealed class Stage0Controller : MonoBehaviour
         RunStartMessageAsync(destroyCancellationToken).Forget();
     }
 
-    private async UniTaskVoid RunStartMessageAsync(CancellationToken cancellationToken)
+    private async UniTask RunStartMessageAsync(CancellationToken cancellationToken)
     {
         TransitionTo(Stage0State.StartMessage);
 

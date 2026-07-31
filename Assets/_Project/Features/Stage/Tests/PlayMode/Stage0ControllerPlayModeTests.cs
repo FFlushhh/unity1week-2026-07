@@ -113,8 +113,9 @@ public sealed class Stage0ControllerPlayModeTests
         Stage0Controller.Stage0State expectedState
     )
     {
-        const int maximumFrameCount = 60;
-        for (var frame = 0; frame < maximumFrameCount; frame++)
+        const double timeoutSeconds = 1d;
+        var timeoutAt = Time.realtimeSinceStartupAsDouble + timeoutSeconds;
+        while (Time.realtimeSinceStartupAsDouble < timeoutAt)
         {
             if (controller.CurrentState == expectedState)
             {
@@ -126,7 +127,7 @@ public sealed class Stage0ControllerPlayModeTests
 
         Assert.Fail(
             $"Expected {expectedState}, but the state was {controller.CurrentState} after "
-                + $"{maximumFrameCount} frames."
+                + $"{timeoutSeconds:0.0} seconds."
         );
     }
 
