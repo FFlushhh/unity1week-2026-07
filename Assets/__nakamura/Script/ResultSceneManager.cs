@@ -151,16 +151,20 @@ namespace ResultScene
 
         private void Update()
         {
-            if (!_isSkipped && !_isSequenceFinished)
+            if (CheckActionInput())
             {
-                if (CheckPointerDown())
+                if (!_isSequenceFinished && !_isSkipped)
                 {
                     _isSkipped = true;
+                }
+                else if (_isSequenceFinished)
+                {
+                    OnNextButtonClicked();
                 }
             }
         }
 
-        private bool CheckPointerDown() //クリック（タッチ）判定
+        private bool CheckActionInput() //クリック（タッチ）およびSpace/Enter判定
         {
 #if ENABLE_INPUT_SYSTEM //InputSystemパッケージが有効ならこっちを使う
             if (
@@ -179,9 +183,23 @@ namespace ResultScene
                     .wasPressedThisFrame
             )
                 return true;
+
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (
+                    kb.spaceKey.wasPressedThisFrame
+                    || kb.enterKey.wasPressedThisFrame
+                    || kb.numpadEnterKey.wasPressedThisFrame
+                )
+                    return true;
+            }
             return false;
 #else//InputSystemパッケージが無効ならこっちを使う
-            return Input.GetMouseButtonDown(0);
+            return Input.GetMouseButtonDown(0)
+                || Input.GetKeyDown(KeyCode.Space)
+                || Input.GetKeyDown(KeyCode.Return)
+                || Input.GetKeyDown(KeyCode.KeypadEnter);
 #endif
         }
 
