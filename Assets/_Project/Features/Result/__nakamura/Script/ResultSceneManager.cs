@@ -235,7 +235,7 @@ namespace ResultScene
             {
                 if (!_isSequenceFinished && !_isSkipped)
                 {
-                    _isSkipped = true;
+                    SkipPresentation();
                 }
                 else if (_isSequenceFinished)
                 {
@@ -292,6 +292,8 @@ namespace ResultScene
             {
                 StopCoroutine(_sequenceCoroutine);
             }
+            if (_buzzReactionManager != null)
+                _buzzReactionManager.StopReactionSequence();
             _sequenceCoroutine = StartCoroutine(ResultSequenceCoroutine(data));
         }
 
@@ -301,7 +303,7 @@ namespace ResultScene
                 StopCoroutine(_sequenceCoroutine);
 
             _isSequenceFinished = true;
-            _isSkipped = true;
+            SkipPresentation();
             if (data != null)
             {
                 _totalScore = ResultScoreCalculator.CalculateTotalScore(
@@ -314,6 +316,13 @@ namespace ResultScene
                     _totalScoreArea.gameObject.SetActive(true);
             }
             FinishSequence();
+        }
+
+        private void SkipPresentation()
+        {
+            _isSkipped = true;
+            if (_buzzReactionManager != null)
+                _buzzReactionManager.StopReactionSequence();
         }
 
         private IEnumerator ResultSequenceCoroutine(ResultData data)

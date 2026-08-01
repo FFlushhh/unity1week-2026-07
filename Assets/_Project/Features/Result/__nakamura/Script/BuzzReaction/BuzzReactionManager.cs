@@ -108,7 +108,25 @@ namespace ResultScene.BuzzReaction
 
         public void StartReactionSequence()
         {
+            StopReactionSequence();
             StartCoroutine(ReactionSequenceRoutine());
+        }
+
+        public void StopReactionSequence()
+        {
+            StopAllCoroutines();
+
+            if (_audioSource != null)
+            {
+                _audioSource.Stop();
+                _audioSource.pitch = 1f;
+            }
+
+            if (_postPanel != null)
+                _postPanel.localScale = _initialPanelScale;
+
+            _heartPool?.ReturnAllToPool();
+            _danmakuPool?.ReturnAllToPool();
         }
 
         private IEnumerator ReactionSequenceRoutine()

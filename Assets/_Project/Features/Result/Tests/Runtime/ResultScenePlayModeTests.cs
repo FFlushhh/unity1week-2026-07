@@ -2,6 +2,7 @@ using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using ResultScene;
+using ResultScene.BuzzReaction;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -145,6 +146,64 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator ResultScene_BuzzAudioSource_DoesNotPlayOnAwake()
+        {
+            ResultDataTransporter.CurrentData = CreateResultData(1000);
+
+            SceneManager.LoadScene("ResultScene");
+            yield return null;
+
+            var buzzManager = Object.FindAnyObjectByType<BuzzReactionManager>();
+            Assert.IsNotNull(buzzManager);
+
+            var audioSource = GetPrivateField<AudioSource>(buzzManager, "_audioSource");
+            Assert.IsNotNull(audioSource);
+            Assert.IsFalse(audioSource.playOnAwake);
+            Assert.IsNull(audioSource.resource);
+            Assert.IsFalse(audioSource.isPlaying);
+        }
+
+        [UnityTest]
+        public IEnumerator ResultSequence_SkipAfterBuzzStarts_StopsAllBuzzPresentation()
+        {
+            var data = CreateResultData(1000);
+            ResultDataTransporter.CurrentData = data;
+
+            SceneManager.LoadScene("ResultScene");
+            yield return null;
+
+            var manager = Object.FindAnyObjectByType<ResultSceneManager>();
+            var buzzManager = Object.FindAnyObjectByType<BuzzReactionManager>();
+            Assert.IsNotNull(manager);
+            Assert.IsNotNull(buzzManager);
+
+            var postPanel = GetPrivateField<RectTransform>(buzzManager, "_postPanel");
+            var audioSource = GetPrivateField<AudioSource>(buzzManager, "_audioSource");
+            Assert.IsNotNull(postPanel);
+            Assert.IsNotNull(audioSource);
+            Vector3 initialPanelScale = postPanel.localScale;
+            int initialActiveChildren = CountActiveChildren(postPanel);
+
+            buzzManager.StartReactionSequence();
+            yield return new WaitForSeconds(0.15f);
+
+            Assert.Greater(CountActiveChildren(postPanel), initialActiveChildren);
+
+            var skipPresentationMethod = typeof(ResultSceneManager).GetMethod(
+                "SkipPresentation",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            Assert.IsNotNull(skipPresentationMethod);
+            skipPresentationMethod.Invoke(manager, null);
+            yield return null;
+
+            Assert.AreEqual(initialActiveChildren, CountActiveChildren(postPanel));
+            Assert.AreEqual(initialPanelScale, postPanel.localScale);
+            Assert.AreEqual(1f, audioSource.pitch);
+            Assert.IsFalse(audioSource.isPlaying);
+        }
+
+        [UnityTest]
         public IEnumerator OnNextButtonClicked_TransitionsToNextScene()
         {
             ResultDataTransporter.CurrentData = new ResultData
@@ -171,15 +230,37 @@ namespace ResultScene.Tests
             LogAssert.ignoreFailingMessages = false;
         }
 
-        private static T GetPrivateField<T>(ResultSceneManager manager, string fieldName)
+        private static ResultData CreateResultData(int baseScore)
+        {
+            return new ResultData
+            {
+                PlayerName = "TestPlayer",
+                LocationName = "TestLocation",
+                BaseScore = baseScore,
+                Bonuses = new System.Collections.Generic.List<BonusInputData>(),
+            };
+        }
+
+        private static int CountActiveChildren(Transform parent)
+        {
+            int count = 0;
+            foreach (Transform child in parent)
+            {
+                if (child.gameObject.activeSelf)
+                    count++;
+            }
+
+            return count;
+        }
+
+        private static T GetPrivateField<T>(object target, string fieldName)
             where T : class
         {
-            var field = typeof(ResultSceneManager).GetField(
-                fieldName,
-                BindingFlags.NonPublic | BindingFlags.Instance
-            );
+            var field = target
+                .GetType()
+                .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(field);
-            return field.GetValue(manager) as T;
+            return field.GetValue(target) as T;
         }
 
         private static string GetText(Component textComponent)
