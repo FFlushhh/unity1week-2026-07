@@ -1,7 +1,5 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace ResultScene.BuzzReaction
 {
@@ -10,9 +8,6 @@ namespace ResultScene.BuzzReaction
         [Header("Target UI Elements")]
         [SerializeField]
         private RectTransform _postPanel;
-
-        [SerializeField]
-        private TextMeshProUGUI _likeCountText;
 
         [SerializeField]
         private RectTransform _heartSpawnPoint;
@@ -35,10 +30,6 @@ namespace ResultScene.BuzzReaction
             new Keyframe(0.5f, 1.1f),
             new Keyframe(1f, 1f)
         );
-
-        [Tooltip("いいね数を0から最終スコアまで補間するためのカーブ。")]
-        [SerializeField]
-        private AnimationCurve _countUpCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         [Header("Timing Parameters")]
         [SerializeField]
@@ -115,15 +106,15 @@ namespace ResultScene.BuzzReaction
             }
         }
 
-        public void StartReactionSequence(int finalLikeCount)
+        public void StartReactionSequence()
         {
-            StartCoroutine(ReactionSequenceRoutine(finalLikeCount));
+            StartCoroutine(ReactionSequenceRoutine());
         }
 
-        private IEnumerator ReactionSequenceRoutine(int finalLikeCount)
+        private IEnumerator ReactionSequenceRoutine()
         {
-            // 1. カウントアップ演出を開始
-            StartCoroutine(CountUpRoutine(finalLikeCount));
+            // いいね数はResultSceneManagerだけが更新し、ここでは効果音と装飾演出のみ再生する。
+            StartCoroutine(CountUpAudioRoutine());
 
             // 2. ハートと弾幕の生成を開始
             Coroutine heartSpawning = null;
@@ -172,9 +163,9 @@ namespace ResultScene.BuzzReaction
             _postPanel.localScale = _initialPanelScale;
         }
 
-        private IEnumerator CountUpRoutine(int finalLikeCount)
+        private IEnumerator CountUpAudioRoutine()
         {
-            if (_likeCountText == null)
+            if (_audioSource == null || _countUpClip == null)
                 yield break;
 
             float elapsed = 0f;
@@ -188,14 +179,8 @@ namespace ResultScene.BuzzReaction
                 elapsed += Time.deltaTime;
                 float normalizedTime = Mathf.Clamp01(elapsed / _countUpDuration);
 
-                // カスタムカーブを使用して値を補間する
-                float curveValue = _countUpCurve.Evaluate(normalizedTime);
-                int currentCount = Mathf.RoundToInt(Mathf.Lerp(0, finalLikeCount, curveValue));
-
-                _likeCountText.text = currentCount.ToString();
-
                 // ピッチを上げながらオーディオを再生
-                if (_audioSource != null && _countUpClip != null && elapsed >= nextSoundTime)
+                if (elapsed >= nextSoundTime)
                 {
                     _audioSource.pitch = Mathf.Lerp(initialPitch, targetPitch, normalizedTime);
                     _audioSource.PlayOneShot(_countUpClip);
@@ -205,13 +190,8 @@ namespace ResultScene.BuzzReaction
                 yield return null;
             }
 
-            _likeCountText.text = finalLikeCount.ToString();
-
             // 念のためピッチをリセット
-            if (_audioSource != null)
-            {
-                _audioSource.pitch = 1.0f;
-            }
+            _audioSource.pitch = 1.0f;
         }
 
         private IEnumerator SpawnHeartsRoutine()

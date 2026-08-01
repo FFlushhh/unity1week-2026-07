@@ -312,12 +312,6 @@ namespace ResultScene
 
                 if (_totalScoreArea != null)
                     _totalScoreArea.gameObject.SetActive(true);
-
-                if (_buzzReactionManager != null)
-                {
-                    // Skip animation directly to the final state
-                    _buzzReactionManager.StartReactionSequence(_totalScore);
-                }
             }
             FinishSequence();
         }
@@ -363,7 +357,7 @@ namespace ResultScene
 
             if (_buzzReactionManager != null && !_isSkipped)
             {
-                _buzzReactionManager.StartReactionSequence(_totalScore);
+                _buzzReactionManager.StartReactionSequence();
             }
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
