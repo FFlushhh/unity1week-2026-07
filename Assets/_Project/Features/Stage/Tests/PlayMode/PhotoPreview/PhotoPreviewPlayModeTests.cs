@@ -3,6 +3,7 @@ using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -100,10 +101,126 @@ public sealed class PhotoPreviewPlayModeTests
         }
     }
 
+    [UnityTest]
+    public IEnumerator SubjectsHaveCenteredJudgementPointsAndTheSceneJudgeUsesThePhotoFrame()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var judgeObject = GameObject.Find("PhotoFrameSubjectJudge");
+        Assert.That(judgeObject, Is.Not.Null);
+        var judge = judgeObject.GetComponent<PhotoFrameSubjectJudge>();
+        Assert.That(judge, Is.Not.Null);
+        var photoCamera = GetPrivateField<Camera>(judge, "photoCamera");
+        var photoFrame = GetPrivateField<RectTransform>(judge, "photoFrame");
+        Assert.That(photoCamera, Is.EqualTo(GameObject.Find("PhotoCamera").GetComponent<Camera>()));
+        Assert.That(
+            photoFrame,
+            Is.EqualTo(GameObject.Find("PhotoFrame").GetComponent<RectTransform>())
+        );
+
+        var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
+        var spawnSettings = GetPrivateField<Array>(timeline, "spawnSettings");
+        foreach (var spawnSetting in spawnSettings)
+        {
+            var subjectPrefab = (GameObject)
+                spawnSetting
+                    .GetType()
+                    .GetProperty("SubjectPrefab", BindingFlags.Instance | BindingFlags.Public)
+                    .GetValue(spawnSetting);
+            var stageSubject = subjectPrefab.GetComponent<StageSubject>();
+
+            Assert.That(stageSubject, Is.Not.Null);
+            Assert.That(stageSubject.JudgementPoint, Is.Not.Null);
+            Assert.That(stageSubject.JudgementPoint.name, Is.EqualTo("JudgementPoint"));
+            Assert.That(stageSubject.JudgementPoint.parent, Is.EqualTo(subjectPrefab.transform));
+            Assert.That(stageSubject.JudgementPoint.localPosition, Is.EqualTo(Vector3.zero));
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator SceneJudgeClassifiesThePhotoCameraViewportAndItsBorders()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var judge = GameObject
+            .Find("PhotoFrameSubjectJudge")
+            .GetComponent<PhotoFrameSubjectJudge>();
+        var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
+        var subjectObject = new GameObject("JudgeTestSubject");
+        var judgementPointObject = new GameObject("JudgementPoint");
+        judgementPointObject.transform.SetParent(subjectObject.transform);
+        var subject = subjectObject.AddComponent<StageSubject>();
+        SetPrivateField(subject, "judgementPoint", judgementPointObject.transform);
+
+        judgementPointObject.transform.position = photoCamera.ViewportToWorldPoint(
+            new Vector3(0.5f, 0.5f, 10f)
+        );
+        Assert.That(judge.IsInsidePhotoFrame(subject), Is.True);
+
+        judgementPointObject.transform.position = photoCamera.ViewportToWorldPoint(
+            new Vector3(0f, 0.5f, 10f)
+        );
+        Assert.That(judge.IsInsidePhotoFrame(subject), Is.False);
+
+        judgementPointObject.transform.position = photoCamera.ViewportToWorldPoint(
+            new Vector3(0.5f, 1f, 10f)
+        );
+        Assert.That(judge.IsInsidePhotoFrame(subject), Is.False);
+
+        UnityEngine.Object.Destroy(subjectObject);
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator SceneProvidesEventSystemAndCaptureControllerForTheShutterButton()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var eventSystemObject = GameObject.Find("EventSystem");
+        Assert.That(eventSystemObject, Is.Not.Null);
+        Assert.That(eventSystemObject.GetComponent<EventSystem>(), Is.Not.Null);
+        Assert.That(eventSystemObject.GetComponent("InputSystemUIInputModule"), Is.Not.Null);
+
+        var captureController = GameObject
+            .Find("StagePhotoCaptureController")
+            .GetComponent<StagePhotoCaptureController>();
+        Assert.That(captureController, Is.Not.Null);
+        Assert.That(GetPrivateField<object>(captureController, "shutterAction"), Is.Not.Null);
+        Assert.That(GetPrivateField<Button>(captureController, "shutterButton"), Is.Not.Null);
+        Assert.That(
+            GetPrivateField<Camera>(captureController, "photoCamera"),
+            Is.EqualTo(GameObject.Find("PhotoCamera").GetComponent<Camera>())
+        );
+        Assert.That(
+            GameObject.Find("PhotoCamera").GetComponent<Camera>().targetTexture,
+            Is.Not.Null
+        );
+        var capturedPhotoPreview = GameObject
+            .Find("PhotoPreviewCanvas")
+            .transform.Find("CapturedPhotoPreview")
+            .GetComponent<RawImage>();
+        Assert.That(
+            GetPrivateField<RawImage>(captureController, "capturedPhotoPreview"),
+            Is.EqualTo(capturedPhotoPreview)
+        );
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(
+            GameObject.Find("PhotoPreviewCanvas").GetComponent<Canvas>().renderMode,
+            Is.EqualTo(RenderMode.ScreenSpaceOverlay)
+        );
+    }
+
     private static T GetPrivateField<T>(object target, string fieldName)
     {
         var field = target.GetType().GetField(fieldName, PrivateInstance);
         Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
         return (T)field.GetValue(target);
+    }
+
+    private static void SetPrivateField<T>(object target, string fieldName, T value)
+    {
+        var field = target.GetType().GetField(fieldName, PrivateInstance);
+        Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
+        field.SetValue(target, value);
     }
 }

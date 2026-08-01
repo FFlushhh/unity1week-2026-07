@@ -3,7 +3,9 @@
   "rootNamespace": "",
   "references": [
     "UniTask",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.InputSystem",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
