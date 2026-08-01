@@ -76,9 +76,7 @@ public sealed class SubjectMoverPlayModeTests
     {
         CreateMover(positionX: 10f, moveSpeed: 2f);
 
-        yield return null;
-
-        Assert.That(subject == null, Is.True);
+        yield return WaitForSubjectDestruction();
     }
 
     [UnityTest]
@@ -87,9 +85,7 @@ public sealed class SubjectMoverPlayModeTests
         var mover = CreateMover(positionX: -10f, moveSpeed: 2f);
         mover.Configure(SubjectMoveDirection.RightToLeft, 2f);
 
-        yield return null;
-
-        Assert.That(subject == null, Is.True);
+        yield return WaitForSubjectDestruction();
     }
 
     private SubjectMover CreateMover(float positionX, float moveSpeed)
@@ -102,6 +98,23 @@ public sealed class SubjectMoverPlayModeTests
         SetPrivateField(mover, "despawnPositionX", 10f);
 
         return mover;
+    }
+
+    private IEnumerator WaitForSubjectDestruction()
+    {
+        const float timeoutSeconds = 1f;
+        var timeoutAt = Time.realtimeSinceStartup + timeoutSeconds;
+
+        while (subject != null && Time.realtimeSinceStartup < timeoutAt)
+        {
+            yield return null;
+        }
+
+        Assert.That(
+            subject == null,
+            Is.True,
+            "Subject was not destroyed after reaching the despawn position."
+        );
     }
 
     private static void SetPrivateField<T>(SubjectMover mover, string fieldName, T value)

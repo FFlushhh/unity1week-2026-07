@@ -88,23 +88,50 @@ public sealed class Stage0ControllerPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator CaptureAtZeroKeepsCapturedWaitingState()
+    public IEnumerator CapturedWaitingForTimeoutContinuesUntilTimeExpires()
     {
         var controller = CreateController(startMessageDuration: 0f, playingDuration: 10f);
 
         yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
 
-        SetPrivateField(controller, "remainingTime", 0f);
         controller.BeginCapturedWaitingForTimeout();
-        yield return null;
-        yield return null;
 
         Assert.That(
             controller.CurrentState,
             Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
         );
-        Assert.That(controller.RemainingTime, Is.Zero);
+        Assert.That(controller.RemainingTime, Is.GreaterThan(0f));
+    }
+
+    [UnityTest]
+    public IEnumerator CaptureAtZeroTransitionsToCompletedOnceAndKeepsGameOverUiHidden()
+    {
+        var controller = CreateController(startMessageDuration: 0f, playingDuration: 10f);
+        var completedNotificationCount = 0;
+        controller.StateChanged += state =>
+        {
+            if (state == Stage0Controller.Stage0State.Completed)
+            {
+                completedNotificationCount++;
+            }
+        };
+
+        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+
+        SetPrivateField(controller, "remainingTime", 0f);
+        controller.BeginCapturedWaitingForTimeout();
+        yield return WaitForState(controller, Stage0Controller.Stage0State.Completed);
+
+        var completedRemainingTime = controller.RemainingTime;
+        yield return null;
+
+        Assert.That(controller.RemainingTime, Is.EqualTo(completedRemainingTime));
+        Assert.That(completedRemainingTime, Is.Zero);
+        Assert.That(completedNotificationCount, Is.EqualTo(1));
         Assert.That(GetPrivateField<GameObject>(controller, "gameOverPanel").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "photoFrame").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
     }
 
     private Stage0Controller CreateController(float startMessageDuration, float playingDuration)
