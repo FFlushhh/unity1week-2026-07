@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using ResultScene;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
@@ -177,7 +178,12 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         candidateRenderer.color = Color.red;
         candidate.transform.localScale = Vector3.one * 2f;
 
-        var frontSubject = CreateSubject("FrontSubject", Color.blue, sortingOrder: 10);
+        var frontSubject = CreateSubject(
+            "FrontSubject",
+            SubjectId.Bird,
+            Color.blue,
+            sortingOrder: 10
+        );
         frontSubject.transform.position = candidate.transform.position;
 
         yield return null;
@@ -185,6 +191,17 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         Assert.That(captureController.TryCapture(), Is.True);
         Assert.That(captureController.CapturedSubjects, Has.None.EqualTo(candidate));
         Assert.That(candidateRenderer.enabled, Is.True);
+        Assert.That(captureController.CapturedPhoto.GetSubjectCount(SubjectId.Dog), Is.Zero);
+        Assert.That(captureController.CapturedPhoto.GetSubjectCount(SubjectId.Bird), Is.EqualTo(1));
+
+        var resultData = StageResultDataFactory.Create(
+            captureController.CapturedPhoto,
+            "プレイヤー",
+            "Stage 0"
+        );
+        Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
+        Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("鳥"));
+        Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
 
         var capturedPixels = captureController.CapturedPhoto.Image.GetPixels32();
         var containsVisibleRed = false;
@@ -238,6 +255,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         );
         var subject = subjectObject.AddComponent<StageSubject>();
         SetPrivateField(subject, "judgementPoint", judgementPointObject.transform);
+        SetPrivateField(subject, "subjectId", SubjectId.Dog);
         subjectObject.layer = LayerMask.NameToLayer("PhotoSubject");
         subjectObject.AddComponent<BoxCollider2D>();
         var subjectRenderer = subjectObject.AddComponent<SpriteRenderer>();
@@ -260,7 +278,12 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         return captureController;
     }
 
-    private StageSubject CreateSubject(string name, Color color, int sortingOrder)
+    private StageSubject CreateSubject(
+        string name,
+        SubjectId subjectId,
+        Color color,
+        int sortingOrder
+    )
     {
         var subjectObject = CreateGameObject(name);
         subjectObject.layer = LayerMask.NameToLayer("PhotoSubject");
@@ -275,6 +298,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         var subject = subjectObject.AddComponent<StageSubject>();
         SetPrivateField(subject, "judgementPoint", judgementPointObject.transform);
         SetPrivateField(subject, "subjectRenderer", renderer);
+        SetPrivateField(subject, "subjectId", subjectId);
         return subject;
     }
 
