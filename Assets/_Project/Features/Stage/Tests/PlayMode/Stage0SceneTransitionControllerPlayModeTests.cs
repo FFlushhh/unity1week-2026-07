@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using ResultScene;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -17,6 +20,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
+        SceneManagerAPI.overrideAPI = null;
         ResultDataTransporter.CurrentData = null;
 
         foreach (var createdObject in createdObjects)
@@ -86,6 +90,54 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         Assert.That(captureController.CapturedPhoto, Is.SameAs(capturedPhoto));
     }
 
+    [Test]
+    public void MissingCaptureControllerKeepsPreviousResultData()
+    {
+        var previousData = new ResultData
+        {
+            PlayerName = "PreviousPlayer",
+            LocationName = "PreviousStage",
+            BaseScore = 1000,
+            Bonuses = new List<BonusInputData>(),
+        };
+        ResultDataTransporter.CurrentData = previousData;
+        var transitionController = CreateTransitionController(null, "ResultScene");
+        LogAssert.Expect(
+            LogType.Error,
+            "[Stage0SceneTransitionController] Photo capture controller is not assigned."
+        );
+
+        var didTransfer = InvokeTryTransferCapturedPhoto(transitionController, out var resultData);
+
+        Assert.That(didTransfer, Is.False);
+        Assert.That(resultData, Is.Null);
+        Assert.That(ResultDataTransporter.CurrentData, Is.SameAs(previousData));
+    }
+
+    [UnityTest]
+    public IEnumerator InvalidTitleSceneReportsErrorOnlyOnceForRepeatedInput()
+    {
+        var transitionController = CreateTransitionController(
+            null,
+            "ResultScene",
+            "MissingTitleScene"
+        );
+        LogAssert.Expect(
+            LogType.Error,
+            "[Stage0SceneTransitionController] Title scene 'MissingTitleScene' cannot be loaded."
+        );
+
+        transitionController.ReturnToTitle();
+        transitionController.ReturnToTitle();
+        yield return null;
+        yield return null;
+
+        Assert.That(
+            GetPrivateField<bool>(transitionController, "hasStartedTitleTransition"),
+            Is.True
+        );
+    }
+
     [UnityTest]
     public IEnumerator CompletedNotificationStartsResultPreparationOnlyOnce()
     {
@@ -116,15 +168,53 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         Assert.That(ResultDataTransporter.CurrentData, Is.Null);
     }
 
+    [UnityTest]
+    public IEnumerator FailedResultLoadRestoresPreviousDataAndDestroysTransferredImage()
+    {
+        var previousData = new ResultData
+        {
+            PlayerName = "PreviousPlayer",
+            LocationName = "PreviousStage",
+            BaseScore = 1000,
+            Bonuses = new List<BonusInputData>(),
+        };
+        ResultDataTransporter.CurrentData = previousData;
+
+        var capturedImage = CreateTexture();
+        var captureController = CreateCaptureController(
+            new CapturedPhoto(capturedImage, Array.Empty<StageSubject>())
+        );
+        var transitionController = CreateTransitionController(captureController, "ResultScene");
+        SceneManagerAPI.overrideAPI = new ThrowingSceneManagerApi();
+        LogAssert.Expect(
+            LogType.Exception,
+            new Regex("InvalidOperationException: Test scene load failure\\.")
+        );
+
+        InvokePrivateMethod(
+            transitionController,
+            "HandleStageStateChanged",
+            Stage0Controller.Stage0State.Completed
+        );
+        yield return null;
+        yield return null;
+
+        Assert.That(ResultDataTransporter.CurrentData, Is.SameAs(previousData));
+        Assert.That(captureController.CapturedPhoto, Is.Null);
+        Assert.That(capturedImage == null, Is.True);
+    }
+
     private Stage0SceneTransitionController CreateTransitionController(
         StagePhotoCaptureController captureController,
-        string resultSceneName
+        string resultSceneName,
+        string titleSceneName = "Title"
     )
     {
         var transitionObject = CreateGameObject("Stage0SceneTransitionController", active: false);
         var transitionController = transitionObject.AddComponent<Stage0SceneTransitionController>();
         SetPrivateField(transitionController, "stagePhotoCaptureController", captureController);
         SetPrivateField(transitionController, "resultSceneName", resultSceneName);
+        SetPrivateField(transitionController, "titleSceneName", titleSceneName);
         return transitionController;
     }
 
@@ -200,5 +290,18 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         var method = target.GetType().GetMethod(methodName, PrivateInstance);
         Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
         method.Invoke(target, new[] { argument });
+    }
+
+    private sealed class ThrowingSceneManagerApi : SceneManagerAPI
+    {
+        protected override AsyncOperation LoadSceneAsyncByNameOrIndex(
+            string sceneName,
+            int sceneBuildIndex,
+            LoadSceneParameters parameters,
+            bool mustCompleteNextFrame
+        )
+        {
+            throw new InvalidOperationException("Test scene load failure.");
+        }
     }
 }

@@ -159,14 +159,32 @@ namespace ResultScene.Tests
             var manager = Object.FindAnyObjectByType<ResultSceneManager>();
             Assert.IsNotNull(manager);
 
-            // Title is registered in Build Settings, but this test only verifies that the call is safe.
-            LogAssert.ignoreFailingMessages = true;
-
             manager.OnNextButtonClicked();
 
-            yield return null;
+            yield return WaitForActiveScene("Title");
 
-            LogAssert.ignoreFailingMessages = false;
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Title"));
+            Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+        }
+
+        private static IEnumerator WaitForActiveScene(string expectedSceneName)
+        {
+            const float timeoutSeconds = 5f;
+            var timeoutAt = Time.realtimeSinceStartup + timeoutSeconds;
+
+            while (
+                SceneManager.GetActiveScene().name != expectedSceneName
+                && Time.realtimeSinceStartup < timeoutAt
+            )
+            {
+                yield return null;
+            }
+
+            Assert.That(
+                SceneManager.GetActiveScene().name,
+                Is.EqualTo(expectedSceneName),
+                $"Scene '{expectedSceneName}' was not loaded within {timeoutSeconds} seconds."
+            );
         }
 
         private static ResultData CreateResultData(params BonusInputData[] bonuses)
