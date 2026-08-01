@@ -94,6 +94,9 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
             return false;
         }
 
+        // 被写体の移動直後でも、撮影画像と遮蔽判定で同じTransform位置を使う。
+        Physics2D.SyncTransforms();
+
         if (!TryCopyPhotoCameraOutput(out var capturedImage))
         {
             return false;
@@ -148,7 +151,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         var activeSubjects = FindObjectsByType<StageSubject>(FindObjectsInactive.Exclude);
         foreach (var subject in activeSubjects)
         {
-            if (photoFrameSubjectJudge.IsInsidePhotoFrame(subject))
+            if (photoFrameSubjectJudge.IsCapturable(subject))
             {
                 capturedSubjects.Add(subject);
             }

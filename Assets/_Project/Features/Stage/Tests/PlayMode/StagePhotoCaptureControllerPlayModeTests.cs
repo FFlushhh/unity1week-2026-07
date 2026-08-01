@@ -13,6 +13,8 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
 
     private readonly List<GameObject> createdObjects = new();
     private readonly List<RenderTexture> createdRenderTextures = new();
+    private readonly List<Texture2D> createdTextures = new();
+    private StageSubject captureSubject;
 
     [UnityTearDown]
     public IEnumerator TearDownScene()
@@ -37,6 +39,16 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         }
 
         createdRenderTextures.Clear();
+
+        foreach (var createdTexture in createdTextures)
+        {
+            if (createdTexture != null)
+            {
+                Object.DestroyImmediate(createdTexture);
+            }
+        }
+
+        createdTextures.Clear();
         yield return null;
     }
 
@@ -154,6 +166,41 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         shutterAction.Dispose();
     }
 
+    [UnityTest]
+    public IEnumerator CaptureExcludesOccludedSubjectWithoutRemovingItFromPhotoCameraOutput()
+    {
+        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var photoCamera = GetPrivateField<Camera>(captureController, "photoCamera");
+        var candidate = captureSubject;
+        var candidateRenderer = candidate.GetComponent<SpriteRenderer>();
+        candidateRenderer.sprite = CreateWhiteSprite();
+        candidateRenderer.color = Color.red;
+        candidate.transform.localScale = Vector3.one * 2f;
+
+        var frontSubject = CreateSubject("FrontSubject", Color.blue, sortingOrder: 10);
+        frontSubject.transform.position = candidate.transform.position;
+
+        yield return null;
+
+        Assert.That(captureController.TryCapture(), Is.True);
+        Assert.That(captureController.CapturedSubjects, Has.None.EqualTo(candidate));
+        Assert.That(candidateRenderer.enabled, Is.True);
+
+        var capturedPixels = captureController.CapturedPhoto.Image.GetPixels32();
+        var containsVisibleRed = false;
+        foreach (var pixel in capturedPixels)
+        {
+            if (pixel.r > 200 && pixel.g < 30 && pixel.b < 30)
+            {
+                containsVisibleRed = true;
+                break;
+            }
+        }
+
+        Assert.That(containsVisibleRed, Is.True);
+        Assert.That(photoCamera.targetTexture, Is.Not.Null);
+    }
+
     private StagePhotoCaptureController CreateCaptureController(Stage0Controller.Stage0State state)
     {
         var stageControllerObject = CreateGameObject("Stage0Controller", active: false);
@@ -166,7 +213,8 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         photoCamera.orthographic = true;
         photoCamera.orthographicSize = 5f;
         photoCamera.transform.position = new Vector3(0f, 0f, -10f);
-        var photoRenderTexture = new RenderTexture(16, 9, 0, RenderTextureFormat.ARGB32);
+        // URPのRender Graphでは、Cameraの出力先RenderTextureに深度バッファが必要。
+        var photoRenderTexture = new RenderTexture(128, 72, 24, RenderTextureFormat.ARGB32);
         photoRenderTexture.Create();
         photoCamera.targetTexture = photoRenderTexture;
         createdRenderTextures.Add(photoRenderTexture);
@@ -190,6 +238,11 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         );
         var subject = subjectObject.AddComponent<StageSubject>();
         SetPrivateField(subject, "judgementPoint", judgementPointObject.transform);
+        subjectObject.layer = LayerMask.NameToLayer("PhotoSubject");
+        subjectObject.AddComponent<BoxCollider2D>();
+        var subjectRenderer = subjectObject.AddComponent<SpriteRenderer>();
+        SetPrivateField(subject, "subjectRenderer", subjectRenderer);
+        captureSubject = subject;
 
         var buttonObject = CreateUiGameObject("ShutterButton");
         var shutterButton = buttonObject.AddComponent<Button>();
@@ -205,6 +258,40 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         SetPrivateField(captureController, "capturedPhotoPreview", capturedPhotoPreview);
         captureObject.SetActive(true);
         return captureController;
+    }
+
+    private StageSubject CreateSubject(string name, Color color, int sortingOrder)
+    {
+        var subjectObject = CreateGameObject(name);
+        subjectObject.layer = LayerMask.NameToLayer("PhotoSubject");
+        var renderer = subjectObject.AddComponent<SpriteRenderer>();
+        renderer.sprite = CreateWhiteSprite();
+        renderer.color = color;
+        renderer.sortingOrder = sortingOrder;
+        subjectObject.AddComponent<BoxCollider2D>();
+
+        var judgementPointObject = CreateGameObject($"{name}JudgementPoint");
+        judgementPointObject.transform.SetParent(subjectObject.transform, false);
+        var subject = subjectObject.AddComponent<StageSubject>();
+        SetPrivateField(subject, "judgementPoint", judgementPointObject.transform);
+        SetPrivateField(subject, "subjectRenderer", renderer);
+        return subject;
+    }
+
+    private Sprite CreateWhiteSprite()
+    {
+        var texture = new Texture2D(1, 1);
+        texture.SetPixel(0, 0, Color.white);
+        texture.Apply();
+        createdTextures.Add(texture);
+        // 既定の100 Pixels Per Unitでは1pxのテストSpriteが0.01ユニットになり、
+        // RenderTexture上で画素として確認できないため、1ユニットのSpriteとして作成する。
+        return Sprite.Create(
+            texture,
+            new Rect(0f, 0f, 1f, 1f),
+            new Vector2(0.5f, 0.5f),
+            pixelsPerUnit: 1f
+        );
     }
 
     private GameObject CreateGameObject(string name, bool active = true)

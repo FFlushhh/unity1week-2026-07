@@ -2539,6 +2539,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   photoCamera: {fileID: 204002}
   photoFrame: {fileID: 211001}
+  photoSubjectLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &228000
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class PhotoFrameSubjectJudge : MonoBehaviour
 {
     private const string LogPrefix = "[PhotoFrameSubjectJudge]";
+    private const int MaximumOverlappingColliders = 128;
 
     [SerializeField]
     private Camera photoCamera;
@@ -13,12 +14,143 @@ public sealed class PhotoFrameSubjectJudge : MonoBehaviour
     [SerializeField]
     private RectTransform photoFrame;
 
+    [SerializeField]
+    private LayerMask photoSubjectLayerMask = 1 << 6;
+
+    // 撮影は一度だけだが、最大100体の被写体を判定してもGCを発生させないように再利用する。
+    private readonly Collider2D[] overlappingColliders = new Collider2D[
+        MaximumOverlappingColliders
+    ];
+
     /// <summary>
     /// 枠線上を枠外として、被写体の判断ポイントが写真枠内かを返します。
     /// </summary>
     public bool IsInsidePhotoFrame(StageSubject subject)
     {
         return subject != null && IsInsidePhotoFrame(subject.JudgementPoint);
+    }
+
+    /// <summary>
+    /// 判断ポイントが写真枠内にあり、より前面に描画されるCollider2Dに覆われていないかを判定する。
+    /// </summary>
+    public bool IsCapturable(StageSubject subject)
+    {
+        return IsInsidePhotoFrame(subject) && IsJudgementPointVisible(subject);
+    }
+
+    /// <summary>
+    /// 判断ポイントを覆うPhotoSubjectのうち、候補より前面に描画されるものがないかを判定する。
+    /// </summary>
+    public bool IsJudgementPointVisible(StageSubject subject)
+    {
+        if (subject == null || subject.JudgementPoint == null)
+        {
+            return false;
+        }
+
+        if (!subject.TryGetSortingPriority(out var subjectLayerValue, out var subjectOrder))
+        {
+            Debug.LogWarning(
+                $"{LogPrefix} {subject.name} has no Subject Renderer. It cannot be a capture target.",
+                subject
+            );
+            return false;
+        }
+
+        var contactFilter = ContactFilter2D.noFilter;
+        contactFilter.SetLayerMask(photoSubjectLayerMask);
+        var overlapCount = Physics2D.OverlapPoint(
+            subject.JudgementPoint.position,
+            contactFilter,
+            overlappingColliders
+        );
+
+        if (overlapCount == overlappingColliders.Length)
+        {
+            Debug.LogWarning(
+                $"{LogPrefix} Overlap buffer reached {MaximumOverlappingColliders} colliders. Some occluders may not have been checked.",
+                this
+            );
+        }
+
+        for (var index = 0; index < overlapCount; index++)
+        {
+            var overlappingCollider = overlappingColliders[index];
+            if (
+                overlappingCollider == null
+                || IsColliderOwnedBySubject(overlappingCollider, subject)
+            )
+            {
+                continue;
+            }
+
+            var occluderSubject = overlappingCollider.GetComponentInParent<StageSubject>();
+            var occluderRenderer = GetOccluderRenderer(overlappingCollider, occluderSubject);
+            if (occluderRenderer == null)
+            {
+                Debug.LogWarning(
+                    $"{LogPrefix} {overlappingCollider.name} has a PhotoSubject Collider2D but no SpriteRenderer. It is treated as an occluder.",
+                    overlappingCollider
+                );
+                return false;
+            }
+
+            if (!occluderRenderer.enabled || !occluderRenderer.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            if (occluderSubject == null)
+            {
+                Debug.LogWarning(
+                    $"{LogPrefix} {overlappingCollider.name} has a PhotoSubject Collider2D and SpriteRenderer but no StageSubject. It is treated as an occluder when drawn in front.",
+                    overlappingCollider
+                );
+            }
+
+            var occluderLayerValue = SortingLayer.GetLayerValueFromID(
+                occluderRenderer.sortingLayerID
+            );
+            var occluderOrder = occluderRenderer.sortingOrder;
+            if (IsDrawnInFront(occluderLayerValue, occluderOrder, subjectLayerValue, subjectOrder))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsColliderOwnedBySubject(
+        Collider2D overlappingCollider,
+        StageSubject subject
+    )
+    {
+        return overlappingCollider.transform.IsChildOf(subject.transform);
+    }
+
+    private static SpriteRenderer GetOccluderRenderer(
+        Collider2D overlappingCollider,
+        StageSubject occluderSubject
+    )
+    {
+        if (occluderSubject != null && occluderSubject.SubjectRenderer != null)
+        {
+            return occluderSubject.SubjectRenderer;
+        }
+
+        return overlappingCollider.GetComponentInParent<SpriteRenderer>();
+    }
+
+    private static bool IsDrawnInFront(
+        int candidateLayerValue,
+        int candidateOrder,
+        int subjectLayerValue,
+        int subjectOrder
+    )
+    {
+        return candidateLayerValue > subjectLayerValue
+            || (candidateLayerValue == subjectLayerValue && candidateOrder > subjectOrder);
     }
 
     /// <summary>
