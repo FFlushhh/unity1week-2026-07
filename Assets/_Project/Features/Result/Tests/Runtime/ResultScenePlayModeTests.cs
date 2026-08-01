@@ -12,10 +12,19 @@ namespace ResultScene.Tests
 {
     public class ResultScenePlayModeTests
     {
+        private Texture2D capturedImage;
+
         [UnityTearDown]
         public IEnumerator TearDown()
         {
             ResultDataTransporter.CurrentData = null;
+
+            if (capturedImage != null)
+            {
+                Object.DestroyImmediate(capturedImage);
+            }
+
+            capturedImage = null;
             yield return null;
         }
 
@@ -119,7 +128,7 @@ namespace ResultScene.Tests
         [UnityTest]
         public IEnumerator ResultSceneOwnsCapturedImageAfterClearingTransporter()
         {
-            var capturedImage = new Texture2D(2, 2);
+            capturedImage = new Texture2D(2, 2);
             var resultData = CreateResultData();
             resultData.CapturedImage = capturedImage;
 
@@ -135,11 +144,83 @@ namespace ResultScene.Tests
             Assert.That(snsImage.gameObject.name, Is.EqualTo("CapturedPhotoImage"));
             Assert.That(snsImage.transform.parent.name, Is.EqualTo("SnsImage"));
             Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+            Assert.That(capturedImage == null, Is.False);
+
+            Object.Destroy(manager.gameObject);
+            yield return null;
+
+            Assert.That(snsImage.texture, Is.Null);
+            Assert.That(capturedImage == null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator DestroyingRawImageBeforeManagerStillDestroysCapturedImage()
+        {
+            capturedImage = new Texture2D(2, 2);
+            var resultData = CreateResultData();
+            resultData.CapturedImage = capturedImage;
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var capturedPhotoImage = GetCapturedPhotoImage(manager);
+            Assert.That(capturedPhotoImage.gameObject, Is.Not.SameAs(manager.gameObject));
+            Object.Destroy(capturedPhotoImage.gameObject);
+            yield return null;
+
+            Assert.That(capturedPhotoImage == null, Is.True);
+            Assert.That(capturedImage == null, Is.False);
 
             Object.Destroy(manager.gameObject);
             yield return null;
 
             Assert.That(capturedImage == null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator MissingRawImageStillDestroysCapturedImageWithManager()
+        {
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(
+                CreateResultData(),
+                loadedManager => manager = loadedManager
+            );
+            SetPrivateField(manager, "_capturedPhotoImage", null);
+
+            capturedImage = new Texture2D(2, 2);
+            var resultData = CreateResultData();
+            resultData.CapturedImage = capturedImage;
+            manager.PlayResult(resultData);
+
+            Object.Destroy(manager.gameObject);
+            yield return null;
+
+            Assert.That(capturedImage == null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator RepeatedOnDestroyCallsDoNotDoubleDestroyCapturedImage()
+        {
+            capturedImage = new Texture2D(2, 2);
+            var resultData = CreateResultData();
+            resultData.CapturedImage = capturedImage;
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var onDestroy = typeof(ResultSceneManager).GetMethod(
+                "OnDestroy",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            Assert.That(onDestroy, Is.Not.Null);
+            Assert.DoesNotThrow(() => onDestroy.Invoke(manager, null));
+            Assert.DoesNotThrow(() => onDestroy.Invoke(manager, null));
+
+            Object.Destroy(manager.gameObject);
+            yield return null;
+
+            Assert.That(capturedImage == null, Is.True);
+            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
@@ -221,6 +302,25 @@ namespace ResultScene.Tests
             );
             Assert.That(method, Is.Not.Null);
             method.Invoke(manager, new object[] { resultData });
+        }
+
+        private static RawImage GetCapturedPhotoImage(ResultSceneManager manager)
+        {
+            var field = typeof(ResultSceneManager).GetField(
+                "_capturedPhotoImage",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(manager) as RawImage;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            var field = target
+                .GetType()
+                .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
+            field.SetValue(target, value);
         }
 
         private static int GetTotalScore(ResultSceneManager manager)
