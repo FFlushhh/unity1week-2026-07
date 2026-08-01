@@ -152,6 +152,10 @@ namespace ResultScene
         [SerializeField]
         private string _nextSceneName = "MockGameScene";
 
+        [Header("Buzz Reaction")]
+        [SerializeField]
+        private BuzzReaction.BuzzReactionManager _buzzReactionManager;
+
         private int _totalScore;
         private bool _isSequenceFinished = false;
         private bool _isSkipped = false;
@@ -308,6 +312,12 @@ namespace ResultScene
 
                 if (_totalScoreArea != null)
                     _totalScoreArea.gameObject.SetActive(true);
+
+                if (_buzzReactionManager != null)
+                {
+                    // Skip animation directly to the final state
+                    _buzzReactionManager.StartReactionSequence(_totalScore);
+                }
             }
             FinishSequence();
         }
@@ -350,6 +360,11 @@ namespace ResultScene
             yield return SlideUpTotalScoreAreaSequenceCoroutine();
 
             GenerateSnsContent(data);
+
+            if (_buzzReactionManager != null && !_isSkipped)
+            {
+                _buzzReactionManager.StartReactionSequence(_totalScore);
+            }
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
 

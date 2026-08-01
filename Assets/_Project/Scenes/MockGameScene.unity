@@ -295,7 +295,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 56.85
+  m_fontSize: 42.65
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -399,7 +399,7 @@ MonoBehaviour:
     BaseScore: 1000
     Bonuses:
     - BonusName: "\u72AC"
-      Count: 100
+      Count: 1
     - BonusName: "\u9CE5"
       Count: 3
 --- !u!1 &612857077
