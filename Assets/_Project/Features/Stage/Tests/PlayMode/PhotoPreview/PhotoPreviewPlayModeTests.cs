@@ -210,6 +210,56 @@ public sealed class PhotoPreviewPlayModeTests
         );
     }
 
+    [UnityTest]
+    public IEnumerator SceneConnectsResultAndTitleTransitionsWithoutVisibilityCamera()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var gameController = GameObject.Find("GameController");
+        var transitionController = gameController.GetComponent<Stage0SceneTransitionController>();
+        var stageController = gameController.GetComponent<Stage0Controller>();
+        var captureController = GameObject
+            .Find("StagePhotoCaptureController")
+            .GetComponent<StagePhotoCaptureController>();
+
+        Assert.That(transitionController, Is.Not.Null);
+        Assert.That(
+            GetPrivateField<Stage0Controller>(transitionController, "stageController"),
+            Is.EqualTo(stageController)
+        );
+        Assert.That(
+            GetPrivateField<StagePhotoCaptureController>(
+                transitionController,
+                "stagePhotoCaptureController"
+            ),
+            Is.EqualTo(captureController)
+        );
+        Assert.That(
+            GetPrivateField<string>(transitionController, "resultSceneName"),
+            Is.EqualTo("ResultScene")
+        );
+        Assert.That(
+            GetPrivateField<string>(transitionController, "titleSceneName"),
+            Is.EqualTo("Title")
+        );
+
+        var gameOverContent = GetPrivateField<GameObject>(stageController, "gameOverContent");
+        var returnToTitleButton = gameOverContent.GetComponentInChildren<Button>(
+            includeInactive: true
+        );
+        Assert.That(returnToTitleButton, Is.Not.Null);
+        Assert.That(returnToTitleButton.onClick.GetPersistentEventCount(), Is.EqualTo(1));
+        Assert.That(
+            returnToTitleButton.onClick.GetPersistentTarget(0),
+            Is.EqualTo(transitionController)
+        );
+        Assert.That(
+            returnToTitleButton.onClick.GetPersistentMethodName(0),
+            Is.EqualTo("ReturnToTitle")
+        );
+        Assert.That(GameObject.Find("VisibilityCamera"), Is.Null);
+    }
+
     private static T GetPrivateField<T>(object target, string fieldName)
     {
         var field = target.GetType().GetField(fieldName, PrivateInstance);

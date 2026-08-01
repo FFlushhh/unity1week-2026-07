@@ -37,7 +37,7 @@ namespace ResultScene
 
         [Header("Left Panel (SNS)")]
         [SerializeField]
-        private RawImage _snsImage;
+        private RawImage _capturedPhotoImage;
 
         [SerializeField]
         private TextMeshProUGUI _userNameText;
@@ -374,8 +374,8 @@ namespace ResultScene
 
         private void InitializeUI(ResultData data)
         {
-            if (_snsImage != null && data.CapturedImage != null)
-                _snsImage.texture = data.CapturedImage;
+            if (_capturedPhotoImage != null && data.CapturedImage != null)
+                _capturedPhotoImage.texture = data.CapturedImage;
             if (_userNameText != null)
                 _userNameText.text = data.PlayerName;
             if (_postText != null)
@@ -691,10 +691,10 @@ namespace ResultScene
 
         private void OnDestroy()
         {
-            if (_snsImage != null && _snsImage.texture != null)
+            if (_capturedPhotoImage != null && _capturedPhotoImage.texture != null)
             {
-                Destroy(_snsImage.texture);
-                _snsImage.texture = null;
+                Destroy(_capturedPhotoImage.texture);
+                _capturedPhotoImage.texture = null;
             }
         }
     }

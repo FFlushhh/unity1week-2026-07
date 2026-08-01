@@ -34,6 +34,29 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
 
     public CapturedPhoto CapturedPhoto => capturedPhoto;
 
+    /// <summary>
+    /// 撮影結果の所有権を呼び出し元へ移します。
+    /// 移譲後のTexture2DはStage側で破棄しないため、受け取った側が破棄します。
+    /// </summary>
+    public CapturedPhoto TakeCapturedPhoto()
+    {
+        if (capturedPhoto == null)
+        {
+            return null;
+        }
+
+        var photoToTransfer = capturedPhoto;
+        capturedPhoto = null;
+
+        if (capturedPhotoPreview != null)
+        {
+            capturedPhotoPreview.texture = null;
+            capturedPhotoPreview.gameObject.SetActive(false);
+        }
+
+        return photoToTransfer;
+    }
+
     private void OnEnable()
     {
         if (stageController != null)

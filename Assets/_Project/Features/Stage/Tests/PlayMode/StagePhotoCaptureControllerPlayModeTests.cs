@@ -149,6 +149,56 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     }
 
     [Test]
+    public void TakeCapturedPhotoTransfersOwnershipOnlyOnceAndClearsPreview()
+    {
+        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        Assert.That(captureController.TryCapture(), Is.True);
+
+        var capturedPhoto = captureController.CapturedPhoto;
+        var capturedPhotoPreview = GetPrivateField<RawImage>(
+            captureController,
+            "capturedPhotoPreview"
+        );
+
+        var transferredPhoto = captureController.TakeCapturedPhoto();
+
+        Assert.That(transferredPhoto, Is.SameAs(capturedPhoto));
+        Assert.That(captureController.CapturedPhoto, Is.Null);
+        Assert.That(captureController.HasCaptured, Is.True);
+        Assert.That(capturedPhotoPreview.texture, Is.Null);
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(captureController.TakeCapturedPhoto(), Is.Null);
+    }
+
+    [UnityTest]
+    public IEnumerator UntransferredCapturedImageIsDestroyedWithCaptureController()
+    {
+        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        Assert.That(captureController.TryCapture(), Is.True);
+        var capturedImage = captureController.CapturedPhoto.Image;
+
+        Object.Destroy(captureController.gameObject);
+        yield return null;
+
+        Assert.That(capturedImage == null, Is.True);
+    }
+
+    [UnityTest]
+    public IEnumerator TransferredCapturedImageSurvivesCaptureControllerDestruction()
+    {
+        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        Assert.That(captureController.TryCapture(), Is.True);
+        var transferredPhoto = captureController.TakeCapturedPhoto();
+        var capturedImage = transferredPhoto.Image;
+
+        Object.Destroy(captureController.gameObject);
+        yield return null;
+
+        Assert.That(capturedImage == null, Is.False);
+        Object.DestroyImmediate(capturedImage);
+    }
+
+    [Test]
     public void ShutterActionBindsSpaceAndEnter()
     {
         var shutterAction = InvokePrivateStaticMethod<InputAction>("CreateShutterAction");
