@@ -416,7 +416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: f2c5b1d87538b024a98cf4c5d2e3d514, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -424,8 +424,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2131554766241905058, guid: 26153363ce3a8874d8bdbc4e4c8c5e9d, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -833,6 +833,7 @@ GameObject:
   - component: {fileID: 780866539}
   - component: {fileID: 780866540}
   - component: {fileID: 780866541}
+  - component: {fileID: 780866542}
   m_Layer: 0
   m_Name: IllustraionImage
   m_TagString: Untagged
@@ -856,8 +857,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -480, y: -332}
-  m_SizeDelta: {x: 300, y: 200}
+  m_AnchoredPosition: {x: -480, y: -360.2}
+  m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &780866540
 CanvasRenderer:
@@ -897,6 +898,28 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!95 &780866542
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780866538}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b1b02510d3270e34ea63cc39006bd1cb, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &861042904
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,12 +1271,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bfc0cfb1369bb04880f2cf3d23996d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResultScene.ResultSceneManager
-  _useTestData: 0
+  _useTestData: 1
   _testData:
     PlayerName: 
     LocationName: 
     CapturedImage: {fileID: 0}
-    BaseScore: 0
+    BaseScore: 2
     Bonuses: []
   _bonusMaster:
   - BonusName: "\u72AC"
@@ -1283,15 +1306,19 @@ MonoBehaviour:
   _rankSThreshold: 10000
   _rankAThreshold: 8000
   _rankBThreshold: 5000
+  _postTextRankS: "\u5947\u8DE1\u306E\u4E00\u679A\u304C\u64AE\u308C\u305F\uFF01\u6700\u9AD8\uFF01\uFF01"
+  _postTextRankA: "\u304B\u306A\u308A\u826F\u3044\u5199\u771F\u304B\u3082\uFF01"
+  _postTextRankB: "\u307E\u3042\u307E\u3042\u304B\u306A\u3002\u6B21\u306F\u3082\u3063\u3068\u9811\u5F35\u308B"
+  _postTextRankC: "\u3046\u30FC\u3093\u3001\u3061\u3087\u3063\u3068\u30BF\u30A4\u30DF\u30F3\u30B0\u304C\u60AA\u304B\u3063\u305F\u304B\u3082\u2026"
   _rankSSprite: {fileID: -3119695900687162802, guid: 48d8850eda313f2408ff26a34660c8b9, type: 3}
   _rankASprite: {fileID: -8680797543115379092, guid: ede46fea7b734a3449b040d24023afbc, type: 3}
   _rankBSprite: {fileID: 7425438597007568885, guid: 1779fec701167ad4e9133b85cdb666da, type: 3}
   _rankCSprite: {fileID: -606033477821260893, guid: 4f1870ef46b637548b75d42f454e18a9, type: 3}
   _illustrationImage: {fileID: 780866541}
-  _illustrationSSprite: {fileID: 21300000, guid: b32e5903d8586be4980b10dd38b18cc1, type: 3}
+  _illustrationSSprite: {fileID: 21300000, guid: 38ba45ab067d6d240ae8af377e9fb747, type: 3}
   _illustrationASprite: {fileID: 21300000, guid: b32e5903d8586be4980b10dd38b18cc1, type: 3}
-  _illustrationBSprite: {fileID: 21300000, guid: b32e5903d8586be4980b10dd38b18cc1, type: 3}
-  _illustrationCSprite: {fileID: 21300000, guid: b32e5903d8586be4980b10dd38b18cc1, type: 3}
+  _illustrationBSprite: {fileID: 2741767817335043905, guid: 981f4147e65c3b94cbe28ed239ffac56, type: 3}
+  _illustrationCSprite: {fileID: 2741767817335043905, guid: 981f4147e65c3b94cbe28ed239ffac56, type: 3}
   _audioSource: {fileID: 1366582484}
   _sePop: {fileID: 8300000, guid: e5543356588af204c99225b295c1975b, type: 3}
   _seSlideUp: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
