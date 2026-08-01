@@ -674,6 +674,19 @@ namespace ResultScene
 
             _illustrationImage.sprite = targetSprite;
             _illustrationImage.gameObject.SetActive(targetSprite != null);
+            if (targetSprite != null)
+            {
+                // 現在設定されているRectTransformの縦幅（高さ）を取得
+                // ※ 固定値にしたい場合は float targetHeight = 150f; のように直接数値を指定してもOK。
+                float targetHeight = _illustrationImage.rectTransform.rect.height;
+
+                float aspectRatio = targetSprite.rect.width / targetSprite.rect.height;
+
+                _illustrationImage.rectTransform.sizeDelta = new Vector2(
+                    targetHeight * aspectRatio,
+                    targetHeight
+                );
+            }
         }
 
         private void PlaySound(AudioClip clip)
