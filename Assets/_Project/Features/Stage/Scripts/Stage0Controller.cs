@@ -14,6 +14,7 @@ public sealed class Stage0Controller : MonoBehaviour
         StartMessage,
         Playing,
         CapturedWaitingForTimeout,
+        Completed,
         GameOver,
     }
 
@@ -93,7 +94,7 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         if (
             currentState == Stage0State.Playing
-            || (currentState == Stage0State.CapturedWaitingForTimeout && remainingTime > 0f)
+            || currentState == Stage0State.CapturedWaitingForTimeout
         )
         {
             UpdateTimer();
@@ -124,7 +125,7 @@ public sealed class Stage0Controller : MonoBehaviour
     /// </summary>
     public void EnterGameOver()
     {
-        if (currentState == Stage0State.GameOver)
+        if (currentState == Stage0State.GameOver || currentState == Stage0State.Completed)
         {
             return;
         }
@@ -134,6 +135,11 @@ public sealed class Stage0Controller : MonoBehaviour
 
     private void TransitionTo(Stage0State nextState)
     {
+        if (hasInitialized && currentState == nextState)
+        {
+            return;
+        }
+
         var previousState = currentState;
         currentState = nextState;
         StateChanged?.Invoke(currentState);
@@ -227,9 +233,20 @@ public sealed class Stage0Controller : MonoBehaviour
         remainingTime = Mathf.Max(0f, remainingTime - Time.deltaTime);
         UpdateTimerText();
 
-        if (remainingTime <= 0f && currentState == Stage0State.Playing)
+        if (remainingTime > 0f)
+        {
+            return;
+        }
+
+        if (currentState == Stage0State.Playing)
         {
             EnterGameOver();
+            return;
+        }
+
+        if (currentState == Stage0State.CapturedWaitingForTimeout)
+        {
+            TransitionTo(Stage0State.Completed);
         }
     }
 

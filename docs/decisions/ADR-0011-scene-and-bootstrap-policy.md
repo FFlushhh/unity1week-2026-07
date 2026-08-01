@@ -25,6 +25,31 @@ MVPのゲームフローが決まり、Title、Game、SNS、Resultを担当者�
 - シーンに直接機能を作り込まず、可能な範囲でPrefabとして分離する
 - シーン統合とProjectSettingsの責任者はMとする
 
+### 2026-08-01のMVP構成更新
+
+上記の「Title、SNS、Resultを別シーンにする」は、担当者の並行開発を想定した当初の決定として
+履歴に残します。MVPの現行構成では、独立したSNSシーンは使用せず、SNS風投稿とリザルトを
+`ResultScene`内で連続して表示します。
+
+現行MVPフローは次のとおりです。
+
+```text
+Title
+→ Game_Stage0
+→ ResultScene内のSNS風投稿・リザルト演出
+→ Title
+```
+
+未撮影で時間切れになった場合は、`Game_Stage0`内のGameOver UIを表示し、Titleへ戻ります。
+
+`Game_Stage0`は、撮影画像と隠れ判定済みの被写体IDごとの個数だけを`ResultData`へ渡します。
+基本点、対象ごとの加減点、合計、0への丸めはResult Featureの責務とし、
+`ResultSceneManager`と`ResultScoreCalculator`が計算します。
+
+撮影画像の`Texture2D`は、撮影後はStageが所有し、Result遷移時に`TakeCapturedPhoto()`で
+Resultへ所有権を移します。移譲後はStageで破棄せず、ResultSceneの`ResultSceneManager`が
+表示終了時に破棄します。遷移失敗時は、移譲対象の画像を破棄して残留を防ぎます。
+
 シーン担当:
 
 | シーン | 担当 |
@@ -32,8 +57,7 @@ MVPのゲームフローが決まり、Title、Game、SNS、Resultを担当者�
 | Title | O |
 | Game（MVP） | M、N |
 | Game（追加ステージ） | ステージ追加時に決定 |
-| SNS | 未決定 |
-| Result | M、N |
+| Result（MVPのSNS風投稿・リザルト） | M、N |
 | GameOver UI | O |
 
 ## GameOverの構成

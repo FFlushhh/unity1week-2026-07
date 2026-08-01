@@ -102,6 +102,37 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(dog.position.x, Is.EqualTo(stoppedPositionX));
     }
 
+    [UnityTest]
+    public IEnumerator CapturedWaitingForTimeoutKeepsDogMovingUntilCompletedStopsIt()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
+
+        yield return null;
+
+        var dog = spawnRoot.GetChild(0);
+        stageController.BeginCapturedWaitingForTimeout();
+        var capturedWaitingPositionX = dog.position.x;
+        yield return null;
+
+        Assert.That(dog.position.x, Is.GreaterThan(capturedWaitingPositionX));
+
+        SetPrivateField(stageController, "remainingTime", 0f);
+        InvokePrivateMethod(stageController, "Update");
+        yield return null;
+        var completedPositionX = dog.position.x;
+
+        yield return null;
+
+        Assert.That(
+            stageController.CurrentState,
+            Is.EqualTo(Stage0Controller.Stage0State.Completed)
+        );
+        Assert.That(dog.position.x, Is.EqualTo(completedPositionX));
+    }
+
     private Stage0Controller CreateStageController(Stage0Controller.Stage0State state)
     {
         var stageController = CreateGameObject("Stage0Controller").AddComponent<Stage0Controller>();
@@ -183,5 +214,12 @@ public sealed class SubjectTimelineControllerPlayModeTests
         var field = target.GetType().GetField(fieldName, PrivateInstance);
         Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
         field.SetValue(target, value);
+    }
+
+    private static void InvokePrivateMethod(object target, string methodName)
+    {
+        var method = target.GetType().GetMethod(methodName, PrivateInstance);
+        Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
+        method.Invoke(target, null);
     }
 }

@@ -967,7 +967,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TitleManager
   _fadeSprite: {fileID: 518005397}
   _fadeDuration: 0.6
-  _nextSceneName: Title
+  _nextSceneName: Game_Stage0
 --- !u!1001 &5206030194706894179
 PrefabInstance:
   m_ObjectHideFlags: 0
