@@ -54,7 +54,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private readonly List<GameObject> spawnedSubjects = new();
     private bool[] hasSpawned;
-    private bool hasStoppedForGameOver;
+    private bool hasStoppedForTerminalState;
     private float elapsedTimeSeconds;
 
     private void Start()
@@ -96,10 +96,10 @@ public sealed class SubjectTimelineController : MonoBehaviour
                     ResetTimeline();
                 }
 
-                if (currentState == Stage0Controller.Stage0State.GameOver && !hasStoppedForGameOver)
+                if (IsTerminalState(currentState) && !hasStoppedForTerminalState)
                 {
                     StopSpawnedSubjects();
-                    hasStoppedForGameOver = true;
+                    hasStoppedForTerminalState = true;
                 }
 
                 if (IsTimelineRunning(currentState))
@@ -120,13 +120,13 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private void HandleStageStateChanged(Stage0Controller.Stage0State state)
     {
-        if (state != Stage0Controller.Stage0State.GameOver || hasStoppedForGameOver)
+        if (!IsTerminalState(state) || hasStoppedForTerminalState)
         {
             return;
         }
 
         StopSpawnedSubjects();
-        hasStoppedForGameOver = true;
+        hasStoppedForTerminalState = true;
     }
 
     private static bool IsTimelineRunning(Stage0Controller.Stage0State state)
@@ -135,11 +135,17 @@ public sealed class SubjectTimelineController : MonoBehaviour
             || state == Stage0Controller.Stage0State.CapturedWaitingForTimeout;
     }
 
+    private static bool IsTerminalState(Stage0Controller.Stage0State state)
+    {
+        return state == Stage0Controller.Stage0State.GameOver
+            || state == Stage0Controller.Stage0State.Completed;
+    }
+
     private void ResetTimeline()
     {
         elapsedTimeSeconds = 0f;
         hasSpawned = new bool[spawnSettings?.Length ?? 0];
-        hasStoppedForGameOver = false;
+        hasStoppedForTerminalState = false;
         DestroySpawnedSubjects();
     }
 
