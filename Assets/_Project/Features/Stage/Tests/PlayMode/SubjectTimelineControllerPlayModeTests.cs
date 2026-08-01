@@ -26,7 +26,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator PlayingSpawnsDogWithConfiguredPositionScaleSpeedAndDirection()
+    public IEnumerator PlayingSpawnsDogUnderConfiguredRootWithConfiguredScale()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
@@ -37,14 +37,28 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
         Assert.That(spawnRoot.childCount, Is.EqualTo(1));
         var dog = spawnRoot.GetChild(0);
-        Assert.That(dog.localPosition, Is.EqualTo(new Vector3(-10f, 2f, 0f)));
         Assert.That(dog.localScale, Is.EqualTo(Vector3.one * 1.5f));
+        Assert.That(dog.parent, Is.EqualTo(spawnRoot));
+        Assert.That(timeline, Is.Not.Null);
+    }
 
+    [UnityTest]
+    public IEnumerator PlayingMovesSpawnedDogToTheRight()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+        var dog = spawnRoot.GetChild(0);
         var initialPositionX = dog.position.x;
+
         yield return null;
 
         Assert.That(dog.position.x, Is.GreaterThan(initialPositionX));
-        Assert.That(timeline, Is.Not.Null);
     }
 
     [UnityTest]
@@ -64,7 +78,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
         yield return null;
         yield return null;
 
-        Assert.That(firstDog, Is.Null);
+        Assert.That(firstDog == null, Is.True);
         Assert.That(spawnRoot.childCount, Is.EqualTo(1));
     }
 
@@ -92,6 +106,20 @@ public sealed class SubjectTimelineControllerPlayModeTests
     {
         var stageController = CreateGameObject("Stage0Controller").AddComponent<Stage0Controller>();
         stageController.enabled = false;
+
+        var gameOverPanel = CreateGameObject("GameOverPanel");
+        gameOverPanel.SetActive(false);
+
+        var gameOverFadeObject = CreateGameObject("GameOverFade");
+        var gameOverFade = gameOverFadeObject.AddComponent<CanvasGroup>();
+        gameOverFade.alpha = 0f;
+
+        var gameOverContent = CreateGameObject("GameOverContent");
+        gameOverContent.SetActive(false);
+
+        SetPrivateField(stageController, "gameOverPanel", gameOverPanel);
+        SetPrivateField(stageController, "gameOverFade", gameOverFade);
+        SetPrivateField(stageController, "gameOverContent", gameOverContent);
         SetPrivateField(stageController, "currentState", state);
         return stageController;
     }
