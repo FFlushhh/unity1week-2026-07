@@ -21,7 +21,12 @@ public sealed class StageSubject : MonoBehaviour
     [SerializeField]
     private int score;
 
+    [SerializeField]
+    private Transform judgementPoint;
+
     public SubjectId Id => subjectId;
 
     public int Score => score;
+
+    public Transform JudgementPoint => judgementPoint;
 }

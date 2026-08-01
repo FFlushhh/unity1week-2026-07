@@ -34,6 +34,19 @@ public sealed class StageSubjectPlayModeTests
         Assert.That(stageSubject.Score, Is.EqualTo(score));
     }
 
+    [Test]
+    public void ReturnsConfiguredJudgementPoint()
+    {
+        subjectObject = new GameObject("Subject");
+        var judgementPointObject = new GameObject("JudgementPoint");
+        judgementPointObject.transform.SetParent(subjectObject.transform);
+
+        var stageSubject = subjectObject.AddComponent<StageSubject>();
+        SetPrivateField(stageSubject, "judgementPoint", judgementPointObject.transform);
+
+        Assert.That(stageSubject.JudgementPoint, Is.EqualTo(judgementPointObject.transform));
+    }
+
     private static void SetPrivateField<T>(StageSubject stageSubject, string fieldName, T value)
     {
         var field = typeof(StageSubject).GetField(fieldName, PrivateInstance);
