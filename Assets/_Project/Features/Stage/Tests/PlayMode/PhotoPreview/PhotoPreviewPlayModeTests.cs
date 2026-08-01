@@ -3,6 +3,7 @@ using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -168,6 +169,24 @@ public sealed class PhotoPreviewPlayModeTests
 
         UnityEngine.Object.Destroy(subjectObject);
         yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator SceneProvidesEventSystemAndCaptureControllerForTheShutterButton()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var eventSystemObject = GameObject.Find("EventSystem");
+        Assert.That(eventSystemObject, Is.Not.Null);
+        Assert.That(eventSystemObject.GetComponent<EventSystem>(), Is.Not.Null);
+        Assert.That(eventSystemObject.GetComponent("InputSystemUIInputModule"), Is.Not.Null);
+
+        var captureController = GameObject
+            .Find("StagePhotoCaptureController")
+            .GetComponent<StagePhotoCaptureController>();
+        Assert.That(captureController, Is.Not.Null);
+        Assert.That(GetPrivateField<object>(captureController, "shutterAction"), Is.Not.Null);
+        Assert.That(GetPrivateField<Button>(captureController, "shutterButton"), Is.Not.Null);
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)

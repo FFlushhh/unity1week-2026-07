@@ -3,7 +3,9 @@
   "rootNamespace": "",
   "references": [
     "Project.Stage",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.InputSystem",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
