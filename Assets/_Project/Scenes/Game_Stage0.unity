@@ -185,7 +185,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967231
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -656,6 +656,9 @@ MonoBehaviour:
   photoFrame: {fileID: 211000}
   shutterButton: {fileID: 218000}
   gameOverPanel: {fileID: 220000}
+  gameOverFadeDuration: 0.5
+  gameOverFade: {fileID: 220004}
+  gameOverContent: {fileID: 226000}
   timerText: {fileID: 216002}
 --- !u!1 &207000
 GameObject:
@@ -751,7 +754,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 210001}
+  - {fileID: 225001}
   - {fileID: 211001}
   - {fileID: 216001}
   - {fileID: 217001}
@@ -828,6 +831,57 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &225000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 225001}
+  - component: {fileID: 225002}
+  m_Layer: 5
+  m_Name: PhotoPreviewViewport
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &225001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 225000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 210001}
+  m_Father: {fileID: 209001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.2, y: 0.2}
+  m_AnchorMax: {x: 0.8, y: 0.8}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &225002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 225000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3312d7739989d2b4e91e6319e9a96d76, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
+  m_Padding: {x: 0, y: 0, z: 0, w: 0}
+  m_Softness: {x: 0, y: 0}
 --- !u!1 &210000
 GameObject:
   m_ObjectHideFlags: 0
@@ -859,7 +913,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 209001}
+  m_Father: {fileID: 225001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1797,6 +1851,7 @@ GameObject:
   - component: {fileID: 220001}
   - component: {fileID: 220002}
   - component: {fileID: 220003}
+  - component: {fileID: 220004}
   m_Layer: 5
   m_Name: GameOverPanel
   m_TagString: Untagged
@@ -1816,8 +1871,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 221001}
-  - {fileID: 222001}
+  - {fileID: 226001}
   m_Father: {fileID: 209001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1838,7 +1892,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.75}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1863,6 +1917,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 220000}
   m_CullTransparentMesh: 0
+--- !u!225 &220004
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 220000}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!1 &226000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 226001}
+  m_Layer: 5
+  m_Name: GameOverContent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &226001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 221001}
+  - {fileID: 222001}
+  m_Father: {fileID: 220001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &221000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,7 +1998,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 223001}
-  m_Father: {fileID: 220001}
+  m_Father: {fileID: 226001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2014,7 +2117,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 220001}
+  m_Father: {fileID: 226001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2267,3 +2370,87 @@ SceneRoots:
   - {fileID: 206001}
   - {fileID: 207001}
   - {fileID: 208001}
+  - {fileID: 224001}
+--- !u!1 &224000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 224001}
+  - component: {fileID: 224002}
+  m_Layer: 0
+  m_Name: SubjectTimeline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &224001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &224002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eb8e4e9ab49461992ecd628ae34342f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  stageController: {fileID: 206002}
+  subjectSpawnRoot: {fileID: 202001}
+  spawnSettings:
+  - subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
+    spawnTimeSeconds: 1
+    spawnPosition: {x: -9.5, y: 0}
+    moveDirection: 0
+    moveSpeed: 2
+    scale: 1
+  - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
+    spawnTimeSeconds: 2
+    spawnPosition: {x: -9.5, y: 2}
+    moveDirection: 0
+    moveSpeed: 1.5
+    scale: 1
+  - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
+    spawnTimeSeconds: 3
+    spawnPosition: {x: 9.5, y: -1}
+    moveDirection: 1
+    moveSpeed: 2.5
+    scale: 1
+  - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
+    spawnTimeSeconds: 4.5
+    spawnPosition: {x: -9.5, y: -2}
+    moveDirection: 0
+    moveSpeed: 1.8
+    scale: 1
+  - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
+    spawnTimeSeconds: 6
+    spawnPosition: {x: 9.5, y: 2}
+    moveDirection: 1
+    moveSpeed: 3
+    scale: 1
+  - subjectPrefab: {fileID: 440001, guid: be4bf6ac0a774ff2a099eeb4fbcf275c, type: 3}
+    spawnTimeSeconds: 8
+    spawnPosition: {x: -9.5, y: 1}
+    moveDirection: 0
+    moveSpeed: 3
+    scale: 1
