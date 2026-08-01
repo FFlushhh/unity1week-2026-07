@@ -157,6 +157,7 @@ namespace ResultScene
         private bool _isSkipped = false;
 
         private Coroutine _sequenceCoroutine;
+        private Texture2D _ownedCapturedImage;
 
         private void Start()
         {
@@ -374,8 +375,9 @@ namespace ResultScene
 
         private void InitializeUI(ResultData data)
         {
-            if (_capturedPhotoImage != null && data.CapturedImage != null)
-                _capturedPhotoImage.texture = data.CapturedImage;
+            _ownedCapturedImage = data.CapturedImage;
+            if (_capturedPhotoImage != null)
+                _capturedPhotoImage.texture = _ownedCapturedImage;
             if (_userNameText != null)
                 _userNameText.text = data.PlayerName;
             if (_postText != null)
@@ -704,11 +706,14 @@ namespace ResultScene
 
         private void OnDestroy()
         {
-            if (_capturedPhotoImage != null && _capturedPhotoImage.texture != null)
-            {
-                Destroy(_capturedPhotoImage.texture);
+            if (_capturedPhotoImage != null)
                 _capturedPhotoImage.texture = null;
-            }
+
+            if (_ownedCapturedImage == null)
+                return;
+
+            Destroy(_ownedCapturedImage);
+            _ownedCapturedImage = null;
         }
     }
 }
