@@ -78,7 +78,7 @@ public sealed class SubjectMoverPlayModeTests
 
         yield return null;
 
-        Assert.That(subject, Is.Null);
+        Assert.That(subject == null, Is.True);
     }
 
     [UnityTest]
@@ -89,7 +89,7 @@ public sealed class SubjectMoverPlayModeTests
 
         yield return null;
 
-        Assert.That(subject, Is.Null);
+        Assert.That(subject == null, Is.True);
     }
 
     private SubjectMover CreateMover(float positionX, float moveSpeed)
