@@ -187,6 +187,27 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(captureController, Is.Not.Null);
         Assert.That(GetPrivateField<object>(captureController, "shutterAction"), Is.Not.Null);
         Assert.That(GetPrivateField<Button>(captureController, "shutterButton"), Is.Not.Null);
+        Assert.That(
+            GetPrivateField<Camera>(captureController, "photoCamera"),
+            Is.EqualTo(GameObject.Find("PhotoCamera").GetComponent<Camera>())
+        );
+        Assert.That(
+            GameObject.Find("PhotoCamera").GetComponent<Camera>().targetTexture,
+            Is.Not.Null
+        );
+        var capturedPhotoPreview = GameObject
+            .Find("PhotoPreviewCanvas")
+            .transform.Find("CapturedPhotoPreview")
+            .GetComponent<RawImage>();
+        Assert.That(
+            GetPrivateField<RawImage>(captureController, "capturedPhotoPreview"),
+            Is.EqualTo(capturedPhotoPreview)
+        );
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(
+            GameObject.Find("PhotoPreviewCanvas").GetComponent<Canvas>().renderMode,
+            Is.EqualTo(RenderMode.ScreenSpaceOverlay)
+        );
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)

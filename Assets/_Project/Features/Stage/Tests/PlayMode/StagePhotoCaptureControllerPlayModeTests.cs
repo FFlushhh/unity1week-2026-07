@@ -12,6 +12,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
 
     private readonly List<GameObject> createdObjects = new();
+    private readonly List<RenderTexture> createdRenderTextures = new();
 
     [UnityTearDown]
     public IEnumerator TearDownScene()
@@ -25,6 +26,17 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         }
 
         createdObjects.Clear();
+
+        foreach (var renderTexture in createdRenderTextures)
+        {
+            if (renderTexture != null)
+            {
+                renderTexture.Release();
+                Object.DestroyImmediate(renderTexture);
+            }
+        }
+
+        createdRenderTextures.Clear();
         yield return null;
     }
 
@@ -48,6 +60,18 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
             Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
         );
         Assert.That(captureController.CapturedSubjects, Has.Count.EqualTo(1));
+        Assert.That(captureController.CapturedPhoto, Is.Not.Null);
+        Assert.That(captureController.CapturedPhoto.Image, Is.Not.Null);
+        Assert.That(captureController.CapturedPhoto.GetSubjectCount(SubjectId.Dog), Is.EqualTo(1));
+        var capturedPhotoPreview = GetPrivateField<RawImage>(
+            captureController,
+            "capturedPhotoPreview"
+        );
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.True);
+        Assert.That(
+            capturedPhotoPreview.texture,
+            Is.EqualTo(captureController.CapturedPhoto.Image)
+        );
 
         shutterButton.onClick.Invoke();
         Assert.That(captureController.CapturedSubjects, Has.Count.EqualTo(1));
@@ -86,6 +110,13 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         Assert.That(captureController.TryCapture(), Is.False);
         Assert.That(captureController.HasCaptured, Is.False);
         Assert.That(captureController.CapturedSubjects, Is.Empty);
+        Assert.That(captureController.CapturedPhoto, Is.Null);
+        var capturedPhotoPreview = GetPrivateField<RawImage>(
+            captureController,
+            "capturedPhotoPreview"
+        );
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(capturedPhotoPreview.texture, Is.Null);
     }
 
     [Test]
@@ -135,6 +166,10 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         photoCamera.orthographic = true;
         photoCamera.orthographicSize = 5f;
         photoCamera.transform.position = new Vector3(0f, 0f, -10f);
+        var photoRenderTexture = new RenderTexture(16, 9, 0, RenderTextureFormat.ARGB32);
+        photoRenderTexture.Create();
+        photoCamera.targetTexture = photoRenderTexture;
+        createdRenderTextures.Add(photoRenderTexture);
 
         var canvasObject = CreateUiGameObject("PhotoPreviewCanvas");
         var canvas = canvasObject.AddComponent<Canvas>();
@@ -158,11 +193,16 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
 
         var buttonObject = CreateUiGameObject("ShutterButton");
         var shutterButton = buttonObject.AddComponent<Button>();
+        var capturedPhotoPreviewObject = CreateUiGameObject("CapturedPhotoPreview");
+        var capturedPhotoPreview = capturedPhotoPreviewObject.AddComponent<RawImage>();
+        capturedPhotoPreviewObject.SetActive(false);
         var captureObject = CreateGameObject("StagePhotoCaptureController", active: false);
         var captureController = captureObject.AddComponent<StagePhotoCaptureController>();
         SetPrivateField(captureController, "stageController", stageController);
         SetPrivateField(captureController, "photoFrameSubjectJudge", judge);
         SetPrivateField(captureController, "shutterButton", shutterButton);
+        SetPrivateField(captureController, "photoCamera", photoCamera);
+        SetPrivateField(captureController, "capturedPhotoPreview", capturedPhotoPreview);
         captureObject.SetActive(true);
         return captureController;
     }

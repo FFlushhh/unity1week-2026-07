@@ -17,13 +17,22 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     [SerializeField]
     private Button shutterButton;
 
+    [SerializeField]
+    private Camera photoCamera;
+
+    [SerializeField]
+    private RawImage capturedPhotoPreview;
+
     private readonly List<StageSubject> capturedSubjects = new();
+    private CapturedPhoto capturedPhoto;
     private InputAction shutterAction;
     private bool hasCaptured;
 
     public bool HasCaptured => hasCaptured;
 
     public IReadOnlyList<StageSubject> CapturedSubjects => capturedSubjects;
+
+    public CapturedPhoto CapturedPhoto => capturedPhoto;
 
     private void OnEnable()
     {
@@ -65,6 +74,11 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        ReleaseCapturedPhoto();
+    }
+
     /// <summary>
     /// 現在の写真枠内にいる被写体を確定し、撮影済み状態へ移行します。
     /// </summary>
@@ -80,9 +94,16 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
             return false;
         }
 
+        if (!TryCopyPhotoCameraOutput(out var capturedImage))
+        {
+            return false;
+        }
+
         // 同一フレームのボタン・キー入力が重なっても、2回目以降を無視するため先に確定する。
         hasCaptured = true;
         CaptureSubjectsInsidePhotoFrame();
+        capturedPhoto = new CapturedPhoto(capturedImage, capturedSubjects);
+        ShowCapturedPhotoPreview(capturedImage);
         stageController.BeginCapturedWaitingForTimeout();
         return true;
     }
@@ -138,5 +159,70 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     {
         hasCaptured = false;
         capturedSubjects.Clear();
+        ReleaseCapturedPhoto();
+
+        if (capturedPhotoPreview != null)
+        {
+            capturedPhotoPreview.texture = null;
+            capturedPhotoPreview.gameObject.SetActive(false);
+        }
+    }
+
+    private bool TryCopyPhotoCameraOutput(out Texture2D capturedImage)
+    {
+        capturedImage = null;
+
+        if (photoCamera == null || photoCamera.targetTexture == null)
+        {
+            Debug.LogError(
+                "[StagePhotoCaptureController] Photo camera or its RenderTexture is not assigned.",
+                this
+            );
+            return false;
+        }
+
+        var source = photoCamera.targetTexture;
+        photoCamera.Render();
+
+        var previousActive = RenderTexture.active;
+        try
+        {
+            RenderTexture.active = source;
+            capturedImage = new Texture2D(
+                source.width,
+                source.height,
+                TextureFormat.RGBA32,
+                mipChain: false,
+                linear: false
+            );
+            capturedImage.ReadPixels(new Rect(0f, 0f, source.width, source.height), 0, 0);
+            capturedImage.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+            return true;
+        }
+        finally
+        {
+            RenderTexture.active = previousActive;
+        }
+    }
+
+    private void ShowCapturedPhotoPreview(Texture2D capturedImage)
+    {
+        if (capturedPhotoPreview == null)
+        {
+            return;
+        }
+
+        capturedPhotoPreview.texture = capturedImage;
+        capturedPhotoPreview.gameObject.SetActive(true);
+    }
+
+    private void ReleaseCapturedPhoto()
+    {
+        if (capturedPhoto?.Image != null)
+        {
+            Destroy(capturedPhoto.Image);
+        }
+
+        capturedPhoto = null;
     }
 }
