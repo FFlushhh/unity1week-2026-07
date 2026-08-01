@@ -97,6 +97,7 @@ namespace ResultScene.BuzzReaction
         private UIObjectPool _heartPool;
         private UIObjectPool _danmakuPool;
         private Vector3 _initialPanelScale = Vector3.one;
+        private Coroutine _sequenceCoroutine;
 
         private void Awake()
         {
@@ -117,15 +118,30 @@ namespace ResultScene.BuzzReaction
 
         public void StartReactionSequence(int finalLikeCount)
         {
-            StartCoroutine(ReactionSequenceRoutine(finalLikeCount));
+            if (_sequenceCoroutine != null)
+                StopCoroutine(_sequenceCoroutine);
+            int displayCount = Mathf.Max(0, finalLikeCount);
+            _sequenceCoroutine = StartCoroutine(ReactionSequenceRoutine(displayCount));
+        }
+
+        public void SkipReactionSequence(int finalLikeCount)
+        {
+            StopAllCoroutines(); // 実行中のカウントアップやバウンド、新規生成をすべて停止
+
+            if (_postPanel != null)
+                _postPanel.localScale = _initialPanelScale;
+            if (_likeCountText != null)
+                _likeCountText.text = Mathf.Max(0, finalLikeCount).ToString();
+            if (_audioSource != null)
+                _audioSource.pitch = 1.0f;
         }
 
         private IEnumerator ReactionSequenceRoutine(int finalLikeCount)
         {
-            // 1. カウントアップ演出を開始
+            // カウントアップ演出を開始
             StartCoroutine(CountUpRoutine(finalLikeCount));
 
-            // 2. ハートと弾幕の生成を開始
+            // ハートと弾幕の生成を開始
             Coroutine heartSpawning = null;
             if (_heartPool != null)
                 heartSpawning = StartCoroutine(SpawnHeartsRoutine());
@@ -134,7 +150,7 @@ namespace ResultScene.BuzzReaction
             if (_danmakuPool != null)
                 danmakuSpawning = StartCoroutine(SpawnDanmakuRoutine());
 
-            // 3. カウント中は定期的にパネルをバウンドさせる
+            // カウント中は定期的にパネルをバウンドさせる
             float elapsed = 0f;
             while (elapsed < _countUpDuration)
             {

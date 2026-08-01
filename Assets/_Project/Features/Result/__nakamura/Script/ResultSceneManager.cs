@@ -316,7 +316,7 @@ namespace ResultScene
                 if (_buzzReactionManager != null)
                 {
                     // Skip animation directly to the final state
-                    _buzzReactionManager.StartReactionSequence(_totalScore);
+                    _buzzReactionManager.SkipReactionSequence(_totalScore);
                 }
             }
             FinishSequence();
@@ -540,7 +540,8 @@ namespace ResultScene
             string scoreStr = displayScore.ToString();
             if (_totalScoreText != null)
                 _totalScoreText.text = scoreStr;
-            if (_likeCountText != null)
+            // BuzzReactionManagerがアタッチされている場合は、そちらにいいね数の更新を任せる
+            if (_buzzReactionManager == null && _likeCountText != null)
                 _likeCountText.text = scoreStr;
         }
 
@@ -609,6 +610,11 @@ namespace ResultScene
             _isSequenceFinished = true;
 
             UpdateScoreTexts(_totalScore);
+
+            if (_isSkipped && _buzzReactionManager != null)
+            {
+                _buzzReactionManager.SkipReactionSequence(_totalScore);
+            }
 
             if (_totalScoreArea != null)
                 _totalScoreArea.gameObject.SetActive(true);
