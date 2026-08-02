@@ -94,6 +94,99 @@ public sealed class PhotoPreviewPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator CameraUiUsesTheConfiguredDecorationsAndOnlyTheShutterIsInteractive()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var canvas = GameObject.Find("PhotoPreviewCanvas").transform;
+        var photoFrame = canvas.Find("PhotoFrame");
+        Assert.That(photoFrame, Is.Not.Null);
+
+        AssertDecoration(photoFrame, "CameraUiFrame", Vector2.zero, new Vector2(1920f, 1080f));
+        AssertDecoration(
+            photoFrame,
+            "CameraSwitchDecoration",
+            new Vector2(-796f, 377f),
+            new Vector2(120f, 120f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "PhotoVideoModeDecoration",
+            new Vector2(-546f, 15f),
+            new Vector2(114f, 297f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "ZoomSelectorDecoration",
+            new Vector2(-383f, 14f),
+            new Vector2(100f, 293f)
+        );
+
+        var thumbnailSlot = photoFrame.Find("ThumbnailSlot");
+        Assert.That(thumbnailSlot, Is.Not.Null);
+        Assert.That(
+            thumbnailSlot.GetComponent<RectTransform>().anchoredPosition,
+            Is.EqualTo(new Vector2(-793f, -337f))
+        );
+        Assert.That(
+            thumbnailSlot.GetComponent<RectTransform>().sizeDelta,
+            Is.EqualTo(new Vector2(146f, 146f))
+        );
+        AssertDecoration(
+            photoFrame,
+            "ThumbnailFrame",
+            new Vector2(-793f, -337f),
+            new Vector2(146f, 146f)
+        );
+
+        var shutterButton = photoFrame.Find("ShutterButton");
+        Assert.That(shutterButton, Is.Not.Null);
+        Assert.That(shutterButton.GetComponent<Button>(), Is.Not.Null);
+        Assert.That(
+            shutterButton.GetComponent<RectTransform>().anchoredPosition,
+            Is.EqualTo(new Vector2(-773f, 12f))
+        );
+        Assert.That(
+            shutterButton.GetComponent<RectTransform>().sizeDelta,
+            Is.EqualTo(new Vector2(243f, 243f))
+        );
+        Assert.That(shutterButton.GetComponent<Image>().sprite, Is.Not.Null);
+        Assert.That(shutterButton.GetComponent<Image>().preserveAspect, Is.True);
+        Assert.That(shutterButton.Find("ShutterLabel"), Is.Null);
+
+        AssertDecoration(
+            photoFrame,
+            "FlashDecoration",
+            new Vector2(835f, 377f),
+            new Vector2(120f, 120f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "LivePhotoDecoration",
+            new Vector2(835f, 198f),
+            new Vector2(120f, 120f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "AspectRatioDecoration",
+            new Vector2(835f, 16f),
+            new Vector2(120f, 120f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "CameraTimerDecoration",
+            new Vector2(835f, -159f),
+            new Vector2(120f, 120f)
+        );
+        AssertDecoration(
+            photoFrame,
+            "CameraControlsMenuDecoration",
+            new Vector2(835f, -337f),
+            new Vector2(120f, 120f)
+        );
+    }
+
+    [UnityTest]
     public IEnumerator ShutterBlackoutIsClippedInsideTheViewportAndKeepsThePreviewLayout()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
@@ -413,6 +506,28 @@ public sealed class PhotoPreviewPlayModeTests
 
             yield return null;
         }
+    }
+
+    private static void AssertDecoration(
+        Transform parent,
+        string name,
+        Vector2 anchoredPosition,
+        Vector2 sizeDelta
+    )
+    {
+        var decoration = parent.Find(name);
+        Assert.That(decoration, Is.Not.Null, $"{name} was not found.");
+        Assert.That(decoration.GetComponent<Button>(), Is.Null, $"{name} must be decorative only.");
+
+        var image = decoration.GetComponent<Image>();
+        Assert.That(image, Is.Not.Null, $"{name} must have an Image component.");
+        Assert.That(image.sprite, Is.Not.Null, $"{name} must reference its Sprite.");
+        Assert.That(image.raycastTarget, Is.False, $"{name} must not block shutter input.");
+        Assert.That(image.preserveAspect, Is.True);
+
+        var rectTransform = decoration.GetComponent<RectTransform>();
+        Assert.That(rectTransform.anchoredPosition, Is.EqualTo(anchoredPosition));
+        Assert.That(rectTransform.sizeDelta, Is.EqualTo(sizeDelta));
     }
 
     private static void SetPresentationDurations(
