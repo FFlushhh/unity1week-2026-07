@@ -766,7 +766,6 @@ RectTransform:
   - {fileID: 1705711494}
   - {fileID: 861042905}
   - {fileID: 2087848470}
-  - {fileID: 612857078}
   m_Father: {fileID: 2105531581}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
@@ -925,16 +924,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612857077}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 354460345}
+  m_Father: {fileID: 2087848470}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -312, y: -377}
+  m_AnchoredPosition: {x: 0, y: -148.70001}
   m_SizeDelta: {x: 192, y: 216}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &612857079
@@ -1326,13 +1325,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bfc0cfb1369bb04880f2cf3d23996d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResultScene.ResultSceneManager
-  _useTestData: 0
+  _useTestData: 1
   _testData:
-    PlayerName: 
-    LocationName: 
-    CapturedImage: {fileID: 0}
-    BaseScore: 100000
-    Bonuses: []
+    PlayerName: "\u3042\u3042"
+    LocationName: "\u3042\u3042\u3042"
+    CapturedImage: {fileID: 2800000, guid: 26153363ce3a8874d8bdbc4e4c8c5e9d, type: 3}
+    BaseScore: 1000
+    Bonuses:
+    - BonusName: "\u72AC"
+      Count: 1
+    - BonusName: "\u72C2\u72AC"
+      Count: 1
+    - BonusName: "\u6C5A\u308C\u305F\u670D\u306E\u4EBA"
+      Count: 1
+    - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
+      Count: 1
+    - BonusName: "\u9CE5"
+      Count: 1
+    - BonusName: "\u30B9\u30BA\u30E1"
+      Count: 1
   _bonusMaster:
   - BonusName: "\u72AC"
     ScorePerItem: 500
@@ -1370,6 +1381,7 @@ MonoBehaviour:
   _illustrationSSprite: {fileID: 21300000, guid: 38ba45ab067d6d240ae8af377e9fb747, type: 3}
   _illustrationASprite: {fileID: 21300000, guid: 131a04a6b63f9064b9177b21acf673c5, type: 3}
   _illustrationBSprite: {fileID: 2741767817335043905, guid: 981f4147e65c3b94cbe28ed239ffac56, type: 3}
+  _seVolumeScale: 0.3
   _sePopIndex: 15
   _seSlideUpIndex: 16
   _seStampIndex: 16
@@ -2035,8 +2047,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.1, y: 0.2}
   m_AnchorMax: {x: 0.9, y: 0.9}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 44.3291}
+  m_SizeDelta: {x: 0, y: -88.6583}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1705711495
 MonoBehaviour:
@@ -2237,6 +2249,7 @@ MonoBehaviour:
   _postPanel: {fileID: 44390061}
   _heartSpawnPoint: {fileID: 44390061}
   _danmakuContainer: {fileID: 44390061}
+  _seVolumeScale: 0.3
   _countUpSeIndex: 8
   _panelBounceCurve:
     serializedVersion: 2
@@ -2431,12 +2444,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 612857078}
   m_Father: {fileID: 354460345}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -312, y: -215}
+  m_AnchoredPosition: {x: -305.3, y: -264.7}
   m_SizeDelta: {x: 192, y: 108}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2087848471
