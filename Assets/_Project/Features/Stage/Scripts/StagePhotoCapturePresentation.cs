@@ -33,6 +33,13 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
     [Min(0f)]
     private float capturedPhotoScaleDuration = 0.16f;
 
+    [Header("SE Settings")]
+    [SerializeField, Tooltip("シャッター音のSE番号 (SoundManagerのSEリスト順)")]
+    private int shutterSeIndex = 0;
+
+    [SerializeField, Tooltip("ヒエラルキー上のSoundManagerのオブジェクト名")]
+    private string soundManagerObjectName = "Sound_Manager";
+
     private CancellationTokenSource activePresentationCancellation;
     private bool isPlaying;
     private bool hasInitialPreviewScale;
@@ -75,6 +82,10 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
     {
         EnsureInitialPreviewScale();
         isPlaying = true;
+
+        // ★ シャッター演出開始時にSEを鳴らす
+        PlayShutterSE();
+
         activePresentationCancellation = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken
         );
@@ -121,6 +132,44 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
             }
 
             presentationCancellation.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// SendMessageを使ってSoundManagerからシャッター音を再生します。
+    /// </summary>
+    /// <summary>
+    /// SoundManagerの永続インスタンスからシャッター音を再生します。
+    /// </summary>
+    private void PlayShutterSE()
+    {
+        GameObject soundObj = GameObject.Find("Sound_Manager");
+        if (soundObj == null)
+            return;
+
+        var comp = soundObj.GetComponent("SoundManager");
+        if (comp == null)
+            return;
+
+        // Instanceプロパティ経由で本物のコンポーネントを取得
+        var instanceProp = comp.GetType()
+            .GetProperty(
+                "Instance",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+            );
+        var activeInstance =
+            (instanceProp != null) ? instanceProp.GetValue(null) as Component : comp;
+
+        if (activeInstance != null)
+        {
+            // 引数3つ (index, pitch, volumeScale) でPlaySEを実行
+            var method = activeInstance
+                .GetType()
+                .GetMethod(
+                    "PlaySE",
+                    new System.Type[] { typeof(int), typeof(float), typeof(float) }
+                );
+            method?.Invoke(activeInstance, new object[] { shutterSeIndex, 1.0f, 1.0f });
         }
     }
 
