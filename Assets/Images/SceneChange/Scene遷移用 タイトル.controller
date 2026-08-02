@@ -11,7 +11,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: -3652258451439822135}
-    m_Position: {x: 270, y: 370, z: 0}
+    m_Position: {x: 430, y: 360, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5574129710000452820}
     m_Position: {x: 410, y: 150, z: 0}
@@ -23,7 +23,7 @@ AnimatorStateMachine:
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
   m_AnyStatePosition: {x: 80, y: 100, z: 0}
-  m_EntryPosition: {x: -10, y: 240, z: 0}
+  m_EntryPosition: {x: 50, y: 270, z: 0}
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
   m_DefaultState: {fileID: -3652258451439822135}
@@ -74,7 +74,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: "Scene\u9077\u79FB\u7528"
+  m_Name: "Scene\u9077\u79FB\u7528 \u30BF\u30A4\u30C8\u30EB"
   serializedVersion: 6
   m_AnimatorParameters:
   - m_Name: Change
@@ -167,7 +167,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: cd999df3f8a6ff4499f5683ebb48d873, type: 2}
+  m_Motion: {fileID: 7400000, guid: 63a8fc6b218d9974f9c0cc2bba5c0754, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
