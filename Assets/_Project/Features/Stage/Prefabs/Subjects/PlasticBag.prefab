@@ -157,6 +157,7 @@ MonoBehaviour:
   subjectId: 3
   score: -100
   judgementPoint: {fileID: 90032}
+  pathAnchor: {fileID: 420002}
   subjectRenderer: {fileID: 420003}
 --- !u!61 &420006
 BoxCollider2D:

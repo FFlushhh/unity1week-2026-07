@@ -48,6 +48,19 @@ public sealed class StageSubjectPlayModeTests
     }
 
     [Test]
+    public void ReturnsConfiguredPathAnchor()
+    {
+        subjectObject = new GameObject("Subject");
+        var footPointObject = new GameObject("FootPoint");
+        footPointObject.transform.SetParent(subjectObject.transform);
+
+        var stageSubject = subjectObject.AddComponent<StageSubject>();
+        SetPrivateField(stageSubject, "pathAnchor", footPointObject.transform);
+
+        Assert.That(stageSubject.PathAnchor, Is.EqualTo(footPointObject.transform));
+    }
+
+    [Test]
     public void ReturnsSpriteRendererSortingPriority()
     {
         subjectObject = new GameObject("Subject");

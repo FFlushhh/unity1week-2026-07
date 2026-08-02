@@ -428,6 +428,35 @@ public sealed class PhotoPreviewPlayModeTests
             Assert.That(stageSubject.JudgementPoint.name, Is.EqualTo("JudgementPoint"));
             Assert.That(stageSubject.JudgementPoint.parent, Is.EqualTo(subjectPrefab.transform));
             Assert.That(stageSubject.JudgementPoint.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(stageSubject.PathAnchor, Is.Not.Null);
+
+            switch (stageSubject.Id)
+            {
+                case SubjectId.Dog:
+                    Assert.That(stageSubject.PathAnchor.name, Is.EqualTo("FootPoint"));
+                    Assert.That(
+                        stageSubject.PathAnchor.localPosition,
+                        Is.EqualTo(new Vector3(0f, -1.86f, 0f))
+                    );
+                    break;
+                case SubjectId.DirtyClothesPerson:
+                    Assert.That(stageSubject.PathAnchor.name, Is.EqualTo("FootPoint"));
+                    Assert.That(
+                        stageSubject.PathAnchor.localPosition,
+                        Is.EqualTo(new Vector3(0f, -12.52f, 0f))
+                    );
+                    break;
+                case SubjectId.RabidDog:
+                    Assert.That(stageSubject.PathAnchor.name, Is.EqualTo("FootPoint"));
+                    Assert.That(
+                        stageSubject.PathAnchor.localPosition,
+                        Is.EqualTo(new Vector3(0f, -1.57f, 0f))
+                    );
+                    break;
+                default:
+                    Assert.That(stageSubject.PathAnchor, Is.EqualTo(subjectPrefab.transform));
+                    break;
+            }
         }
     }
 

@@ -11,7 +11,7 @@ public enum SubjectId
 }
 
 /// <summary>
-/// 被写体の識別子と、写真に写ったときの加減点を保持します。
+/// 被写体の識別子、写真の判定点、移動経路を配置する基準点を保持します。
 /// </summary>
 public sealed class StageSubject : MonoBehaviour
 {
@@ -25,6 +25,9 @@ public sealed class StageSubject : MonoBehaviour
     private Transform judgementPoint;
 
     [SerializeField]
+    private Transform pathAnchor;
+
+    [SerializeField]
     private SpriteRenderer subjectRenderer;
 
     public SubjectId Id => subjectId;
@@ -32,6 +35,8 @@ public sealed class StageSubject : MonoBehaviour
     public int Score => score;
 
     public Transform JudgementPoint => judgementPoint;
+
+    public Transform PathAnchor => pathAnchor;
 
     public SpriteRenderer SubjectRenderer => subjectRenderer;
 
