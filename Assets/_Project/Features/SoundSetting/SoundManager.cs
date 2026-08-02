@@ -48,6 +48,7 @@ public class SoundManager : MonoBehaviour
             _pitchedSeAudioSource = gameObject.AddComponent<AudioSource>();
 
         _bgmAudioSource.loop = true;
+        _pitchedSeAudioSource.playOnAwake = false;
     }
 
     /// <summary>

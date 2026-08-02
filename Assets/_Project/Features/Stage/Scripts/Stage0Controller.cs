@@ -172,7 +172,7 @@ public sealed class Stage0Controller : MonoBehaviour
             return;
         }
 
-        SetActive(timer, true);
+        SetActive(timer, state != Stage0State.StartMessage);
         SetActive(photoFrame, true);
         SetActive(shutterButton, state == Stage0State.Playing);
         ResetGameOverPresentation();
