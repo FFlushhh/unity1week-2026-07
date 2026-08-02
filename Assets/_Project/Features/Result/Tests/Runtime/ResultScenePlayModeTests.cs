@@ -71,15 +71,13 @@ namespace ResultScene.Tests
 
             yield return null; // Wait a frame
 
-            // Verify Next button is active (which happens at the very end of FinishSequence)
-            var nextButtonField = typeof(ResultSceneManager).GetField(
-                "_nextButton",
+            // Verify sequence is finished (which happens at the very end of FinishSequence)
+            var isSequenceFinishedField = typeof(ResultSceneManager).GetField(
+                "_isSequenceFinished",
                 BindingFlags.NonPublic | BindingFlags.Instance
             );
-            var nextButton = nextButtonField.GetValue(manager) as GameObject;
-
-            Assert.IsNotNull(nextButton);
-            Assert.IsTrue(nextButton.activeSelf);
+            var isSequenceFinished = (bool)isSequenceFinishedField.GetValue(manager);
+            Assert.IsTrue(isSequenceFinished);
             Assert.That(ResultDataTransporter.CurrentData, Is.Null);
         }
 
