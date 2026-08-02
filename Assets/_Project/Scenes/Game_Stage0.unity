@@ -1966,11 +1966,11 @@ MonoBehaviour:
   - spawnMode: 0
     subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
     spawnTimeSeconds: 0.3
-    spawnPosition: {x: -9.5, y: 0}
+    spawnPosition: {x: -9.5, y: -4.4}
     moveDirection: 0
     moveSpeed: 4
     scale: 1
-    usePathAnchorForSpawnPosition: 0
+    usePathAnchorForSpawnPosition: 1
     verticalSwayAmplitude: 0
     verticalSwayFrequencyHz: 0
   - spawnMode: 1
@@ -1982,11 +1982,11 @@ MonoBehaviour:
     minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
-      spawnPosition: {x: -9.5, y: 2}
+      spawnPosition: {x: -9.5, y: -4.4}
       moveDirection: 0
       moveSpeed: 3
       scale: 1
-      usePathAnchorForSpawnPosition: 0
+      usePathAnchorForSpawnPosition: 1
       verticalSwayAmplitude: 0
       verticalSwayFrequencyHz: 0
       selectionWeight: 1
@@ -1999,11 +1999,11 @@ MonoBehaviour:
     minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
-      spawnPosition: {x: 9.5, y: -1}
+      spawnPosition: {x: 9.5, y: -4.4}
       moveDirection: 1
       moveSpeed: 5.5
       scale: 1
-      usePathAnchorForSpawnPosition: 0
+      usePathAnchorForSpawnPosition: 1
       verticalSwayAmplitude: 0
       verticalSwayFrequencyHz: 0
       selectionWeight: 1

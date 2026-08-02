@@ -299,10 +299,11 @@ public sealed class SubjectTimelineControllerPlayModeTests
             if (!GetPublicProperty<bool>(spawnSetting, "IsRandom"))
             {
                 var route = InvokePublicMethod(spawnSetting, "CreateFixedRoute");
+                AssertRouteUsesPathAnchor(route, true);
                 AssertRouteMatchesSpecification(
                     route,
                     SubjectId.Dog,
-                    new Vector2(-9.5f, 0f),
+                    new Vector2(-9.5f, -4.4f),
                     SubjectMoveDirection.LeftToRight,
                     4f,
                     0f,
@@ -326,10 +327,11 @@ public sealed class SubjectTimelineControllerPlayModeTests
             {
                 case SubjectId.DirtyClothesPerson:
                     AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.5f, 3f, 0.25f);
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(0), true);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
-                        new Vector2(-9.5f, 2f),
+                        new Vector2(-9.5f, -4.4f),
                         SubjectMoveDirection.LeftToRight,
                         3f,
                         0f,
@@ -341,10 +343,11 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     break;
                 case SubjectId.RabidDog:
                     AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.7f, 3.8f, 0.25f);
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(0), true);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
-                        new Vector2(9.5f, -1f),
+                        new Vector2(9.5f, -4.4f),
                         SubjectMoveDirection.RightToLeft,
                         5.5f,
                         0f,
@@ -357,6 +360,8 @@ public sealed class SubjectTimelineControllerPlayModeTests
                 case SubjectId.PlasticBag:
                     AssertRandomSetting(spawnSetting, 1f, 2, 3, 0.4f, 4.8f, 0.25f);
                     Assert.That(randomRoutes, Has.Length.EqualTo(2));
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(0), false);
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(1), false);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -384,6 +389,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     break;
                 case SubjectId.Bird:
                     AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.8f, 4.5f, 0.25f);
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(0), false);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -399,6 +405,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     break;
                 case SubjectId.Sparrow:
                     AssertRandomSetting(spawnSetting, 1f, 2, 2, 1.2f, 5f, 0.25f);
+                    AssertRouteUsesPathAnchor(randomRoutes.GetValue(0), false);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -432,6 +439,47 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     SubjectId.Bird,
                     SubjectId.Sparrow,
                 }
+            )
+        );
+    }
+
+    [UnityTest]
+    public IEnumerator GroundSubjectsPlaceFootPointsOnTheGroundLane()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return null;
+
+        var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        SetPrivateField(timeline, "elapsedTimeSeconds", 10f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        var groundedSubjectIds = new HashSet<SubjectId>();
+        foreach (Transform subjectTransform in spawnRoot)
+        {
+            var stageSubject = subjectTransform.GetComponent<StageSubject>();
+            if (
+                stageSubject.Id != SubjectId.Dog
+                && stageSubject.Id != SubjectId.DirtyClothesPerson
+                && stageSubject.Id != SubjectId.RabidDog
+            )
+            {
+                continue;
+            }
+
+            Assert.That(stageSubject.PathAnchor, Is.Not.Null);
+            Assert.That(stageSubject.PathAnchor.position.y, Is.EqualTo(-4.4f).Within(0.001f));
+            groundedSubjectIds.Add(stageSubject.Id);
+        }
+
+        Assert.That(
+            groundedSubjectIds,
+            Is.EquivalentTo(
+                new[] { SubjectId.Dog, SubjectId.DirtyClothesPerson, SubjectId.RabidDog }
             )
         );
     }
@@ -573,6 +621,14 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(
             GetPrivateField<float>(spawnSetting, "minimumSpawnIntervalSeconds"),
             Is.EqualTo(minimumSpawnIntervalSeconds)
+        );
+    }
+
+    private static void AssertRouteUsesPathAnchor(object route, bool expectedUsePathAnchor)
+    {
+        Assert.That(
+            GetPublicProperty<bool>(route, "UsePathAnchorForSpawnPosition"),
+            Is.EqualTo(expectedUsePathAnchor)
         );
     }
 
