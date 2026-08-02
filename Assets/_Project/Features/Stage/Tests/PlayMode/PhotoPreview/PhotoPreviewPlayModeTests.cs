@@ -124,21 +124,47 @@ public sealed class PhotoPreviewPlayModeTests
 
         var thumbnailSlot = photoFrame.Find("ThumbnailSlot");
         Assert.That(thumbnailSlot, Is.Not.Null);
-        Assert.That(
-            thumbnailSlot.GetComponent<RectTransform>().anchoredPosition,
-            Is.EqualTo(new Vector2(-793f, -337f))
-        );
-        Assert.That(
-            thumbnailSlot.GetComponent<RectTransform>().sizeDelta,
-            Is.EqualTo(new Vector2(146f, 146f))
-        );
-        AssertDecoration(
-            photoFrame,
-            "ThumbnailFrame",
-            new Vector2(-793f, -337f),
-            new Vector2(146f, 146f)
-        );
+        var thumbnailSlotRect = thumbnailSlot.GetComponent<RectTransform>();
+        Assert.That(thumbnailSlotRect.anchoredPosition, Is.EqualTo(new Vector2(-793f, -337f)));
+        Assert.That(thumbnailSlotRect.sizeDelta, Is.EqualTo(new Vector2(146f, 146f)));
 
+        var thumbnailMask = thumbnailSlot.Find("ThumbnailMask");
+        Assert.That(thumbnailMask, Is.Not.Null);
+        var thumbnailMaskRect = thumbnailMask.GetComponent<RectTransform>();
+        Assert.That(thumbnailMaskRect.sizeDelta, Is.EqualTo(new Vector2(120f, 120f)));
+        var maskImage = thumbnailMask.GetComponent<Image>();
+        Assert.That(maskImage, Is.Not.Null);
+        Assert.That(maskImage.raycastTarget, Is.False);
+        var mask = thumbnailMask.GetComponent<Mask>();
+        Assert.That(mask, Is.Not.Null);
+        Assert.That(mask.showMaskGraphic, Is.False);
+
+        var capturedPreview = thumbnailMask.Find("CapturedPhotoPreview");
+        Assert.That(capturedPreview, Is.Not.Null);
+        Assert.That(capturedPreview.gameObject.activeSelf, Is.False);
+        var capturedPreviewRect = capturedPreview.GetComponent<RectTransform>();
+        Assert.That(capturedPreviewRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(capturedPreviewRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(capturedPreviewRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(capturedPreviewRect.pivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        var capturedPreviewFitter = capturedPreview.GetComponent<AspectRatioFitter>();
+        Assert.That(capturedPreviewFitter, Is.Not.Null);
+        Assert.That(
+            capturedPreviewFitter.aspectMode,
+            Is.EqualTo(AspectRatioFitter.AspectMode.EnvelopeParent)
+        );
+        Assert.That(capturedPreviewFitter.aspectRatio, Is.EqualTo(16f / 9f).Within(0.001f));
+
+        var thumbnailFrame = thumbnailSlot.Find("ThumbnailFrame");
+        Assert.That(thumbnailFrame, Is.Not.Null);
+        var thumbnailFrameRect = thumbnailFrame.GetComponent<RectTransform>();
+        Assert.That(thumbnailFrameRect.anchoredPosition, Is.EqualTo(Vector2.zero));
+        Assert.That(thumbnailFrameRect.sizeDelta, Is.EqualTo(new Vector2(146f, 146f)));
+        Assert.That(
+            thumbnailFrame.GetSiblingIndex(),
+            Is.GreaterThan(thumbnailMask.GetSiblingIndex())
+        );
+        Assert.That(thumbnailFrame.GetComponent<Image>().raycastTarget, Is.False);
         var shutterButton = photoFrame.Find("ShutterButton");
         Assert.That(shutterButton, Is.Not.Null);
         Assert.That(shutterButton.GetComponent<Button>(), Is.Not.Null);
@@ -196,7 +222,9 @@ public sealed class PhotoPreviewPlayModeTests
         var blackout = viewport.Find("ShutterBlackout");
         var photoPreview = viewport.Find("PhotoPreview");
         var photoFrame = canvas.Find("PhotoFrame");
-        var capturedPreview = canvas.Find("CapturedPhotoPreview").GetComponent<RectTransform>();
+        var capturedPreview = canvas
+            .Find("PhotoFrame/ThumbnailSlot/ThumbnailMask/CapturedPhotoPreview")
+            .GetComponent<RectTransform>();
 
         var photoFrameRect = photoFrame.GetComponent<RectTransform>();
         var viewportRect = viewport.GetComponent<RectTransform>();
@@ -223,11 +251,12 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(blackoutCanvasGroup.blocksRaycasts, Is.False);
         Assert.That(blackout.gameObject.activeSelf, Is.False);
 
-        Assert.That(capturedPreview.anchorMin, Is.EqualTo(new Vector2(1f, 0f)));
-        Assert.That(capturedPreview.anchorMax, Is.EqualTo(new Vector2(1f, 0f)));
+        Assert.That(capturedPreview.parent.name, Is.EqualTo("ThumbnailMask"));
+        Assert.That(capturedPreview.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(capturedPreview.anchorMax, Is.EqualTo(Vector2.one));
         Assert.That(capturedPreview.pivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
-        Assert.That(capturedPreview.anchoredPosition, Is.EqualTo(new Vector2(-168f, 105f)));
-        Assert.That(capturedPreview.sizeDelta, Is.EqualTo(new Vector2(288f, 162f)));
+        Assert.That(capturedPreview.anchoredPosition, Is.EqualTo(Vector2.zero));
+        Assert.That(capturedPreview.sizeDelta, Is.EqualTo(Vector2.zero));
     }
 
     [UnityTest]
@@ -362,7 +391,7 @@ public sealed class PhotoPreviewPlayModeTests
         );
         var capturedPhotoPreview = GameObject
             .Find("PhotoPreviewCanvas")
-            .transform.Find("CapturedPhotoPreview")
+            .transform.Find("PhotoFrame/ThumbnailSlot/ThumbnailMask/CapturedPhotoPreview")
             .GetComponent<RawImage>();
         Assert.That(
             GetPrivateField<RawImage>(captureController, "capturedPhotoPreview"),
