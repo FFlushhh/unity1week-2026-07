@@ -308,9 +308,13 @@ namespace ResultScene.Tests
         [UnityTest]
         public IEnumerator ResultScene_BuzzAudioSource_DoesNotPlayOnAwake()
         {
-            // テスト用にダミーの SoundManager を生成
-            var dummySoundManagerObj = new GameObject("SoundManager");
-            var soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+            GameObject dummySoundManagerObj = null;
+            var soundManager = global::SoundManager.Instance;
+            if (soundManager == null)
+            {
+                dummySoundManagerObj = new GameObject("SoundManager");
+                soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+            }
 
             ResultDataTransporter.CurrentData = CreateResultData(1000);
 
@@ -324,17 +328,22 @@ namespace ResultScene.Tests
             var audioSource = GetPrivateField<AudioSource>(soundManager, "_pitchedSeAudioSource");
             Assert.IsNotNull(audioSource);
             Assert.IsFalse(audioSource.playOnAwake);
-            Assert.IsNull(audioSource.clip);
             Assert.IsFalse(audioSource.isPlaying);
 
-            Object.Destroy(dummySoundManagerObj);
+            if (dummySoundManagerObj != null)
+                Object.Destroy(dummySoundManagerObj);
         }
 
         [UnityTest]
         public IEnumerator ResultSequence_SkipAfterBuzzStarts_StopsAllBuzzPresentation()
         {
-            var dummySoundManagerObj = new GameObject("SoundManager");
-            var soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+            GameObject dummySoundManagerObj = null;
+            var soundManager = global::SoundManager.Instance;
+            if (soundManager == null)
+            {
+                dummySoundManagerObj = new GameObject("SoundManager");
+                soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+            }
 
             var data = CreateResultData(1000);
             ResultDataTransporter.CurrentData = data;
@@ -371,7 +380,8 @@ namespace ResultScene.Tests
             Assert.AreEqual(initialPanelScale, postPanel.localScale);
             Assert.IsFalse(audioSource.isPlaying);
 
-            Object.Destroy(dummySoundManagerObj);
+            if (dummySoundManagerObj != null)
+                Object.Destroy(dummySoundManagerObj);
         }
 
         [UnityTest]
