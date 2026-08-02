@@ -39,7 +39,9 @@ public sealed class PhotoPreviewPlayModeTests
 
         var photoPreview = GameObject.Find("PhotoPreview");
         var canvas = GameObject.Find("PhotoPreviewCanvas");
+        var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
         Assert.That(photoPreview, Is.Not.Null);
+        Assert.That(photoCamera, Is.Not.Null);
         Assert.That(canvas, Is.Not.Null);
 
         var canvasScaler = canvas.GetComponent<CanvasScaler>();
@@ -61,15 +63,21 @@ public sealed class PhotoPreviewPlayModeTests
             aspectRatioFitter.aspectMode,
             Is.EqualTo(AspectRatioFitter.AspectMode.FitInParent)
         );
-        Assert.That(aspectRatioFitter.aspectRatio, Is.EqualTo(16f / 9f).Within(0.001f));
+        Assert.That(aspectRatioFitter.aspectRatio, Is.EqualTo(4f / 3f).Within(0.001f));
+        var renderTexture = photoCamera.targetTexture;
+        Assert.That(renderTexture, Is.Not.Null);
+        Assert.That(renderTexture.width, Is.EqualTo(1440));
+        Assert.That(renderTexture.height, Is.EqualTo(1080));
     }
 
     [UnityTest]
-    public IEnumerator PhotoPreviewAndPhotoFrameFillTheScreenWithoutLegacyFrameLines()
+    public IEnumerator PhotoPreviewAndPhotoFrameUseTheCenteredFourByThreeCameraArea()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
 
         var viewport = GameObject.Find("PhotoPreviewViewport");
+        var canvas = GameObject.Find("PhotoPreviewCanvas");
+        Assert.That(canvas, Is.Not.Null);
         var photoPreview = GameObject.Find("PhotoPreview");
         Assert.That(viewport, Is.Not.Null);
         Assert.That(photoPreview, Is.Not.Null);
@@ -80,15 +88,29 @@ public sealed class PhotoPreviewPlayModeTests
         var photoFrame = GameObject.Find("PhotoFrame");
         Assert.That(photoFrame, Is.Not.Null);
         var photoFrameRect = photoFrame.GetComponent<RectTransform>();
-        Assert.That(viewportRect.anchorMin, Is.EqualTo(Vector2.zero));
-        Assert.That(viewportRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(viewportRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(viewportRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 0.5f)));
         Assert.That(viewportRect.anchoredPosition, Is.EqualTo(Vector2.zero));
-        Assert.That(viewportRect.sizeDelta, Is.EqualTo(Vector2.zero));
-        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(Vector2.zero));
-        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(viewportRect.sizeDelta, Is.EqualTo(new Vector2(1440f, 1080f)));
+        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 0.5f)));
         Assert.That(photoFrameRect.anchoredPosition, Is.EqualTo(Vector2.zero));
-        Assert.That(photoFrameRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(photoFrameRect.sizeDelta, Is.EqualTo(new Vector2(1440f, 1080f)));
         Assert.That(GameObject.Find("FrameTop"), Is.Null);
+
+        var cameraUiBackground = canvas.transform.Find("CameraUiBackground");
+        Assert.That(cameraUiBackground, Is.Not.Null);
+        var backgroundRect = cameraUiBackground.GetComponent<RectTransform>();
+        var backgroundImage = cameraUiBackground.GetComponent<Image>();
+        Assert.That(backgroundRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(backgroundRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(backgroundRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(backgroundImage.color, Is.EqualTo(Color.black));
+        Assert.That(backgroundImage.raycastTarget, Is.False);
+        Assert.That(
+            cameraUiBackground.GetSiblingIndex(),
+            Is.LessThan(viewport.transform.GetSiblingIndex())
+        );
         Assert.That(GameObject.Find("FrameBottom"), Is.Null);
         Assert.That(GameObject.Find("FrameLeft"), Is.Null);
         Assert.That(GameObject.Find("FrameRight"), Is.Null);
@@ -118,30 +140,36 @@ public sealed class PhotoPreviewPlayModeTests
         var photoFrame = canvas.Find("PhotoFrame");
         Assert.That(photoFrame, Is.Not.Null);
 
-        AssertDecoration(photoFrame, "CameraUiFrame", Vector2.zero, new Vector2(1920f, 1080f));
+        AssertDecoration(
+            photoFrame,
+            "CameraUiFrame",
+            Vector2.zero,
+            new Vector2(1440f, 1080f),
+            false
+        );
         AssertDecoration(
             photoFrame,
             "CameraSwitchDecoration",
-            new Vector2(-796f, 377f),
-            new Vector2(120f, 120f)
+            new Vector2(-840f, -440f),
+            new Vector2(100f, 100f)
         );
         AssertDecoration(
             photoFrame,
             "PhotoVideoModeDecoration",
-            new Vector2(-546f, 15f),
-            new Vector2(114f, 297f)
+            new Vector2(-570f, 180f),
+            new Vector2(80f, 210f)
         );
         AssertDecoration(
             photoFrame,
             "ZoomSelectorDecoration",
-            new Vector2(-383f, 14f),
-            new Vector2(100f, 293f)
+            new Vector2(-570f, -180f),
+            new Vector2(75f, 200f)
         );
 
         var thumbnailSlot = photoFrame.Find("ThumbnailSlot");
         Assert.That(thumbnailSlot, Is.Not.Null);
         var thumbnailSlotRect = thumbnailSlot.GetComponent<RectTransform>();
-        Assert.That(thumbnailSlotRect.anchoredPosition, Is.EqualTo(new Vector2(-793f, -337f)));
+        Assert.That(thumbnailSlotRect.anchoredPosition, Is.EqualTo(new Vector2(-840f, 440f)));
         Assert.That(thumbnailSlotRect.sizeDelta, Is.EqualTo(new Vector2(146f, 146f)));
 
         var thumbnailMask = thumbnailSlot.Find("ThumbnailMask");
@@ -169,7 +197,7 @@ public sealed class PhotoPreviewPlayModeTests
             capturedPreviewFitter.aspectMode,
             Is.EqualTo(AspectRatioFitter.AspectMode.EnvelopeParent)
         );
-        Assert.That(capturedPreviewFitter.aspectRatio, Is.EqualTo(16f / 9f).Within(0.001f));
+        Assert.That(capturedPreviewFitter.aspectRatio, Is.EqualTo(4f / 3f).Within(0.001f));
 
         var thumbnailFrame = thumbnailSlot.Find("ThumbnailFrame");
         Assert.That(thumbnailFrame, Is.Not.Null);
@@ -186,11 +214,11 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(shutterButton.GetComponent<Button>(), Is.Not.Null);
         Assert.That(
             shutterButton.GetComponent<RectTransform>().anchoredPosition,
-            Is.EqualTo(new Vector2(-773f, 12f))
+            Is.EqualTo(new Vector2(-840f, 0f))
         );
         Assert.That(
             shutterButton.GetComponent<RectTransform>().sizeDelta,
-            Is.EqualTo(new Vector2(243f, 243f))
+            Is.EqualTo(new Vector2(180f, 180f))
         );
         Assert.That(shutterButton.GetComponent<Image>().sprite, Is.Not.Null);
         Assert.That(shutterButton.GetComponent<Image>().preserveAspect, Is.True);
@@ -199,32 +227,32 @@ public sealed class PhotoPreviewPlayModeTests
         AssertDecoration(
             photoFrame,
             "FlashDecoration",
-            new Vector2(835f, 377f),
-            new Vector2(120f, 120f)
+            new Vector2(840f, 420f),
+            new Vector2(100f, 100f)
         );
         AssertDecoration(
             photoFrame,
             "LivePhotoDecoration",
-            new Vector2(835f, 198f),
-            new Vector2(120f, 120f)
+            new Vector2(840f, 210f),
+            new Vector2(100f, 100f)
         );
         AssertDecoration(
             photoFrame,
             "AspectRatioDecoration",
-            new Vector2(835f, 16f),
-            new Vector2(120f, 120f)
+            new Vector2(840f, 0f),
+            new Vector2(100f, 100f)
         );
         AssertDecoration(
             photoFrame,
             "CameraTimerDecoration",
-            new Vector2(835f, -159f),
-            new Vector2(120f, 120f)
+            new Vector2(840f, -210f),
+            new Vector2(100f, 100f)
         );
         AssertDecoration(
             photoFrame,
             "CameraControlsMenuDecoration",
-            new Vector2(835f, -337f),
-            new Vector2(120f, 120f)
+            new Vector2(840f, -420f),
+            new Vector2(100f, 100f)
         );
     }
 
@@ -308,11 +336,13 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(viewport.GetComponent<RectMask2D>(), Is.Not.Null);
         Assert.That(blackout, Is.Not.Null);
         Assert.That(blackout.parent, Is.EqualTo(viewport));
-        Assert.That(viewportRect.anchorMin, Is.EqualTo(Vector2.zero));
-        Assert.That(viewportRect.anchorMax, Is.EqualTo(Vector2.one));
-        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(Vector2.zero));
-        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(viewportRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(viewportRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 0.5f)));
         Assert.That(blackout.GetSiblingIndex(), Is.GreaterThan(photoPreview.GetSiblingIndex()));
+        Assert.That(viewportRect.sizeDelta, Is.EqualTo(new Vector2(1440f, 1080f)));
+        Assert.That(photoFrameRect.sizeDelta, Is.EqualTo(new Vector2(1440f, 1080f)));
         Assert.That(photoFrame.GetSiblingIndex(), Is.GreaterThan(viewport.GetSiblingIndex()));
 
         var blackoutRect = blackout.GetComponent<RectTransform>();
@@ -633,7 +663,8 @@ public sealed class PhotoPreviewPlayModeTests
         Transform parent,
         string name,
         Vector2 anchoredPosition,
-        Vector2 sizeDelta
+        Vector2 sizeDelta,
+        bool preserveAspect = true
     )
     {
         var decoration = parent.Find(name);
@@ -644,7 +675,7 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(image, Is.Not.Null, $"{name} must have an Image component.");
         Assert.That(image.sprite, Is.Not.Null, $"{name} must reference its Sprite.");
         Assert.That(image.raycastTarget, Is.False, $"{name} must not block shutter input.");
-        Assert.That(image.preserveAspect, Is.True);
+        Assert.That(image.preserveAspect, Is.EqualTo(preserveAspect));
 
         var rectTransform = decoration.GetComponent<RectTransform>();
         Assert.That(rectTransform.anchoredPosition, Is.EqualTo(anchoredPosition));
