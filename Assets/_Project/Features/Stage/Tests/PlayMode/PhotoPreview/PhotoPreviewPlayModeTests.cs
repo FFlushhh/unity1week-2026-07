@@ -140,13 +140,7 @@ public sealed class PhotoPreviewPlayModeTests
         var photoFrame = canvas.Find("PhotoFrame");
         Assert.That(photoFrame, Is.Not.Null);
 
-        AssertDecoration(
-            photoFrame,
-            "CameraUiFrame",
-            Vector2.zero,
-            new Vector2(1440f, 1080f),
-            false
-        );
+        Assert.That(photoFrame.Find("CameraUiFrame"), Is.Null);
         AssertDecoration(
             photoFrame,
             "CameraSwitchDecoration",
@@ -262,7 +256,7 @@ public sealed class PhotoPreviewPlayModeTests
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
 
         var photoFrame = GameObject.Find("PhotoFrame").transform;
-        AssertSpriteTextureName(photoFrame, "CameraUiFrame", "camera_ui_frame");
+        Assert.That(photoFrame.Find("CameraUiFrame"), Is.Null);
         AssertSpriteTextureName(photoFrame, "CameraSwitchDecoration", "camera_switch_button");
         AssertSpriteTextureName(photoFrame, "ShutterButton", "shutter_button");
         AssertSpriteTextureName(
@@ -288,7 +282,6 @@ public sealed class PhotoPreviewPlayModeTests
 
         var allowedTextureNames = new HashSet<string>
         {
-            "camera_ui_frame",
             "camera_switch_button",
             "shutter_button",
             "thumbnail_frame",
