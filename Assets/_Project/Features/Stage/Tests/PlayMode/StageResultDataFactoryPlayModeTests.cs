@@ -88,7 +88,6 @@ public sealed class StageResultDataFactoryPlayModeTests
         Assert.That(resultData.PlayerName, Is.EqualTo("プレイヤー"));
         Assert.That(resultData.LocationName, Is.EqualTo("Stage 0"));
         Assert.That(resultData.CapturedImage, Is.SameAs(capturedPhoto.Image));
-        Assert.That(resultData.BaseScore, Is.EqualTo(1000));
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
     }

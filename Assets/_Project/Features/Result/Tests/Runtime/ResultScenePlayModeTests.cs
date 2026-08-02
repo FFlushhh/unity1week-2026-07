@@ -51,8 +51,7 @@ namespace ResultScene.Tests
             var resultData = new ResultData
             {
                 PlayerName = "TestPlayer",
-                LocationName = "TestLocation",
-                BaseScore = 1000,
+                LocationName = "Stage 0",
                 Bonuses = new List<BonusInputData>(),
             };
             ResultDataTransporter.CurrentData = resultData;
@@ -231,7 +230,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = -1,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
             ResultDataTransporter.CurrentData = data;
@@ -268,7 +266,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = 1000,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
 
@@ -316,7 +313,7 @@ namespace ResultScene.Tests
                 soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
             }
 
-            ResultDataTransporter.CurrentData = CreateResultData(1000);
+            ResultDataTransporter.CurrentData = CreateResultData();
 
             SceneManager.LoadScene("ResultScene");
             yield return null;
@@ -345,7 +342,7 @@ namespace ResultScene.Tests
                 soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
             }
 
-            var data = CreateResultData(1000);
+            var data = CreateResultData();
             ResultDataTransporter.CurrentData = data;
 
             SceneManager.LoadScene("ResultScene");
@@ -391,7 +388,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = 1000,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
 
@@ -435,7 +431,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "Stage 0",
-                BaseScore = 1000,
                 Bonuses = new List<BonusInputData>(bonuses),
             };
         }
@@ -494,13 +489,12 @@ namespace ResultScene.Tests
             return (int)field.GetValue(manager);
         }
 
-        private static ResultData CreateResultData(int baseScore)
+        private static ResultData CreateResultData()
         {
             return new ResultData
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = baseScore,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
         }
