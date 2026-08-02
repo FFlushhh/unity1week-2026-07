@@ -10,44 +10,67 @@ public class SceneSoundManager : MonoBehaviour
     [SerializeField]
     private bool _isLoop = true;
 
-    [Header("ヒエラルキー上のSoundManagerのオブジェクト名")]
-    [SerializeField]
-    private string _soundManagerObjectName = "Sound_Manager";
-
     private void Start()
     {
-        GameObject soundObj = GameObject.Find(_soundManagerObjectName);
-        if (soundObj != null)
+        var soundManager = GetValidSoundManagerInstance();
+        if (soundManager != null)
         {
             if (_isLoop)
             {
-                // ループありで再生
-                soundObj.SendMessage("PlayBGM", _bgmIndex, SendMessageOptions.DontRequireReceiver);
+                soundManager.SendMessage(
+                    "PlayBGM",
+                    _bgmIndex,
+                    SendMessageOptions.DontRequireReceiver
+                );
             }
             else
             {
-                // ループなし（単発）で再生
-                soundObj.SendMessage(
+                soundManager.SendMessage(
                     "PlayBGMOnce",
                     _bgmIndex,
                     SendMessageOptions.DontRequireReceiver
                 );
             }
         }
-        else
-        {
-            Debug.LogWarning(
-                $"[SceneSoundManager] '{_soundManagerObjectName}' がヒエラルキーに見つかりません。"
-            );
-        }
     }
 
     private void OnDestroy()
     {
-        GameObject soundObj = GameObject.Find(_soundManagerObjectName);
-        if (soundObj != null)
+        var soundManager = GetValidSoundManagerInstance();
+        if (soundManager != null)
         {
-            soundObj.SendMessage("StopBGM", SendMessageOptions.DontRequireReceiver);
+            soundManager.SendMessage("StopBGM", SendMessageOptions.DontRequireReceiver);
         }
+    }
+
+    /// <summary>
+    /// Destroy予定の重複オブジェクトを避け、Instanceが保持されている本物のSoundManagerを取得します
+    /// </summary>
+    private Component GetValidSoundManagerInstance()
+    {
+        GameObject soundObj = GameObject.Find("Sound_Manager");
+        if (soundObj == null)
+            return null;
+
+        var comp = soundObj.GetComponent("SoundManager");
+        if (comp == null)
+            return null;
+
+        // Instance プロパティを取得し、自分自身が Instance であるか（本物か）確認
+        var instanceProp = comp.GetType()
+            .GetProperty(
+                "Instance",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+            );
+        if (instanceProp != null)
+        {
+            var activeInstance = instanceProp.GetValue(null) as Component;
+            if (activeInstance != null)
+            {
+                return activeInstance; // 破棄されない本物を返す
+            }
+        }
+
+        return comp;
     }
 }

@@ -138,39 +138,38 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
     /// <summary>
     /// SendMessageを使ってSoundManagerからシャッター音を再生します。
     /// </summary>
+    /// <summary>
+    /// SoundManagerの永続インスタンスからシャッター音を再生します。
+    /// </summary>
     private void PlayShutterSE()
     {
-        if (string.IsNullOrEmpty(soundManagerObjectName))
-            return;
-
-        GameObject soundObj = GameObject.Find(soundManagerObjectName);
+        GameObject soundObj = GameObject.Find("Sound_Manager");
         if (soundObj == null)
             return;
 
-        // ヒエラルキー上のSoundManagerコンポーネントを取得
-        var soundManager = soundObj.GetComponent("SoundManager");
-        if (soundManager != null)
+        var comp = soundObj.GetComponent("SoundManager");
+        if (comp == null)
+            return;
+
+        // Instanceプロパティ経由で本物のコンポーネントを取得
+        var instanceProp = comp.GetType()
+            .GetProperty(
+                "Instance",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+            );
+        var activeInstance =
+            (instanceProp != null) ? instanceProp.GetValue(null) as Component : comp;
+
+        if (activeInstance != null)
         {
-            // メソッド情報を検索して、引数3つ(index, pitch, volumeScale)を正しく渡して実行する
-            var method = soundManager
+            // 引数3つ (index, pitch, volumeScale) でPlaySEを実行
+            var method = activeInstance
                 .GetType()
                 .GetMethod(
                     "PlaySE",
                     new System.Type[] { typeof(int), typeof(float), typeof(float) }
                 );
-            if (method != null)
-            {
-                // index, pitch(1.0f), volumeScale(1.0f) を指定して呼び出し
-                method.Invoke(soundManager, new object[] { shutterSeIndex, 1.0f, 1.0f });
-            }
-            else
-            {
-                // デフォルト引数なし(int単体)の旧バージョンPlaySEフォールバック
-                var fallbackMethod = soundManager
-                    .GetType()
-                    .GetMethod("PlaySE", new System.Type[] { typeof(int) });
-                fallbackMethod?.Invoke(soundManager, new object[] { shutterSeIndex });
-            }
+            method?.Invoke(activeInstance, new object[] { shutterSeIndex, 1.0f, 1.0f });
         }
     }
 
