@@ -30,6 +30,15 @@ public sealed class SubjectTimelineController : MonoBehaviour
         [SerializeField, Min(0.01f)]
         private float scale = 1f;
 
+        [SerializeField]
+        private bool usePathAnchorForSpawnPosition;
+
+        [SerializeField, Min(0f)]
+        private float verticalSwayAmplitude;
+
+        [SerializeField, Min(0f)]
+        private float verticalSwayFrequencyHz;
+
         public GameObject SubjectPrefab => subjectPrefab;
 
         public float SpawnTimeSeconds => spawnTimeSeconds;
@@ -41,6 +50,12 @@ public sealed class SubjectTimelineController : MonoBehaviour
         public float MoveSpeed => moveSpeed;
 
         public float Scale => scale;
+
+        public bool UsePathAnchorForSpawnPosition => usePathAnchorForSpawnPosition;
+
+        public float VerticalSwayAmplitude => verticalSwayAmplitude;
+
+        public float VerticalSwayFrequencyHz => verticalSwayFrequencyHz;
     }
 
     [SerializeField]
@@ -186,6 +201,12 @@ public sealed class SubjectTimelineController : MonoBehaviour
         subject.transform.localPosition = spawnSetting.SpawnPosition;
         subject.transform.localScale *= spawnSetting.Scale;
 
+        if (!TryPositionPathAnchorAtSpawnPosition(subject, spawnSetting))
+        {
+            Destroy(subject);
+            return;
+        }
+
         var subjectMover = subject.GetComponent<SubjectMover>();
         if (subjectMover == null)
         {
@@ -197,8 +218,46 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return;
         }
 
-        subjectMover.Configure(spawnSetting.MoveDirection, spawnSetting.MoveSpeed);
+        subjectMover.Configure(
+            spawnSetting.MoveDirection,
+            spawnSetting.MoveSpeed,
+            spawnSetting.VerticalSwayAmplitude,
+            spawnSetting.VerticalSwayFrequencyHz
+        );
         spawnedSubjects.Add(subject);
+    }
+
+    private bool TryPositionPathAnchorAtSpawnPosition(
+        GameObject subject,
+        SubjectSpawnSetting spawnSetting
+    )
+    {
+        if (!spawnSetting.UsePathAnchorForSpawnPosition)
+        {
+            return true;
+        }
+
+        if (!subject.TryGetComponent<StageSubject>(out var stageSubject))
+        {
+            Debug.LogError(
+                "[SubjectTimelineController] Subject prefab has no StageSubject for its path anchor.",
+                subject
+            );
+            return false;
+        }
+
+        if (stageSubject.PathAnchor == null)
+        {
+            Debug.LogError(
+                "[SubjectTimelineController] Subject prefab has no path anchor assigned.",
+                subject
+            );
+            return false;
+        }
+
+        var desiredAnchorPosition = subjectSpawnRoot.TransformPoint(spawnSetting.SpawnPosition);
+        subject.transform.position += desiredAnchorPosition - stageSubject.PathAnchor.position;
+        return true;
     }
 
     private void StopSpawnedSubjects()

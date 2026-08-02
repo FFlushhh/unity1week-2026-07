@@ -62,6 +62,48 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator PlayingConfiguresVerticalSwayForSpawnedSubject()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        CreateTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            0f,
+            verticalSwayAmplitude: 0.35f,
+            verticalSwayFrequencyHz: 1.2f
+        );
+
+        yield return null;
+
+        var mover = spawnRoot.GetChild(0).GetComponent<SubjectMover>();
+        Assert.That(GetPrivateField<float>(mover, "verticalSwayAmplitude"), Is.EqualTo(0.35f));
+        Assert.That(GetPrivateField<float>(mover, "verticalSwayFrequencyHz"), Is.EqualTo(1.2f));
+    }
+
+    [UnityTest]
+    public IEnumerator PlayingPlacesConfiguredPathAnchorAtSpawnPosition()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreatePathAnchoredDogPrefab();
+        CreateTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            0f,
+            usePathAnchorForSpawnPosition: true
+        );
+
+        yield return null;
+
+        var spawnedDog = spawnRoot.GetChild(0).GetComponent<StageSubject>();
+        Assert.That(spawnedDog.PathAnchor.position.y, Is.EqualTo(2f));
+    }
+
+    [UnityTest]
     public IEnumerator ReenteringPlayingResetsTimelineAndReplacesPreviousDog()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -159,7 +201,10 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Stage0Controller stageController,
         Transform spawnRoot,
         GameObject dogPrefab,
-        float spawnTimeSeconds
+        float spawnTimeSeconds,
+        bool usePathAnchorForSpawnPosition = false,
+        float verticalSwayAmplitude = 0f,
+        float verticalSwayFrequencyHz = 0f
     )
     {
         var timeline = CreateGameObject("SubjectTimeline")
@@ -169,7 +214,13 @@ public sealed class SubjectTimelineControllerPlayModeTests
         SetPrivateField(
             timeline,
             "spawnSettings",
-            CreateSpawnSettings(dogPrefab, spawnTimeSeconds)
+            CreateSpawnSettings(
+                dogPrefab,
+                spawnTimeSeconds,
+                usePathAnchorForSpawnPosition,
+                verticalSwayAmplitude,
+                verticalSwayFrequencyHz
+            )
         );
         return timeline;
     }
@@ -181,7 +232,25 @@ public sealed class SubjectTimelineControllerPlayModeTests
         return dogPrefab;
     }
 
-    private Array CreateSpawnSettings(GameObject dogPrefab, float spawnTimeSeconds)
+    private GameObject CreatePathAnchoredDogPrefab()
+    {
+        var dogPrefab = CreateDogPrefab();
+        var pathAnchor = CreateGameObject("FootPoint").transform;
+        pathAnchor.SetParent(dogPrefab.transform);
+        pathAnchor.localPosition = new Vector3(0f, -1f, 0f);
+
+        var stageSubject = dogPrefab.AddComponent<StageSubject>();
+        SetPrivateField(stageSubject, "pathAnchor", pathAnchor);
+        return dogPrefab;
+    }
+
+    private Array CreateSpawnSettings(
+        GameObject dogPrefab,
+        float spawnTimeSeconds,
+        bool usePathAnchorForSpawnPosition = false,
+        float verticalSwayAmplitude = 0f,
+        float verticalSwayFrequencyHz = 0f
+    )
     {
         var settingType = typeof(SubjectTimelineController).GetNestedType(
             "SubjectSpawnSetting",
@@ -196,6 +265,9 @@ public sealed class SubjectTimelineControllerPlayModeTests
         SetPrivateField(setting, "moveDirection", SubjectMoveDirection.LeftToRight);
         SetPrivateField(setting, "moveSpeed", 2f);
         SetPrivateField(setting, "scale", 1.5f);
+        SetPrivateField(setting, "usePathAnchorForSpawnPosition", usePathAnchorForSpawnPosition);
+        SetPrivateField(setting, "verticalSwayAmplitude", verticalSwayAmplitude);
+        SetPrivateField(setting, "verticalSwayFrequencyHz", verticalSwayFrequencyHz);
 
         var settings = Array.CreateInstance(settingType, 1);
         settings.SetValue(setting, 0);
@@ -207,6 +279,13 @@ public sealed class SubjectTimelineControllerPlayModeTests
         var gameObject = new GameObject(name);
         createdObjects.Add(gameObject);
         return gameObject;
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName)
+    {
+        var field = target.GetType().GetField(fieldName, PrivateInstance);
+        Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
+        return (T)field.GetValue(target);
     }
 
     private static void SetPrivateField(object target, string fieldName, object value)
