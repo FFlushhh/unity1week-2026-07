@@ -8,7 +8,6 @@ namespace ResultScene
         S,
         A,
         B,
-        C,
     }
 
     public static class ResultScoreCalculator
@@ -39,21 +38,14 @@ namespace ResultScene
             return totalScore;
         }
 
-        public static Rank DetermineRank(
-            int totalScore,
-            int sThreshold,
-            int aThreshold,
-            int bThreshold
-        )
+        public static Rank DetermineRank(int totalScore, int sThreshold, int aThreshold)
         {
             if (totalScore >= sThreshold)
                 return Rank.S;
             if (totalScore >= aThreshold)
                 return Rank.A;
-            if (totalScore >= bThreshold)
-                return Rank.B;
 
-            return Rank.C;
+            return Rank.B;
         }
     }
 }

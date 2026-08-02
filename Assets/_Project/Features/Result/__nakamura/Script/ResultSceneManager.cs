@@ -81,9 +81,6 @@ namespace ResultScene
         [SerializeField]
         private int _rankAThreshold = 8000;
 
-        [SerializeField]
-        private int _rankBThreshold = 5000;
-
         [Header("Post Texts")]
         [SerializeField, TextArea(2, 4)]
         private string _postTextRankS = "奇跡の一枚が撮れた！最高！！";
@@ -94,9 +91,6 @@ namespace ResultScene
         [SerializeField, TextArea(2, 4)]
         private string _postTextRankB = "まあまあかな。次はもっと頑張る";
 
-        [SerializeField, TextArea(2, 4)]
-        private string _postTextRankC = "うーん、ちょっとタイミングが悪かったかも…";
-
         [Header("Rank Sprites")]
         [SerializeField]
         private Sprite _rankSSprite;
@@ -106,9 +100,6 @@ namespace ResultScene
 
         [SerializeField]
         private Sprite _rankBSprite;
-
-        [SerializeField]
-        private Sprite _rankCSprite;
 
         [Header("Rank Illustration")]
         [SerializeField]
@@ -122,9 +113,6 @@ namespace ResultScene
 
         [SerializeField]
         private Sprite _illustrationBSprite;
-
-        [SerializeField]
-        private Sprite _illustrationCSprite;
 
         [Header("Audio")]
         [SerializeField]
@@ -363,11 +351,11 @@ namespace ResultScene
                 PlaySound(_seSlideUp);
             yield return SlideUpTotalScoreAreaSequenceCoroutine();
 
-            GenerateSnsContent(data);
+            Rank rank = GenerateSnsContent(data);
 
             if (_buzzReactionManager != null && !_isSkipped)
             {
-                _buzzReactionManager.StartReactionSequence();
+                _buzzReactionManager.StartReactionSequence(rank);
             }
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
@@ -425,25 +413,25 @@ namespace ResultScene
             }
         }
 
-        private void GenerateSnsContent(ResultData data)
+        private Rank GenerateSnsContent(ResultData data)
         {
             Rank rank = ResultScoreCalculator.DetermineRank(
                 _totalScore,
                 _rankSThreshold,
-                _rankAThreshold,
-                _rankBThreshold
+                _rankAThreshold
             );
             string autoText = rank switch
             {
                 Rank.S => _postTextRankS,
                 Rank.A => _postTextRankA,
                 Rank.B => _postTextRankB,
-                Rank.C => _postTextRankC,
-                _ => _postTextRankC,
+                _ => _postTextRankB,
             };
 
             if (_postText != null)
                 _postText.text = autoText;
+
+            return rank;
         }
 
         private IEnumerator AddScoreItemSequenceCoroutine(string itemName, int score)
@@ -641,27 +629,24 @@ namespace ResultScene
             Rank rank = ResultScoreCalculator.DetermineRank(
                 score,
                 _rankSThreshold,
-                _rankAThreshold,
-                _rankBThreshold
+                _rankAThreshold
             );
-            Sprite targetSprite = _rankCSprite;
+            Sprite rankSprite = null;
+
             switch (rank)
             {
                 case Rank.S:
-                    targetSprite = _rankSSprite;
+                    rankSprite = _rankSSprite;
                     break;
                 case Rank.A:
-                    targetSprite = _rankASprite;
+                    rankSprite = _rankASprite;
                     break;
                 case Rank.B:
-                    targetSprite = _rankBSprite;
-                    break;
-                case Rank.C:
-                    targetSprite = _rankCSprite;
+                    rankSprite = _rankBSprite;
                     break;
             }
 
-            _rankStampImage.sprite = targetSprite;
+            _rankStampImage.sprite = rankSprite;
         }
 
         private void SetIllustration(int score)
@@ -672,35 +657,32 @@ namespace ResultScene
             Rank rank = ResultScoreCalculator.DetermineRank(
                 score,
                 _rankSThreshold,
-                _rankAThreshold,
-                _rankBThreshold
+                _rankAThreshold
             );
-            Sprite targetSprite = _illustrationCSprite;
+            Sprite illustrationSprite = null;
+
             switch (rank)
             {
                 case Rank.S:
-                    targetSprite = _illustrationSSprite;
+                    illustrationSprite = _illustrationSSprite;
                     break;
                 case Rank.A:
-                    targetSprite = _illustrationASprite;
+                    illustrationSprite = _illustrationASprite;
                     break;
                 case Rank.B:
-                    targetSprite = _illustrationBSprite;
-                    break;
-                case Rank.C:
-                    targetSprite = _illustrationCSprite;
+                    illustrationSprite = _illustrationBSprite;
                     break;
             }
 
-            _illustrationImage.sprite = targetSprite;
-            _illustrationImage.gameObject.SetActive(targetSprite != null);
-            if (targetSprite != null)
+            _illustrationImage.sprite = illustrationSprite;
+            _illustrationImage.gameObject.SetActive(illustrationSprite != null);
+            if (illustrationSprite != null)
             {
                 // 現在設定されているRectTransformの縦幅（高さ）を取得
                 // ※ 固定値にしたい場合は float targetHeight = 150f; のように直接数値を指定してもOK。
                 float targetHeight = _illustrationImage.rectTransform.rect.height;
 
-                float aspectRatio = targetSprite.rect.width / targetSprite.rect.height;
+                float aspectRatio = illustrationSprite.rect.width / illustrationSprite.rect.height;
 
                 _illustrationImage.rectTransform.sizeDelta = new Vector2(
                     targetHeight * aspectRatio,
