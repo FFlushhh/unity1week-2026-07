@@ -37,7 +37,22 @@ public sealed class PhotoPreviewPlayModeTests
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
 
         var photoPreview = GameObject.Find("PhotoPreview");
+        var canvas = GameObject.Find("PhotoPreviewCanvas");
         Assert.That(photoPreview, Is.Not.Null);
+        Assert.That(canvas, Is.Not.Null);
+
+        var canvasScaler = canvas.GetComponent<CanvasScaler>();
+        Assert.That(canvasScaler, Is.Not.Null);
+        Assert.That(
+            canvasScaler.uiScaleMode,
+            Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize)
+        );
+        Assert.That(canvasScaler.referenceResolution, Is.EqualTo(new Vector2(1920f, 1080f)));
+        Assert.That(
+            canvasScaler.screenMatchMode,
+            Is.EqualTo(CanvasScaler.ScreenMatchMode.MatchWidthOrHeight)
+        );
+        Assert.That(canvasScaler.matchWidthOrHeight, Is.EqualTo(0.5f));
 
         var aspectRatioFitter = photoPreview.GetComponent<AspectRatioFitter>();
         Assert.That(aspectRatioFitter, Is.Not.Null);
@@ -49,7 +64,7 @@ public sealed class PhotoPreviewPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator PhotoPreviewIsClippedInsideTheFixedPhotoFrame()
+    public IEnumerator PhotoPreviewAndPhotoFrameFillTheScreenWithoutLegacyFrameLines()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
 
@@ -61,8 +76,21 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(photoPreview.transform.parent, Is.EqualTo(viewport.transform));
 
         var viewportRect = viewport.GetComponent<RectTransform>();
-        Assert.That(viewportRect.anchorMin, Is.EqualTo(new Vector2(0.2f, 0.2f)));
-        Assert.That(viewportRect.anchorMax, Is.EqualTo(new Vector2(0.8f, 0.8f)));
+        var photoFrame = GameObject.Find("PhotoFrame");
+        Assert.That(photoFrame, Is.Not.Null);
+        var photoFrameRect = photoFrame.GetComponent<RectTransform>();
+        Assert.That(viewportRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(viewportRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(viewportRect.anchoredPosition, Is.EqualTo(Vector2.zero));
+        Assert.That(viewportRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(photoFrameRect.anchoredPosition, Is.EqualTo(Vector2.zero));
+        Assert.That(photoFrameRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(GameObject.Find("FrameTop"), Is.Null);
+        Assert.That(GameObject.Find("FrameBottom"), Is.Null);
+        Assert.That(GameObject.Find("FrameLeft"), Is.Null);
+        Assert.That(GameObject.Find("FrameRight"), Is.Null);
     }
 
     [UnityTest]
@@ -82,8 +110,10 @@ public sealed class PhotoPreviewPlayModeTests
         Assert.That(viewport.GetComponent<RectMask2D>(), Is.Not.Null);
         Assert.That(blackout, Is.Not.Null);
         Assert.That(blackout.parent, Is.EqualTo(viewport));
-        Assert.That(viewportRect.anchorMin, Is.EqualTo(photoFrameRect.anchorMin));
-        Assert.That(viewportRect.anchorMax, Is.EqualTo(photoFrameRect.anchorMax));
+        Assert.That(viewportRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(viewportRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(photoFrameRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(photoFrameRect.anchorMax, Is.EqualTo(Vector2.one));
         Assert.That(blackout.GetSiblingIndex(), Is.GreaterThan(photoPreview.GetSiblingIndex()));
         Assert.That(photoFrame.GetSiblingIndex(), Is.GreaterThan(viewport.GetSiblingIndex()));
 
