@@ -324,6 +324,10 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         SetPrivateField(transitionController, "stagePhotoCaptureController", captureController);
         SetPrivateField(transitionController, "resultSceneName", resultSceneName);
         SetPrivateField(transitionController, "titleSceneName", titleSceneName);
+
+        // ★ テスト時のアニメーション待機時間を 0 秒にして即時実行させる
+        transitionController.TransitionWaitDuration = 0f;
+
         return transitionController;
     }
 
