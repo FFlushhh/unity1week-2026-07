@@ -169,6 +169,117 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator CompletedWaitsForCapturePresentationBeforeAttemptingResultTransfer()
+    {
+        var capturedPhoto = new CapturedPhoto(CreateTexture(), Array.Empty<StageSubject>());
+        var captureController = CreateCaptureController(capturedPhoto, withPresentation: true);
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        SetPresentationDurations(presentation, 1f, 0f, 0f, 0f);
+        presentation.PlayAsync(default);
+
+        var transitionController = CreateTransitionController(
+            captureController,
+            "MissingResultScene"
+        );
+        InvokePrivateMethod(
+            transitionController,
+            "HandleStageStateChanged",
+            Stage0Controller.Stage0State.Completed
+        );
+        yield return null;
+        yield return null;
+
+        Assert.That(presentation.IsPlaying, Is.True);
+        Assert.That(captureController.CapturedPhoto, Is.SameAs(capturedPhoto));
+        Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+
+        DestroyTransitionController(transitionController);
+        presentation.ResetPresentation();
+        yield return null;
+
+        Assert.That(captureController.CapturedPhoto, Is.SameAs(capturedPhoto));
+        Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+    }
+
+    [UnityTest]
+    public IEnumerator CompletedTransfersThePhotoOnlyAfterPresentationCompletes()
+    {
+        var capturedImage = CreateTexture();
+        var captureController = CreateCaptureController(
+            new CapturedPhoto(capturedImage, Array.Empty<StageSubject>()),
+            withPresentation: true
+        );
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        SetPresentationDurations(presentation, 1f, 0f, 0f, 0f);
+        presentation.PlayAsync(default);
+
+        var transitionController = CreateTransitionController(captureController, "ResultScene");
+        SceneManagerAPI.overrideAPI = new ThrowingSceneManagerApi();
+        InvokePrivateMethod(
+            transitionController,
+            "HandleStageStateChanged",
+            Stage0Controller.Stage0State.Completed
+        );
+        yield return null;
+        yield return null;
+
+        Assert.That(captureController.CapturedPhoto, Is.Not.Null);
+        Assert.That(capturedImage == null, Is.False);
+
+        LogAssert.Expect(
+            LogType.Exception,
+            new Regex("InvalidOperationException: Test scene load failure\\.")
+        );
+        presentation.ResetPresentation();
+        yield return WaitUntilOrTimeout(
+            () => captureController.CapturedPhoto == null,
+            "Result transfer did not resume after the presentation completed."
+        );
+
+        Assert.That(captureController.CapturedPhoto, Is.Null);
+        yield return null;
+        Assert.That(capturedImage == null, Is.True);
+        Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+    }
+
+    [UnityTest]
+    public IEnumerator DestroyingTransitionWhileWaitingForPresentationDoesNotTransferThePhoto()
+    {
+        var capturedPhoto = new CapturedPhoto(CreateTexture(), Array.Empty<StageSubject>());
+        var captureController = CreateCaptureController(capturedPhoto, withPresentation: true);
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        SetPresentationDurations(presentation, 1f, 0f, 0f, 0f);
+        presentation.PlayAsync(default);
+
+        var transitionController = CreateTransitionController(
+            captureController,
+            "MissingResultScene"
+        );
+        InvokePrivateMethod(
+            transitionController,
+            "HandleStageStateChanged",
+            Stage0Controller.Stage0State.Completed
+        );
+        yield return null;
+
+        DestroyTransitionController(transitionController);
+        presentation.ResetPresentation();
+        yield return null;
+
+        Assert.That(captureController.CapturedPhoto, Is.SameAs(capturedPhoto));
+        Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+    }
+
+    [UnityTest]
     public IEnumerator FailedResultLoadRestoresPreviousDataAndDestroysTransferredImage()
     {
         var previousData = new ResultData
@@ -218,7 +329,10 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         return transitionController;
     }
 
-    private StagePhotoCaptureController CreateCaptureController(CapturedPhoto capturedPhoto)
+    private StagePhotoCaptureController CreateCaptureController(
+        CapturedPhoto capturedPhoto,
+        bool withPresentation = false
+    )
     {
         var previewObject = CreateGameObject("CapturedPhotoPreview", active: false);
         var preview = previewObject.AddComponent<RawImage>();
@@ -229,6 +343,19 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         SetPrivateField(captureController, "capturedPhoto", capturedPhoto);
         SetPrivateField(captureController, "hasCaptured", capturedPhoto != null);
         SetPrivateField(captureController, "capturedPhotoPreview", preview);
+
+        if (withPresentation)
+        {
+            var blackout = CreateGameObject("ShutterBlackout", active: false)
+                .AddComponent<CanvasGroup>();
+            var presentation = captureObject.AddComponent<StagePhotoCapturePresentation>();
+            SetPrivateField(presentation, "shutterBlackout", blackout);
+            SetPrivateField(presentation, "capturedPhotoPreview", preview);
+            SetPrivateField(presentation, "capturedPhotoPreviewTransform", preview.rectTransform);
+            presentation.ResetPresentation();
+            SetPrivateField(captureController, "capturePresentation", presentation);
+        }
+
         return captureController;
     }
 
@@ -252,6 +379,44 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         gameObject.SetActive(active);
         createdObjects.Add(gameObject);
         return gameObject;
+    }
+
+    private static void DestroyTransitionController(
+        Stage0SceneTransitionController transitionController
+    )
+    {
+        InvokePrivateMethod(transitionController, "OnDestroy");
+        UnityEngine.Object.DestroyImmediate(transitionController.gameObject);
+    }
+
+    private static IEnumerator WaitUntilOrTimeout(Func<bool> predicate, string message)
+    {
+        const float timeoutSeconds = 1f;
+        var startedAt = Time.realtimeSinceStartup;
+
+        while (!predicate())
+        {
+            if (Time.realtimeSinceStartup - startedAt > timeoutSeconds)
+            {
+                Assert.Fail(message);
+            }
+
+            yield return null;
+        }
+    }
+
+    private static void SetPresentationDurations(
+        StagePhotoCapturePresentation presentation,
+        float fadeIn,
+        float hold,
+        float fadeOut,
+        float previewScale
+    )
+    {
+        SetPrivateField(presentation, "blackoutFadeInDuration", fadeIn);
+        SetPrivateField(presentation, "blackoutHoldDuration", hold);
+        SetPrivateField(presentation, "blackoutFadeOutDuration", fadeOut);
+        SetPrivateField(presentation, "capturedPhotoScaleDuration", previewScale);
     }
 
     private static bool InvokeTryTransferCapturedPhoto(
@@ -285,11 +450,15 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         field.SetValue(target, value);
     }
 
-    private static void InvokePrivateMethod(object target, string methodName, object argument)
+    private static void InvokePrivateMethod(
+        object target,
+        string methodName,
+        params object[] arguments
+    )
     {
         var method = target.GetType().GetMethod(methodName, PrivateInstance);
         Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
-        method.Invoke(target, new[] { argument });
+        method.Invoke(target, arguments);
     }
 
     private sealed class ThrowingSceneManagerApi : SceneManagerAPI

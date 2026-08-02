@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -23,6 +25,8 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     [SerializeField]
     private RawImage capturedPhotoPreview;
 
+    [SerializeField]
+    private StagePhotoCapturePresentation capturePresentation;
     private readonly List<StageSubject> capturedSubjects = new();
     private CapturedPhoto capturedPhoto;
     private InputAction shutterAction;
@@ -33,6 +37,13 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     public IReadOnlyList<StageSubject> CapturedSubjects => capturedSubjects;
 
     public CapturedPhoto CapturedPhoto => capturedPhoto;
+
+    public UniTask WaitForCapturePresentationAsync(CancellationToken cancellationToken)
+    {
+        return capturePresentation == null
+            ? UniTask.CompletedTask
+            : capturePresentation.WaitForCompletionAsync(cancellationToken);
+    }
 
     /// <summary>
     /// 撮影結果の所有権を呼び出し元へ移します。
@@ -47,6 +58,11 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
 
         var photoToTransfer = capturedPhoto;
         capturedPhoto = null;
+
+        if (capturePresentation != null)
+        {
+            capturePresentation.ResetPresentation();
+        }
 
         if (capturedPhotoPreview != null)
         {
@@ -126,11 +142,17 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         }
 
         // 同一フレームのボタン・キー入力が重なっても、2回目以降を無視するため先に確定する。
-        hasCaptured = true;
         CaptureSubjectsInsidePhotoFrame();
         capturedPhoto = new CapturedPhoto(capturedImage, capturedSubjects);
-        ShowCapturedPhotoPreview(capturedImage);
+        ShowCapturedPhotoPreview(capturedImage, showImmediately: capturePresentation == null);
+
+        // 演出中もカウントダウンを継続するため、演出開始より先に撮影済み状態へ遷移する。
+        hasCaptured = true;
         stageController.BeginCapturedWaitingForTimeout();
+        if (capturePresentation != null)
+        {
+            capturePresentation.PlayAsync(destroyCancellationToken).Forget();
+        }
         return true;
     }
 
@@ -184,6 +206,10 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     private void ResetCapture()
     {
         hasCaptured = false;
+        if (capturePresentation != null)
+        {
+            capturePresentation.ResetPresentation();
+        }
         capturedSubjects.Clear();
         ReleaseCapturedPhoto();
 
@@ -231,7 +257,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         }
     }
 
-    private void ShowCapturedPhotoPreview(Texture2D capturedImage)
+    private void ShowCapturedPhotoPreview(Texture2D capturedImage, bool showImmediately)
     {
         if (capturedPhotoPreview == null)
         {
@@ -239,7 +265,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         }
 
         capturedPhotoPreview.texture = capturedImage;
-        capturedPhotoPreview.gameObject.SetActive(true);
+        capturedPhotoPreview.gameObject.SetActive(showImmediately);
     }
 
     private void ReleaseCapturedPhoto()

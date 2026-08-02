@@ -30,6 +30,21 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
 
     private bool hasStartedResultTransition;
     private bool hasStartedTitleTransition;
+    private CancellationTokenSource lifetimeCancellation;
+
+    private void Awake()
+    {
+        lifetimeCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            destroyCancellationToken
+        );
+    }
+
+    private void OnDestroy()
+    {
+        lifetimeCancellation?.Cancel();
+        lifetimeCancellation?.Dispose();
+        lifetimeCancellation = null;
+    }
 
     private void OnEnable()
     {
@@ -64,7 +79,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         }
 
         hasStartedTitleTransition = true;
-        ReturnToTitleAsync(destroyCancellationToken).Forget();
+        ReturnToTitleAsync(GetLifetimeCancellationToken()).Forget();
     }
 
     private void HandleStageStateChanged(Stage0Controller.Stage0State state)
@@ -75,7 +90,19 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         }
 
         hasStartedResultTransition = true;
-        TransitionToResultAsync(destroyCancellationToken).Forget();
+        TransitionToResultAsync(GetLifetimeCancellationToken()).Forget();
+    }
+
+    private CancellationToken GetLifetimeCancellationToken()
+    {
+        if (lifetimeCancellation == null)
+        {
+            lifetimeCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                destroyCancellationToken
+            );
+        }
+
+        return lifetimeCancellation.Token;
     }
 
     private async UniTask TransitionToResultAsync(CancellationToken cancellationToken)
@@ -83,6 +110,15 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         try
         {
             await UniTask.NextFrame(cancellationToken);
+
+            if (stagePhotoCaptureController != null)
+            {
+                await stagePhotoCaptureController.WaitForCapturePresentationAsync(
+                    cancellationToken
+                );
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
         {

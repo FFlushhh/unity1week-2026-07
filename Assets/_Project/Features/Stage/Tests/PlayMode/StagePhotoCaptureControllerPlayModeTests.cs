@@ -218,6 +218,83 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator CaptureWithPresentationAssignsTextureBeforeShowingThePreview()
+    {
+        var captureController = CreateCaptureController(
+            Stage0Controller.Stage0State.Playing,
+            withPresentation: true
+        );
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        var capturedPhotoPreview = GetPrivateField<RawImage>(
+            captureController,
+            "capturedPhotoPreview"
+        );
+        SetPresentationDurations(presentation, 0.02f, 0.02f, 0.02f, 0.02f);
+        var photoCamera = GetPrivateField<Camera>(captureController, "photoCamera");
+        photoCamera.clearFlags = CameraClearFlags.SolidColor;
+        photoCamera.backgroundColor = Color.green;
+
+        Assert.That(captureController.TryCapture(), Is.True);
+        Assert.That(
+            capturedPhotoPreview.texture,
+            Is.EqualTo(captureController.CapturedPhoto.Image)
+        );
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(presentation.IsPlaying, Is.True);
+        var capturedBackgroundPixel = captureController.CapturedPhoto.Image.GetPixel(0, 0);
+        Assert.That(capturedBackgroundPixel.g, Is.GreaterThan(0.9f));
+        Assert.That(capturedBackgroundPixel.r, Is.LessThan(0.1f));
+        Assert.That(capturedBackgroundPixel.b, Is.LessThan(0.1f));
+        Assert.That(
+            GetPrivateField<Stage0Controller>(captureController, "stageController").CurrentState,
+            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+        );
+
+        yield return WaitUntilOrTimeout(
+            () => !presentation.IsPlaying,
+            "Capture presentation did not complete."
+        );
+
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.True);
+        Assert.That(
+            capturedPhotoPreview.texture,
+            Is.EqualTo(captureController.CapturedPhoto.Image)
+        );
+    }
+
+    [UnityTest]
+    public IEnumerator TakingCapturedPhotoCancelsPresentationAndKeepsThePreviewHidden()
+    {
+        var captureController = CreateCaptureController(
+            Stage0Controller.Stage0State.Playing,
+            withPresentation: true
+        );
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        var capturedPhotoPreview = GetPrivateField<RawImage>(
+            captureController,
+            "capturedPhotoPreview"
+        );
+        SetPresentationDurations(presentation, 1f, 0f, 0f, 0f);
+
+        Assert.That(captureController.TryCapture(), Is.True);
+        Assert.That(presentation.IsPlaying, Is.True);
+
+        var capturedPhoto = captureController.TakeCapturedPhoto();
+        yield return null;
+
+        Assert.That(capturedPhoto, Is.Not.Null);
+        Assert.That(presentation.IsPlaying, Is.False);
+        Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+        Assert.That(capturedPhotoPreview.texture, Is.Null);
+    }
+
+    [UnityTest]
     public IEnumerator CaptureExcludesOccludedSubjectWithoutRemovingItFromPhotoCameraOutput()
     {
         var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
@@ -268,7 +345,10 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         Assert.That(photoCamera.targetTexture, Is.Not.Null);
     }
 
-    private StagePhotoCaptureController CreateCaptureController(Stage0Controller.Stage0State state)
+    private StagePhotoCaptureController CreateCaptureController(
+        Stage0Controller.Stage0State state,
+        bool withPresentation = false
+    )
     {
         var stageControllerObject = CreateGameObject("Stage0Controller", active: false);
         var stageController = stageControllerObject.AddComponent<Stage0Controller>();
@@ -324,6 +404,24 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         SetPrivateField(captureController, "shutterButton", shutterButton);
         SetPrivateField(captureController, "photoCamera", photoCamera);
         SetPrivateField(captureController, "capturedPhotoPreview", capturedPhotoPreview);
+
+        if (withPresentation)
+        {
+            var blackoutObject = CreateUiGameObject("ShutterBlackout");
+            var blackout = blackoutObject.AddComponent<CanvasGroup>();
+            blackoutObject.SetActive(false);
+            var presentation = captureObject.AddComponent<StagePhotoCapturePresentation>();
+            SetPrivateField(presentation, "shutterBlackout", blackout);
+            SetPrivateField(presentation, "capturedPhotoPreview", capturedPhotoPreview);
+            SetPrivateField(
+                presentation,
+                "capturedPhotoPreviewTransform",
+                capturedPhotoPreview.rectTransform
+            );
+            presentation.ResetPresentation();
+            SetPrivateField(captureController, "capturePresentation", presentation);
+        }
+
         captureObject.SetActive(true);
         return captureController;
     }
@@ -381,6 +479,36 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         var gameObject = new GameObject(name, typeof(RectTransform));
         createdObjects.Add(gameObject);
         return gameObject;
+    }
+
+    private static IEnumerator WaitUntilOrTimeout(System.Func<bool> predicate, string message)
+    {
+        const float timeoutSeconds = 1f;
+        var startedAt = Time.realtimeSinceStartup;
+
+        while (!predicate())
+        {
+            if (Time.realtimeSinceStartup - startedAt > timeoutSeconds)
+            {
+                Assert.Fail(message);
+            }
+
+            yield return null;
+        }
+    }
+
+    private static void SetPresentationDurations(
+        StagePhotoCapturePresentation presentation,
+        float fadeIn,
+        float hold,
+        float fadeOut,
+        float previewScale
+    )
+    {
+        SetPrivateField(presentation, "blackoutFadeInDuration", fadeIn);
+        SetPrivateField(presentation, "blackoutHoldDuration", hold);
+        SetPrivateField(presentation, "blackoutFadeOutDuration", fadeOut);
+        SetPrivateField(presentation, "capturedPhotoScaleDuration", previewScale);
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)

@@ -66,6 +66,48 @@ public sealed class PhotoPreviewPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator ShutterBlackoutIsClippedInsideTheViewportAndKeepsThePreviewLayout()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var canvas = GameObject.Find("PhotoPreviewCanvas").transform;
+        var viewport = canvas.Find("PhotoPreviewViewport");
+        var blackout = viewport.Find("ShutterBlackout");
+        var photoPreview = viewport.Find("PhotoPreview");
+        var photoFrame = canvas.Find("PhotoFrame");
+        var capturedPreview = canvas.Find("CapturedPhotoPreview").GetComponent<RectTransform>();
+
+        var photoFrameRect = photoFrame.GetComponent<RectTransform>();
+        var viewportRect = viewport.GetComponent<RectTransform>();
+        Assert.That(viewport.GetComponent<RectMask2D>(), Is.Not.Null);
+        Assert.That(blackout, Is.Not.Null);
+        Assert.That(blackout.parent, Is.EqualTo(viewport));
+        Assert.That(viewportRect.anchorMin, Is.EqualTo(photoFrameRect.anchorMin));
+        Assert.That(viewportRect.anchorMax, Is.EqualTo(photoFrameRect.anchorMax));
+        Assert.That(blackout.GetSiblingIndex(), Is.GreaterThan(photoPreview.GetSiblingIndex()));
+        Assert.That(photoFrame.GetSiblingIndex(), Is.GreaterThan(viewport.GetSiblingIndex()));
+
+        var blackoutRect = blackout.GetComponent<RectTransform>();
+        var blackoutImage = blackout.GetComponent<Image>();
+        var blackoutCanvasGroup = blackout.GetComponent<CanvasGroup>();
+        Assert.That(blackoutRect.anchorMin, Is.EqualTo(Vector2.zero));
+        Assert.That(blackoutRect.anchorMax, Is.EqualTo(Vector2.one));
+        Assert.That(blackoutRect.anchoredPosition, Is.EqualTo(Vector2.zero));
+        Assert.That(blackoutRect.sizeDelta, Is.EqualTo(Vector2.zero));
+        Assert.That(blackoutImage.raycastTarget, Is.False);
+        Assert.That(blackoutCanvasGroup.alpha, Is.EqualTo(0f));
+        Assert.That(blackoutCanvasGroup.interactable, Is.False);
+        Assert.That(blackoutCanvasGroup.blocksRaycasts, Is.False);
+        Assert.That(blackout.gameObject.activeSelf, Is.False);
+
+        Assert.That(capturedPreview.anchorMin, Is.EqualTo(new Vector2(1f, 0f)));
+        Assert.That(capturedPreview.anchorMax, Is.EqualTo(new Vector2(1f, 0f)));
+        Assert.That(capturedPreview.pivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(capturedPreview.anchoredPosition, Is.EqualTo(new Vector2(-168f, 105f)));
+        Assert.That(capturedPreview.sizeDelta, Is.EqualTo(new Vector2(288f, 162f)));
+    }
+
+    [UnityTest]
     public IEnumerator SubjectsAreRenderedOnlyByThePhotoCameraAndSpawnNearItsFrame()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
@@ -204,10 +246,77 @@ public sealed class PhotoPreviewPlayModeTests
             Is.EqualTo(capturedPhotoPreview)
         );
         Assert.That(capturedPhotoPreview.gameObject.activeSelf, Is.False);
+
+        var capturePresentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        Assert.That(capturePresentation, Is.Not.Null);
+        Assert.That(
+            GetPrivateField<CanvasGroup>(capturePresentation, "shutterBlackout"),
+            Is.EqualTo(
+                GameObject
+                    .Find("PhotoPreviewCanvas")
+                    .transform.Find("PhotoPreviewViewport/ShutterBlackout")
+                    .GetComponent<CanvasGroup>()
+            )
+        );
+        Assert.That(
+            GetPrivateField<RawImage>(capturePresentation, "capturedPhotoPreview"),
+            Is.EqualTo(capturedPhotoPreview)
+        );
+        Assert.That(
+            GetPrivateField<RectTransform>(capturePresentation, "capturedPhotoPreviewTransform"),
+            Is.EqualTo(capturedPhotoPreview.rectTransform)
+        );
         Assert.That(
             GameObject.Find("PhotoPreviewCanvas").GetComponent<Canvas>().renderMode,
             Is.EqualTo(RenderMode.ScreenSpaceOverlay)
         );
+    }
+
+    [UnityTest]
+    public IEnumerator SceneCaptureDefersPreviewWhileThePresentationRunsAndKeepsTheTimerUpdating()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return null;
+
+        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var captureController = GameObject
+            .Find("StagePhotoCaptureController")
+            .GetComponent<StagePhotoCaptureController>();
+        var presentation = GetPrivateField<StagePhotoCapturePresentation>(
+            captureController,
+            "capturePresentation"
+        );
+        var capturedPreview = GetPrivateField<RawImage>(captureController, "capturedPhotoPreview");
+        var blackout = GetPrivateField<CanvasGroup>(presentation, "shutterBlackout");
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "remainingTime", 10f);
+        SetPresentationDurations(presentation, 0.02f, 0.02f, 0.02f, 0.02f);
+
+        Assert.That(captureController.TryCapture(), Is.True);
+        Assert.That(
+            stageController.CurrentState,
+            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+        );
+        Assert.That(presentation.IsPlaying, Is.True);
+        Assert.That(blackout.gameObject.activeSelf, Is.True);
+        Assert.That(capturedPreview.texture, Is.EqualTo(captureController.CapturedPhoto.Image));
+        Assert.That(capturedPreview.gameObject.activeSelf, Is.False);
+        var remainingTimeAfterCapture = stageController.RemainingTime;
+
+        yield return null;
+
+        Assert.That(stageController.RemainingTime, Is.LessThan(remainingTimeAfterCapture));
+
+        yield return WaitUntilOrTimeout(
+            () => !presentation.IsPlaying,
+            "Capture presentation did not complete."
+        );
+
+        Assert.That(capturedPreview.gameObject.activeSelf, Is.True);
+        Assert.That(capturedPreview.texture, Is.EqualTo(captureController.CapturedPhoto.Image));
     }
 
     [UnityTest]
@@ -258,6 +367,36 @@ public sealed class PhotoPreviewPlayModeTests
             Is.EqualTo("ReturnToTitle")
         );
         Assert.That(GameObject.Find("VisibilityCamera"), Is.Null);
+    }
+
+    private static IEnumerator WaitUntilOrTimeout(Func<bool> predicate, string message)
+    {
+        const float timeoutSeconds = 1f;
+        var startedAt = Time.realtimeSinceStartup;
+
+        while (!predicate())
+        {
+            if (Time.realtimeSinceStartup - startedAt > timeoutSeconds)
+            {
+                Assert.Fail(message);
+            }
+
+            yield return null;
+        }
+    }
+
+    private static void SetPresentationDurations(
+        StagePhotoCapturePresentation presentation,
+        float fadeIn,
+        float hold,
+        float fadeOut,
+        float previewScale
+    )
+    {
+        SetPrivateField(presentation, "blackoutFadeInDuration", fadeIn);
+        SetPrivateField(presentation, "blackoutHoldDuration", hold);
+        SetPrivateField(presentation, "blackoutFadeOutDuration", fadeOut);
+        SetPrivateField(presentation, "capturedPhotoScaleDuration", previewScale);
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)
