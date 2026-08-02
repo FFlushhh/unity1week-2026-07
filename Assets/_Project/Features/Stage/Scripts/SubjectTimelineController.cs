@@ -9,9 +9,92 @@ using UnityEngine;
 /// </summary>
 public sealed class SubjectTimelineController : MonoBehaviour
 {
+    private enum SubjectSpawnMode
+    {
+        Fixed,
+        Random,
+    }
+
+    [Serializable]
+    private sealed class SubjectSpawnRoute
+    {
+        [SerializeField]
+        private GameObject subjectPrefab;
+
+        [SerializeField]
+        private Vector2 spawnPosition = new(-10f, 0f);
+
+        [SerializeField]
+        private SubjectMoveDirection moveDirection = SubjectMoveDirection.LeftToRight;
+
+        [SerializeField, Min(0f)]
+        private float moveSpeed = 2f;
+
+        [SerializeField, Min(0.01f)]
+        private float scale = 1f;
+
+        [SerializeField]
+        private bool usePathAnchorForSpawnPosition;
+
+        [SerializeField, Min(0f)]
+        private float verticalSwayAmplitude;
+
+        [SerializeField, Min(0f)]
+        private float verticalSwayFrequencyHz;
+
+        [SerializeField, Min(0f)]
+        private float selectionWeight = 1f;
+
+        public SubjectSpawnRoute() { }
+
+        public SubjectSpawnRoute(
+            GameObject subjectPrefab,
+            Vector2 spawnPosition,
+            SubjectMoveDirection moveDirection,
+            float moveSpeed,
+            float scale,
+            bool usePathAnchorForSpawnPosition,
+            float verticalSwayAmplitude,
+            float verticalSwayFrequencyHz
+        )
+        {
+            this.subjectPrefab = subjectPrefab;
+            this.spawnPosition = spawnPosition;
+            this.moveDirection = moveDirection;
+            this.moveSpeed = moveSpeed;
+            this.scale = scale;
+            this.usePathAnchorForSpawnPosition = usePathAnchorForSpawnPosition;
+            this.verticalSwayAmplitude = verticalSwayAmplitude;
+            this.verticalSwayFrequencyHz = verticalSwayFrequencyHz;
+        }
+
+        public GameObject SubjectPrefab => subjectPrefab;
+
+        public Vector2 SpawnPosition => spawnPosition;
+
+        public SubjectMoveDirection MoveDirection => moveDirection;
+
+        public float MoveSpeed => moveSpeed;
+
+        public float Scale => scale;
+
+        public bool UsePathAnchorForSpawnPosition => usePathAnchorForSpawnPosition;
+
+        public float VerticalSwayAmplitude => verticalSwayAmplitude;
+
+        public float VerticalSwayFrequencyHz => verticalSwayFrequencyHz;
+
+        public float SelectionWeight => selectionWeight;
+    }
+
     [Serializable]
     private sealed class SubjectSpawnSetting
     {
+        [Header("Spawn Mode")]
+        [SerializeField]
+        private SubjectSpawnMode spawnMode;
+
+        [Header("Fixed Spawn")]
         [SerializeField]
         private GameObject subjectPrefab;
 
@@ -30,17 +113,172 @@ public sealed class SubjectTimelineController : MonoBehaviour
         [SerializeField, Min(0.01f)]
         private float scale = 1f;
 
-        public GameObject SubjectPrefab => subjectPrefab;
+        [SerializeField]
+        private bool usePathAnchorForSpawnPosition;
 
-        public float SpawnTimeSeconds => spawnTimeSeconds;
+        [SerializeField, Min(0f)]
+        private float verticalSwayAmplitude;
 
-        public Vector2 SpawnPosition => spawnPosition;
+        [SerializeField, Min(0f)]
+        private float verticalSwayFrequencyHz;
 
-        public SubjectMoveDirection MoveDirection => moveDirection;
+        [Header("Random Spawn")]
+        [SerializeField, Range(0f, 1f)]
+        private float appearanceProbability = 1f;
 
-        public float MoveSpeed => moveSpeed;
+        [SerializeField, Min(1)]
+        private int minimumSpawnCount = 1;
 
-        public float Scale => scale;
+        [SerializeField, Min(1)]
+        private int maximumSpawnCount = 1;
+
+        [SerializeField, Min(0f)]
+        private float earliestSpawnTimeSeconds;
+
+        [SerializeField, Min(0f)]
+        private float latestSpawnTimeSeconds = 1f;
+
+        [SerializeField, Min(0f)]
+        private float minimumSpawnIntervalSeconds;
+
+        [SerializeField]
+        private SubjectSpawnRoute[] randomRoutes;
+
+        public bool IsRandom => spawnMode == SubjectSpawnMode.Random;
+
+        public float FixedSpawnTimeSeconds => spawnTimeSeconds;
+
+        public SubjectSpawnRoute CreateFixedRoute()
+        {
+            return new SubjectSpawnRoute(
+                subjectPrefab,
+                spawnPosition,
+                moveDirection,
+                moveSpeed,
+                scale,
+                usePathAnchorForSpawnPosition,
+                verticalSwayAmplitude,
+                verticalSwayFrequencyHz
+            );
+        }
+
+        public bool TryCreateRandomRequest(out SubjectSpawnScheduleRequest request)
+        {
+            request = default;
+
+            if (randomRoutes == null)
+            {
+                return false;
+            }
+
+            var routeWeights = new float[randomRoutes.Length];
+            for (var index = 0; index < randomRoutes.Length; index++)
+            {
+                if (randomRoutes[index] == null)
+                {
+                    return false;
+                }
+
+                routeWeights[index] = randomRoutes[index].SelectionWeight;
+            }
+
+            request = new SubjectSpawnScheduleRequest(
+                appearanceProbability,
+                minimumSpawnCount,
+                maximumSpawnCount,
+                earliestSpawnTimeSeconds,
+                latestSpawnTimeSeconds,
+                minimumSpawnIntervalSeconds,
+                routeWeights
+            );
+            return true;
+        }
+
+        public bool TryGetRandomRoute(int routeIndex, out SubjectSpawnRoute route)
+        {
+            route = null;
+            if (
+                randomRoutes == null
+                || routeIndex < 0
+                || routeIndex >= randomRoutes.Length
+                || randomRoutes[routeIndex] == null
+            )
+            {
+                return false;
+            }
+
+            route = randomRoutes[routeIndex];
+            return true;
+        }
+
+        public bool TryGetInitialRoute(System.Random random, out SubjectSpawnRoute route)
+        {
+            route = null;
+            if (!IsRandom)
+            {
+                route = CreateFixedRoute();
+                return route.SubjectPrefab != null;
+            }
+
+            if (random == null || randomRoutes == null || randomRoutes.Length == 0)
+            {
+                return false;
+            }
+
+            var totalWeight = 0f;
+            foreach (var randomRoute in randomRoutes)
+            {
+                if (randomRoute == null)
+                {
+                    return false;
+                }
+
+                totalWeight += Mathf.Max(0f, randomRoute.SelectionWeight);
+            }
+
+            if (totalWeight <= 0f)
+            {
+                return false;
+            }
+
+            var selectedWeight = (float)(random.NextDouble() * totalWeight);
+            foreach (var randomRoute in randomRoutes)
+            {
+                selectedWeight -= Mathf.Max(0f, randomRoute.SelectionWeight);
+                if (selectedWeight <= 0f)
+                {
+                    route = randomRoute;
+                    return true;
+                }
+            }
+
+            route = randomRoutes[^1];
+            return true;
+        }
+    }
+
+    private readonly struct ScheduledSubjectSpawn
+    {
+        public ScheduledSubjectSpawn(
+            float spawnTimeSeconds,
+            SubjectSpawnRoute route,
+            bool isHorizontallyMirrored,
+            int sortOrder
+        )
+        {
+            SpawnTimeSeconds = spawnTimeSeconds;
+            Route = route;
+            IsHorizontallyMirrored = isHorizontallyMirrored;
+            SortOrder = sortOrder;
+        }
+
+        public float SpawnTimeSeconds { get; }
+
+        public SubjectSpawnRoute Route { get; }
+
+        public bool IsHorizontallyMirrored { get; }
+
+        public int SortOrder { get; }
     }
 
     [SerializeField]
@@ -52,10 +290,34 @@ public sealed class SubjectTimelineController : MonoBehaviour
     [SerializeField]
     private SubjectSpawnSetting[] spawnSettings;
 
+    [SerializeField, Range(0f, 1f)]
+    private float oppositeSideProbability = 0.5f;
+
+    [Header("Initial Subjects")]
+    [SerializeField, Min(0)]
+    private int initialSpawnMinimumCount = 2;
+
+    [SerializeField, Min(0)]
+    private int initialSpawnMaximumCount = 3;
+
+    [SerializeField]
+    private Vector2 initialSpawnXRange = new(-5f, 5f);
+
     private readonly List<GameObject> spawnedSubjects = new();
-    private bool[] hasSpawned;
-    private bool hasStoppedForTerminalState;
+    private readonly List<ScheduledSubjectSpawn> scheduledSpawns = new();
+    private readonly HashSet<int> assignedSubjectSortingOrders = new();
+    private System.Random spawnRandom;
+    private bool hasStoppedForGameOver;
+    private bool hasEnteredPlaying;
     private float elapsedTimeSeconds;
+    private int nextScheduledSpawnIndex;
+
+    private void Awake()
+    {
+        spawnRandom = new System.Random(
+            unchecked(Environment.TickCount ^ Guid.NewGuid().GetHashCode())
+        );
+    }
 
     private void Start()
     {
@@ -68,6 +330,17 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
 
         stageController.StateChanged += HandleStageStateChanged;
+        if (stageController.CurrentState == Stage0Controller.Stage0State.StartMessage)
+        {
+            BuildSpawnSchedule();
+            SpawnInitialSubjects();
+        }
+        else if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
+        {
+            BuildSpawnSchedule();
+            hasEnteredPlaying = true;
+        }
+
         RunTimelineAsync(destroyCancellationToken).Forget();
     }
 
@@ -93,13 +366,19 @@ public sealed class SubjectTimelineController : MonoBehaviour
                     && previousState != Stage0Controller.Stage0State.Playing
                 )
                 {
-                    ResetTimeline();
+                    if (hasEnteredPlaying)
+                    {
+                        ResetTimeline();
+                        BuildSpawnSchedule();
+                    }
+
+                    hasEnteredPlaying = true;
                 }
 
-                if (IsTerminalState(currentState) && !hasStoppedForTerminalState)
+                if (IsGameOverState(currentState) && !hasStoppedForGameOver)
                 {
                     StopSpawnedSubjects();
-                    hasStoppedForTerminalState = true;
+                    hasStoppedForGameOver = true;
                 }
 
                 if (IsTimelineRunning(currentState))
@@ -120,57 +399,208 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private void HandleStageStateChanged(Stage0Controller.Stage0State state)
     {
-        if (!IsTerminalState(state) || hasStoppedForTerminalState)
+        if (!IsGameOverState(state) || hasStoppedForGameOver)
         {
             return;
         }
 
         StopSpawnedSubjects();
-        hasStoppedForTerminalState = true;
+        hasStoppedForGameOver = true;
     }
 
     private static bool IsTimelineRunning(Stage0Controller.Stage0State state)
     {
-        return state == Stage0Controller.Stage0State.Playing
-            || state == Stage0Controller.Stage0State.CapturedWaitingForTimeout;
+        return state != Stage0Controller.Stage0State.GameOver;
     }
 
-    private static bool IsTerminalState(Stage0Controller.Stage0State state)
+    private static bool IsGameOverState(Stage0Controller.Stage0State state)
     {
-        return state == Stage0Controller.Stage0State.GameOver
-            || state == Stage0Controller.Stage0State.Completed;
+        return state == Stage0Controller.Stage0State.GameOver;
     }
 
-    private void ResetTimeline()
+    private void ResetTimeline(bool destroySpawnedSubjects = true)
     {
         elapsedTimeSeconds = 0f;
-        hasSpawned = new bool[spawnSettings?.Length ?? 0];
-        hasStoppedForTerminalState = false;
-        DestroySpawnedSubjects();
+        nextScheduledSpawnIndex = 0;
+        hasStoppedForGameOver = false;
+        scheduledSpawns.Clear();
+        assignedSubjectSortingOrders.Clear();
+        if (destroySpawnedSubjects)
+        {
+            DestroySpawnedSubjects();
+        }
     }
 
-    private void SpawnDueSubjects()
+    private void SpawnInitialSubjects()
+    {
+        if (spawnSettings == null || initialSpawnMaximumCount <= 0)
+        {
+            return;
+        }
+
+        var candidateRoutes = new List<SubjectSpawnRoute>();
+        var candidateSubjectIds = new HashSet<SubjectId>();
+        foreach (var spawnSetting in spawnSettings)
+        {
+            if (
+                spawnSetting == null
+                || !spawnSetting.TryGetInitialRoute(spawnRandom, out var route)
+                || route.SubjectPrefab == null
+                || !route.SubjectPrefab.TryGetComponent<StageSubject>(out var stageSubject)
+                || !candidateSubjectIds.Add(stageSubject.Id)
+            )
+            {
+                continue;
+            }
+
+            candidateRoutes.Add(route);
+        }
+
+        var minimumCount = Mathf.Clamp(initialSpawnMinimumCount, 0, candidateRoutes.Count);
+        var maximumCount = Mathf.Clamp(
+            initialSpawnMaximumCount,
+            minimumCount,
+            candidateRoutes.Count
+        );
+        var spawnCount = spawnRandom.Next(minimumCount, maximumCount + 1);
+        var minimumX = Mathf.Min(initialSpawnXRange.x, initialSpawnXRange.y);
+        var maximumX = Mathf.Max(initialSpawnXRange.x, initialSpawnXRange.y);
+
+        for (var index = 0; index < spawnCount; index++)
+        {
+            var selectedRouteIndex = spawnRandom.Next(index, candidateRoutes.Count);
+            (candidateRoutes[index], candidateRoutes[selectedRouteIndex]) = (
+                candidateRoutes[selectedRouteIndex],
+                candidateRoutes[index]
+            );
+
+            var route = candidateRoutes[index];
+            var spawnPosition = route.SpawnPosition;
+            spawnPosition.x = Mathf.Lerp(minimumX, maximumX, (float)spawnRandom.NextDouble());
+            var initialRoute = new SubjectSpawnRoute(
+                route.SubjectPrefab,
+                spawnPosition,
+                route.MoveDirection,
+                route.MoveSpeed,
+                route.Scale,
+                route.UsePathAnchorForSpawnPosition,
+                route.VerticalSwayAmplitude,
+                route.VerticalSwayFrequencyHz
+            );
+            SpawnSubject(initialRoute, ShouldSpawnFromOppositeSide());
+        }
+    }
+
+    private void BuildSpawnSchedule(bool includeFixedSpawns = true)
     {
         if (spawnSettings == null)
         {
             return;
         }
 
-        for (var index = 0; index < spawnSettings.Length; index++)
+        var sortOrder = 0;
+        for (var settingIndex = 0; settingIndex < spawnSettings.Length; settingIndex++)
         {
-            if (hasSpawned[index] || elapsedTimeSeconds < spawnSettings[index].SpawnTimeSeconds)
+            var spawnSetting = spawnSettings[settingIndex];
+            if (spawnSetting == null)
             {
+                Debug.LogError(
+                    $"[SubjectTimelineController] Spawn setting {settingIndex} is not assigned.",
+                    this
+                );
                 continue;
             }
 
-            hasSpawned[index] = true;
-            SpawnSubject(spawnSettings[index]);
+            if (!spawnSetting.IsRandom)
+            {
+                if (!includeFixedSpawns)
+                {
+                    continue;
+                }
+
+                scheduledSpawns.Add(
+                    new ScheduledSubjectSpawn(
+                        spawnSetting.FixedSpawnTimeSeconds,
+                        spawnSetting.CreateFixedRoute(),
+                        ShouldSpawnFromOppositeSide(),
+                        sortOrder++
+                    )
+                );
+                continue;
+            }
+
+            if (!spawnSetting.TryCreateRandomRequest(out var request))
+            {
+                Debug.LogError(
+                    $"[SubjectTimelineController] Random spawn setting {settingIndex} has no valid routes.",
+                    this
+                );
+                continue;
+            }
+
+            if (!SubjectSpawnScheduleBuilder.TryBuild(request, spawnRandom, out var schedule))
+            {
+                Debug.LogError(
+                    $"[SubjectTimelineController] Random spawn setting {settingIndex} is invalid.",
+                    this
+                );
+                continue;
+            }
+
+            foreach (var entry in schedule)
+            {
+                if (!spawnSetting.TryGetRandomRoute(entry.RouteIndex, out var route))
+                {
+                    Debug.LogError(
+                        $"[SubjectTimelineController] Random spawn setting {settingIndex} selected an invalid route.",
+                        this
+                    );
+                    continue;
+                }
+
+                scheduledSpawns.Add(
+                    new ScheduledSubjectSpawn(
+                        entry.SpawnTimeSeconds,
+                        route,
+                        ShouldSpawnFromOppositeSide(),
+                        sortOrder++
+                    )
+                );
+            }
+        }
+
+        scheduledSpawns.Sort(CompareScheduledSpawns);
+    }
+
+    private void SpawnDueSubjects()
+    {
+        while (
+            nextScheduledSpawnIndex < scheduledSpawns.Count
+            && elapsedTimeSeconds >= scheduledSpawns[nextScheduledSpawnIndex].SpawnTimeSeconds
+        )
+        {
+            var scheduledSpawn = scheduledSpawns[nextScheduledSpawnIndex];
+            SpawnSubject(scheduledSpawn.Route, scheduledSpawn.IsHorizontallyMirrored);
+            nextScheduledSpawnIndex++;
+        }
+
+        if (scheduledSpawns.Count > 0 && nextScheduledSpawnIndex >= scheduledSpawns.Count)
+        {
+            StartNextRandomSpawnBatch();
         }
     }
 
-    private void SpawnSubject(SubjectSpawnSetting spawnSetting)
+    private void StartNextRandomSpawnBatch()
     {
-        if (spawnSetting.SubjectPrefab == null)
+        elapsedTimeSeconds = 0f;
+        nextScheduledSpawnIndex = 0;
+        scheduledSpawns.Clear();
+        BuildSpawnSchedule(includeFixedSpawns: false);
+    }
+
+    private void SpawnSubject(SubjectSpawnRoute spawnRoute, bool isHorizontallyMirrored)
+    {
+        if (spawnRoute.SubjectPrefab == null)
         {
             Debug.LogError("[SubjectTimelineController] Subject prefab is not assigned.", this);
             return;
@@ -182,9 +612,25 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return;
         }
 
-        var subject = Instantiate(spawnSetting.SubjectPrefab, subjectSpawnRoot);
-        subject.transform.localPosition = spawnSetting.SpawnPosition;
-        subject.transform.localScale *= spawnSetting.Scale;
+        var spawnPosition = spawnRoute.SpawnPosition;
+        var moveDirection = spawnRoute.MoveDirection;
+        if (isHorizontallyMirrored)
+        {
+            spawnPosition.x = -spawnPosition.x;
+            moveDirection = ReverseMoveDirection(moveDirection);
+        }
+
+        var subject = Instantiate(spawnRoute.SubjectPrefab, subjectSpawnRoot);
+        subject.transform.localPosition = spawnPosition;
+        subject.transform.localScale *= spawnRoute.Scale;
+
+        if (!TryPositionPathAnchorAtSpawnPosition(subject, spawnRoute, spawnPosition))
+        {
+            Destroy(subject);
+            return;
+        }
+
+        AssignUniqueSortingOrder(subject);
 
         var subjectMover = subject.GetComponent<SubjectMover>();
         if (subjectMover == null)
@@ -197,8 +643,91 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return;
         }
 
-        subjectMover.Configure(spawnSetting.MoveDirection, spawnSetting.MoveSpeed);
+        subjectMover.Configure(
+            moveDirection,
+            spawnRoute.MoveSpeed,
+            spawnRoute.VerticalSwayAmplitude,
+            spawnRoute.VerticalSwayFrequencyHz
+        );
+        ApplyHorizontalMirror(subject, isHorizontallyMirrored);
         spawnedSubjects.Add(subject);
+    }
+
+    private void AssignUniqueSortingOrder(GameObject subject)
+    {
+        if (
+            !subject.TryGetComponent<StageSubject>(out var stageSubject)
+            || stageSubject.SubjectRenderer == null
+        )
+        {
+            return;
+        }
+
+        var sortingOrder = stageSubject.SubjectRenderer.sortingOrder;
+        while (!assignedSubjectSortingOrders.Add(sortingOrder))
+        {
+            sortingOrder++;
+        }
+
+        stageSubject.SubjectRenderer.sortingOrder = sortingOrder;
+    }
+
+    private bool TryPositionPathAnchorAtSpawnPosition(
+        GameObject subject,
+        SubjectSpawnRoute spawnRoute,
+        Vector2 spawnPosition
+    )
+    {
+        if (!spawnRoute.UsePathAnchorForSpawnPosition)
+        {
+            return true;
+        }
+
+        if (!subject.TryGetComponent<StageSubject>(out var stageSubject))
+        {
+            Debug.LogError(
+                "[SubjectTimelineController] Subject prefab has no StageSubject for its path anchor.",
+                subject
+            );
+            return false;
+        }
+
+        if (stageSubject.PathAnchor == null)
+        {
+            Debug.LogError(
+                "[SubjectTimelineController] Subject prefab has no path anchor assigned.",
+                subject
+            );
+            return false;
+        }
+
+        var desiredAnchorPosition = subjectSpawnRoot.TransformPoint(spawnPosition);
+        subject.transform.position += desiredAnchorPosition - stageSubject.PathAnchor.position;
+        return true;
+    }
+
+    private bool ShouldSpawnFromOppositeSide()
+    {
+        return spawnRandom.NextDouble() < Mathf.Clamp01(oppositeSideProbability);
+    }
+
+    private static SubjectMoveDirection ReverseMoveDirection(SubjectMoveDirection moveDirection)
+    {
+        return moveDirection == SubjectMoveDirection.LeftToRight
+            ? SubjectMoveDirection.RightToLeft
+            : SubjectMoveDirection.LeftToRight;
+    }
+
+    private static void ApplyHorizontalMirror(GameObject subject, bool isHorizontallyMirrored)
+    {
+        if (
+            isHorizontallyMirrored
+            && subject.TryGetComponent<StageSubject>(out var stageSubject)
+            && stageSubject.SubjectRenderer != null
+        )
+        {
+            stageSubject.SubjectRenderer.flipX = !stageSubject.SubjectRenderer.flipX;
+        }
     }
 
     private void StopSpawnedSubjects()
@@ -227,5 +756,14 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
 
         spawnedSubjects.Clear();
+    }
+
+    private static int CompareScheduledSpawns(
+        ScheduledSubjectSpawn left,
+        ScheduledSubjectSpawn right
+    )
+    {
+        var timeComparison = left.SpawnTimeSeconds.CompareTo(right.SpawnTimeSeconds);
+        return timeComparison != 0 ? timeComparison : left.SortOrder.CompareTo(right.SortOrder);
     }
 }

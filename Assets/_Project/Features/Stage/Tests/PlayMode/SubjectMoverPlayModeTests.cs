@@ -59,6 +59,43 @@ public sealed class SubjectMoverPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator ConfiguredVerticalSwayStaysWithinItsAmplitude()
+    {
+        var mover = CreateMover(positionX: -1f, moveSpeed: 0f);
+        mover.Configure(SubjectMoveDirection.LeftToRight, 0f, 0.5f, 1f);
+        var basePositionY = subject.transform.position.y;
+        var maximumOffset = 0f;
+
+        for (var frame = 0; frame < 10; frame++)
+        {
+            yield return null;
+            maximumOffset = Mathf.Max(
+                maximumOffset,
+                Mathf.Abs(subject.transform.position.y - basePositionY)
+            );
+        }
+
+        Assert.That(maximumOffset, Is.GreaterThan(0.001f));
+        Assert.That(maximumOffset, Is.LessThanOrEqualTo(0.5001f));
+        Assert.That(subject.transform.position.x, Is.EqualTo(-1f));
+    }
+
+    [UnityTest]
+    public IEnumerator NegativeVerticalSwayValuesKeepSubjectAtItsBaseHeight()
+    {
+        var mover = CreateMover(positionX: -1f, moveSpeed: 0f);
+        mover.Configure(SubjectMoveDirection.LeftToRight, 0f, -0.5f, -1f);
+        var basePositionY = subject.transform.position.y;
+
+        for (var frame = 0; frame < 3; frame++)
+        {
+            yield return null;
+        }
+
+        Assert.That(subject.transform.position.y, Is.EqualTo(basePositionY));
+    }
+
+    [UnityTest]
     public IEnumerator StopKeepsSubjectAtItsCurrentPosition()
     {
         var mover = CreateMover(positionX: -1f, moveSpeed: 2f);
