@@ -2184,6 +2184,7 @@ MonoBehaviour:
   photoCamera: {fileID: 204002}
   capturedPhotoPreview: {fileID: 229002}
   capturePresentation: {fileID: 228003}
+  capturedImageName: "\u57CE"
 --- !u!114 &228003
 MonoBehaviour:
   m_ObjectHideFlags: 0

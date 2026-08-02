@@ -27,6 +27,13 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
 
     [SerializeField]
     private StagePhotoCapturePresentation capturePresentation;
+
+    [Tooltip(
+        "リザルト画面での基礎スコア名などに使われる、撮影した画像の名前。未設定なら自動処理されます。"
+    )]
+    [SerializeField]
+    private string capturedImageName = "";
+
     private readonly List<StageSubject> capturedSubjects = new();
     private CapturedPhoto capturedPhoto;
     private InputAction shutterAction;
@@ -249,6 +256,12 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
             );
             capturedImage.ReadPixels(new Rect(0f, 0f, source.width, source.height), 0, 0);
             capturedImage.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+
+            if (!string.IsNullOrEmpty(capturedImageName))
+            {
+                capturedImage.name = capturedImageName;
+            }
+
             return true;
         }
         finally
