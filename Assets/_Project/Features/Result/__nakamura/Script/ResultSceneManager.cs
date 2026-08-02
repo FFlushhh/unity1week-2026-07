@@ -142,13 +142,6 @@ namespace ResultScene
         [SerializeField]
         private AudioClip _seScoreCount;
 
-        [Header("Fade Out")]
-        [SerializeField, Tooltip("暗転用のUI Image（画面全体を覆う黒いImage）")]
-        private Image _fadeImage;
-
-        [SerializeField, Tooltip("暗転にかかる時間（秒）")]
-        private float _fadeDuration = 0.8f;
-
         [Header("Misc")]
         [SerializeField]
         private GameObject _nextButton;
@@ -166,22 +159,12 @@ namespace ResultScene
         private int _totalScore;
         private bool _isSequenceFinished = false;
         private bool _isSkipped = false;
-        private bool _isTransitioning = false; // シーン遷移中・暗転中フラグ
 
         private Coroutine _sequenceCoroutine;
         private Texture2D _ownedCapturedImage;
 
         private void Start()
         {
-            // フェード用UIの初期化（最初は透明に）
-            if (_fadeImage != null)
-            {
-                _fadeImage.gameObject.SetActive(true);
-                Color color = _fadeImage.color;
-                color.a = 0f;
-                _fadeImage.color = color;
-            }
-
             if (ResultDataTransporter.CurrentData != null)
             {
                 PlayResult(ResultDataTransporter.CurrentData);
@@ -249,10 +232,6 @@ namespace ResultScene
 
         private void Update()
         {
-            // 既に暗転・遷移処理中なら入力は受け付けない
-            if (_isTransitioning)
-                return;
-
             if (CheckActionInput())
             {
                 if (!_isSequenceFinished && !_isSkipped)
@@ -575,7 +554,6 @@ namespace ResultScene
             if (_rankStampImage == null)
                 yield break;
             _rankStampImage.gameObject.SetActive(true);
-            global::SoundManager.Instance.PlaySE(2);
 
             if (_isSkipped)
             {
@@ -718,6 +696,8 @@ namespace ResultScene
             _illustrationImage.gameObject.SetActive(targetSprite != null);
             if (targetSprite != null)
             {
+                // 現在設定されているRectTransformの縦幅（高さ）を取得
+                // ※ 固定値にしたい場合は float targetHeight = 150f; のように直接数値を指定してもOK。
                 float targetHeight = _illustrationImage.rectTransform.rect.height;
 
                 float aspectRatio = targetSprite.rect.width / targetSprite.rect.height;
@@ -739,51 +719,7 @@ namespace ResultScene
 
         public void OnNextButtonClicked()
         {
-            if (_isTransitioning)
-                return;
-            StartCoroutine(FadeAndLoadNextSceneCoroutine());
-        }
-
-        private IEnumerator FadeAndLoadNextSceneCoroutine()
-        {
-            _isTransitioning = true;
-
-            // フェード用Imageが設定されていない、またはフェード時間が0以下の場合は即時切り替え
-            if (_fadeImage == null || _fadeDuration <= 0f)
-            {
-                if (_fadeImage != null)
-                {
-                    Color c = _fadeImage.color;
-                    c.a = 1f;
-                    _fadeImage.color = c;
-                }
-                LoadNextScene();
-                yield break;
-            }
-
-            _fadeImage.gameObject.SetActive(true);
-
-            float time = 0f;
-            Color color = _fadeImage.color;
-
-            // α値を 0 -> 1 へ時間経過で徐々に上げる（フェードアウト）
-            while (time < _fadeDuration)
-            {
-                time += Time.deltaTime;
-                color.a = Mathf.Clamp01(time / _fadeDuration);
-                _fadeImage.color = color;
-                yield return null;
-            }
-
-            LoadNextScene();
-        }
-
-        private void LoadNextScene()
-        {
-            if (!string.IsNullOrEmpty(_nextSceneName))
-            {
-                UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
-            }
+            UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
         }
 
         private void OnDestroy()
