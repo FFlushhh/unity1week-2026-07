@@ -17,6 +17,9 @@ namespace ResultScene.BuzzReaction
 
         [Header("Audio (SoundManager Index)")]
         [SerializeField]
+        private float _seVolumeScale = 0.3f;
+
+        [SerializeField]
         private int _countUpSeIndex = 16;
 
         [Header("Animation Curves")]
@@ -138,6 +141,11 @@ namespace ResultScene.BuzzReaction
         {
             StopAllCoroutines();
 
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.StopPitchedSE();
+            }
+
             if (_postPanel != null)
                 _postPanel.localScale = _initialPanelScale;
 
@@ -248,7 +256,7 @@ namespace ResultScene.BuzzReaction
                     float currentPitch = Mathf.Lerp(initialPitch, targetPitch, normalizedTime);
                     if (SoundManager.Instance != null)
                     {
-                        SoundManager.Instance.PlaySE(_countUpSeIndex, currentPitch);
+                        SoundManager.Instance.PlaySE(_countUpSeIndex, currentPitch, _seVolumeScale);
                     }
                     nextSoundTime = elapsed + soundInterval;
                 }

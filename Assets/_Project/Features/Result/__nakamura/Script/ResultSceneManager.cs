@@ -116,6 +116,9 @@ namespace ResultScene
 
         [Header("Audio (SoundManager Indices)")]
         [SerializeField]
+        private float _seVolumeScale = 0.3f;
+
+        [SerializeField]
         private int _sePopIndex = 15;
 
         [SerializeField]
@@ -691,7 +694,7 @@ namespace ResultScene
         {
             if (SoundManager.Instance != null)
             {
-                SoundManager.Instance.PlaySE(seIndex);
+                SoundManager.Instance.PlaySE(seIndex, 1.0f, _seVolumeScale);
             }
         }
 

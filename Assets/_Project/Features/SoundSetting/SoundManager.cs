@@ -54,7 +54,7 @@ public class SoundManager : MonoBehaviour
     /// SE（効果音）を番号指定で再生
     /// </summary>
     /// <param name="index">リストの要素番号 (0, 1, 2...)</param>
-    public void PlaySE(int index, float pitch = 1.0f)
+    public void PlaySE(int index, float pitch = 1.0f, float volumeScale = 1.0f)
     {
         if (_audioDataList == null || index < 0 || index >= _audioDataList.seList.Count)
         {
@@ -65,7 +65,7 @@ public class SoundManager : MonoBehaviour
         AudioItem item = _audioDataList.seList[index];
         if (item.clip != null)
         {
-            float finalVolume = _masterSeVolume * item.volume;
+            float finalVolume = _masterSeVolume * item.volume * volumeScale;
 
             if (Mathf.Approximately(pitch, 1.0f))
             {
@@ -117,6 +117,17 @@ public class SoundManager : MonoBehaviour
     {
         _bgmAudioSource.Stop();
         _currentBgmIndex = -1;
+    }
+
+    /// <summary>
+    /// ピッチ変更用オーディオソースの再生を即時停止します
+    /// </summary>
+    public void StopPitchedSE()
+    {
+        if (_pitchedSeAudioSource != null)
+        {
+            _pitchedSeAudioSource.Stop();
+        }
     }
 
     #region 全体音量設定用プロパティ（オプション設定UIなどから操作用）

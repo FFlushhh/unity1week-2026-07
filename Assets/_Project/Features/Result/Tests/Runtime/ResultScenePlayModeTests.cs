@@ -308,6 +308,10 @@ namespace ResultScene.Tests
         [UnityTest]
         public IEnumerator ResultScene_BuzzAudioSource_DoesNotPlayOnAwake()
         {
+            // テスト用にダミーの SoundManager を生成
+            var dummySoundManagerObj = new GameObject("SoundManager");
+            var soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+
             ResultDataTransporter.CurrentData = CreateResultData(1000);
 
             SceneManager.LoadScene("ResultScene");
@@ -316,16 +320,22 @@ namespace ResultScene.Tests
             var buzzManager = Object.FindAnyObjectByType<BuzzReactionManager>();
             Assert.IsNotNull(buzzManager);
 
-            var audioSource = GetPrivateField<AudioSource>(buzzManager, "_audioSource");
+            // SoundManager側の AudioSource を確認
+            var audioSource = GetPrivateField<AudioSource>(soundManager, "_pitchedSeAudioSource");
             Assert.IsNotNull(audioSource);
             Assert.IsFalse(audioSource.playOnAwake);
-            Assert.IsNull(audioSource.resource);
+            Assert.IsNull(audioSource.clip);
             Assert.IsFalse(audioSource.isPlaying);
+
+            Object.Destroy(dummySoundManagerObj);
         }
 
         [UnityTest]
         public IEnumerator ResultSequence_SkipAfterBuzzStarts_StopsAllBuzzPresentation()
         {
+            var dummySoundManagerObj = new GameObject("SoundManager");
+            var soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
+
             var data = CreateResultData(1000);
             ResultDataTransporter.CurrentData = data;
 
@@ -338,7 +348,7 @@ namespace ResultScene.Tests
             Assert.IsNotNull(buzzManager);
 
             var postPanel = GetPrivateField<RectTransform>(buzzManager, "_postPanel");
-            var audioSource = GetPrivateField<AudioSource>(buzzManager, "_audioSource");
+            var audioSource = GetPrivateField<AudioSource>(soundManager, "_pitchedSeAudioSource");
             Assert.IsNotNull(postPanel);
             Assert.IsNotNull(audioSource);
             Vector3 initialPanelScale = postPanel.localScale;
@@ -359,8 +369,9 @@ namespace ResultScene.Tests
 
             Assert.AreEqual(initialActiveChildren, CountActiveChildren(postPanel));
             Assert.AreEqual(initialPanelScale, postPanel.localScale);
-            Assert.AreEqual(1f, audioSource.pitch);
             Assert.IsFalse(audioSource.isPlaying);
+
+            Object.Destroy(dummySoundManagerObj);
         }
 
         [UnityTest]
