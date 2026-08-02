@@ -132,6 +132,9 @@ public class SoundManager : MonoBehaviour
     }
 
     #region 全体音量設定用プロパティ（オプション設定UIなどから操作用）
+    public float MasterBgmVolume => _masterBgmVolume;
+    public float MasterSeVolume => _masterSeVolume;
+
     /// <summary>
     /// マスターBGM音量の変更 (0.0 ～ 1.0)
     /// </summary>
