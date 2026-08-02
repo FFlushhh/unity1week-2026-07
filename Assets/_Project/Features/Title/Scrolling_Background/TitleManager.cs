@@ -1,17 +1,19 @@
 using System.Collections;
 using UnityEngine;
-// 新しいInput Systemを使用するための名前空間を追加
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
-    [Header("フェード用Sprite")]
+    [Header("アニメーション設定")]
     [SerializeField]
-    private SpriteRenderer _fadeSprite; // 暗転用のSpriteRenderer[cite: 1]
+    private Animator _transitionAnimator; // 遷移用アニメーションを持つAnimator
 
     [SerializeField]
-    private float _fadeDuration = 1.0f; // 暗転にかかる時間（秒）[cite: 1]
+    private string _transitionTriggerName = "Change"; // AnimatorのTrigger名
+
+    [SerializeField]
+    private float _waitDuration = 0.6f; // アニメーションを待つ時間（秒）
 
     [Header("遷移先")]
     [SerializeField]
@@ -22,9 +24,9 @@ public class TitleManager : MonoBehaviour
     public bool IsFading => _isFading; //[cite: 1]
     public float FadeDuration
     {
-        get => _fadeDuration;
-        set => _fadeDuration = value;
-    } //[cite: 1]
+        get => _waitDuration;
+        set => _waitDuration = value;
+    }
     public string NextSceneName
     {
         get => _nextSceneName;
@@ -35,13 +37,11 @@ public class TitleManager : MonoBehaviour
 
     private void Start()
     {
-        if (_fadeSprite != null) //[cite: 1]
+        // 永続化された SoundManager を安全に参照してBGM再生
+        if (SoundManager.Instance != null)
         {
-            Color color = _fadeSprite.color; //[cite: 1]
-            color.a = 0f; //[cite: 1]
-            _fadeSprite.color = color; //[cite: 1]
+            SoundManager.Instance.PlayBGM(0);
         }
-        SoundManager.Instance.PlayBGM(0);
     }
 
     private void Update()
@@ -50,7 +50,6 @@ public class TitleManager : MonoBehaviour
         var keyboard = Keyboard.current;
         if (keyboard != null)
         {
-            // Spaceキー、またはEnterキー（Return/テンキーのEnter）が「このフレームで押されたか」を判定
             if (
                 keyboard.spaceKey.wasPressedThisFrame
                 || keyboard.enterKey.wasPressedThisFrame
@@ -72,44 +71,38 @@ public class TitleManager : MonoBehaviour
         if (_isFading)
             return;
 
-        StartCoroutine(FadeAndLoadScene());
-        SoundManager.Instance.PlaySE(14);
-        SoundManager.Instance.StopBGM();
+        StartCoroutine(AnimateAndLoadScene());
+
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySE(14);
+            SoundManager.Instance.StopBGM();
+        }
     }
 
-    private IEnumerator FadeAndLoadScene()
+    private IEnumerator AnimateAndLoadScene()
     {
         _isFading = true; //[cite: 1]
 
-        if (_fadeSprite == null) //[cite: 1]
+        // 1. アニメーションのトリガーを実行
+        if (_transitionAnimator != null && !string.IsNullOrEmpty(_transitionTriggerName))
         {
-            Debug.LogWarning(
-                "暗転用の SpriteRenderer が割り当てられていません。フェードをスキップしてシーン移動します。"
-            ); //[cite: 1]
-            TriggerSceneLoad(); //[cite: 1]
-            yield break; //[cite: 1]
-        }
-
-        if (_fadeDuration <= 0f) //[cite: 1]
-        {
-            Color c = _fadeSprite.color; //[cite: 1]
-            c.a = 1f; //[cite: 1]
-            _fadeSprite.color = c; //[cite: 1]
+            _transitionAnimator.SetTrigger(_transitionTriggerName);
         }
         else
         {
-            float time = 0f; //[cite: 1]
-            Color color = _fadeSprite.color; //[cite: 1]
-
-            while (time < _fadeDuration) //[cite: 1]
-            {
-                time += Time.deltaTime; //[cite: 1]
-                color.a = Mathf.Clamp01(time / _fadeDuration); //[cite: 1]
-                _fadeSprite.color = color; //[cite: 1]
-                yield return null; //[cite: 1]
-            }
+            Debug.LogWarning(
+                "[TitleManager] Transition Animator が割り当てられていないか、Trigger名が空です。"
+            );
         }
 
+        // 2. 指定時間（0.6秒）だけアニメーション再生を待つ
+        if (_waitDuration > 0f)
+        {
+            yield return new WaitForSeconds(_waitDuration);
+        }
+
+        // 3. シーン切り替えを実行
         TriggerSceneLoad(); //[cite: 1]
     }
 

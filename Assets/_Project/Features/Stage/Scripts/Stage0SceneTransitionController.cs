@@ -32,6 +32,13 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
     private bool hasStartedTitleTransition;
     private CancellationTokenSource lifetimeCancellation;
 
+    [Header("Transition Presentation")]
+    [SerializeField]
+    private Animator transitionAnimator;
+
+    [SerializeField]
+    private string transitionTriggerName = "Start";
+
     private void Awake()
     {
         lifetimeCancellation = CancellationTokenSource.CreateLinkedTokenSource(
@@ -109,7 +116,14 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
     {
         try
         {
-            await UniTask.NextFrame(cancellationToken);
+            // ★ アニメーションを再生
+            if (transitionAnimator != null && !string.IsNullOrEmpty(transitionTriggerName))
+            {
+                transitionAnimator.SetTrigger(transitionTriggerName);
+            }
+
+            // ★ 0.6秒間待機（アニメーション再生用）
+            await UniTask.Delay(TimeSpan.FromSeconds(0.6f), cancellationToken: cancellationToken);
 
             if (stagePhotoCaptureController != null)
             {
