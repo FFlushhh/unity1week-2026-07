@@ -46,14 +46,39 @@ namespace ResultScene.BuzzReaction
         private GameObject _danmakuCommentPrefab;
 
         [SerializeField]
-        private string[] _danmakuTexts =
+        private string[] _danmakuTextsRankS =
         {
-            "すごい！",
             "神！",
-            "草",
+            "伝説の始まり",
+            "これは伸びる",
             "最高じゃん",
             "バズってるｗ",
             "すこ",
+            "助かる",
+            "天才",
+        };
+
+        [SerializeField]
+        private string[] _danmakuTextsRankA =
+        {
+            "すごい！",
+            "いいね",
+            "草",
+            "最高じゃん",
+            "すこ",
+            "わかる",
+            "草生える",
+        };
+
+        [SerializeField]
+        private string[] _danmakuTextsRankB =
+        {
+            "ふむ",
+            "なるほど",
+            "草",
+            "いいね",
+            "まあまあ",
+            "おつ",
         };
 
         [Header("Heart Particle Settings")]
@@ -106,10 +131,10 @@ namespace ResultScene.BuzzReaction
             }
         }
 
-        public void StartReactionSequence()
+        public void StartReactionSequence(Rank rank = Rank.B)
         {
             StopReactionSequence();
-            StartCoroutine(ReactionSequenceRoutine());
+            StartCoroutine(ReactionSequenceRoutine(rank));
         }
 
         public void StopReactionSequence()
@@ -129,19 +154,52 @@ namespace ResultScene.BuzzReaction
             _danmakuPool?.ReturnAllToPool();
         }
 
-        private IEnumerator ReactionSequenceRoutine()
+        private IEnumerator ReactionSequenceRoutine(Rank rank)
         {
+            float heartInterval = _heartSpawnInterval;
+            float danmakuInterval = _danmakuSpawnInterval;
+            float audioInterval = 0.08f; // 基準となる効果音の間隔
+
+            switch (rank)
+            {
+                case Rank.S:
+                    heartInterval *= 0.5f; // Sランクは2倍の頻度（多く）
+                    danmakuInterval *= 0.5f;
+                    audioInterval *= 0.5f;
+                    break;
+                case Rank.A:
+                    heartInterval *= 1.0f; // Aランクを基準量とする
+                    danmakuInterval *= 1.0f;
+                    audioInterval *= 1.0f;
+                    break;
+                case Rank.B:
+                    heartInterval *= 2.0f; // Bランクは半分の頻度
+                    danmakuInterval *= 2.0f;
+                    audioInterval *= 2.0f;
+                    break;
+            }
+
+            string[] currentDanmakuTexts = rank switch
+            {
+                Rank.S => _danmakuTextsRankS,
+                Rank.A => _danmakuTextsRankA,
+                Rank.B => _danmakuTextsRankB,
+                _ => _danmakuTextsRankB,
+            };
+
             // いいね数はResultSceneManagerだけが更新し、ここでは効果音と装飾演出のみ再生する。
-            StartCoroutine(CountUpAudioRoutine());
+            StartCoroutine(CountUpAudioRoutine(audioInterval));
 
             // 2. ハートと弾幕の生成を開始
             Coroutine heartSpawning = null;
             if (_heartPool != null)
-                heartSpawning = StartCoroutine(SpawnHeartsRoutine());
+                heartSpawning = StartCoroutine(SpawnHeartsRoutine(heartInterval));
 
             Coroutine danmakuSpawning = null;
             if (_danmakuPool != null)
-                danmakuSpawning = StartCoroutine(SpawnDanmakuRoutine());
+                danmakuSpawning = StartCoroutine(
+                    SpawnDanmakuRoutine(danmakuInterval, currentDanmakuTexts)
+                );
 
             // 3. カウント中は定期的にパネルをバウンドさせる
             float elapsed = 0f;
@@ -181,7 +239,7 @@ namespace ResultScene.BuzzReaction
             _postPanel.localScale = _initialPanelScale;
         }
 
-        private IEnumerator CountUpAudioRoutine()
+        private IEnumerator CountUpAudioRoutine(float soundInterval)
         {
             if (_audioSource == null || _countUpClip == null)
                 yield break;
@@ -190,7 +248,6 @@ namespace ResultScene.BuzzReaction
             float initialPitch = 1.0f;
             float targetPitch = 2.0f;
             float nextSoundTime = 0f;
-            float soundInterval = 0.08f; // 効果音を鳴らす間隔
 
             while (elapsed < _countUpDuration)
             {
@@ -212,7 +269,7 @@ namespace ResultScene.BuzzReaction
             _audioSource.pitch = 1.0f;
         }
 
-        private IEnumerator SpawnHeartsRoutine()
+        private IEnumerator SpawnHeartsRoutine(float interval)
         {
             if (_heartSpawnPoint == null)
                 yield break;
@@ -235,13 +292,13 @@ namespace ResultScene.BuzzReaction
                         _heartDuration
                     );
                 }
-                yield return new WaitForSeconds(_heartSpawnInterval);
+                yield return new WaitForSeconds(interval);
             }
         }
 
-        private IEnumerator SpawnDanmakuRoutine()
+        private IEnumerator SpawnDanmakuRoutine(float interval, string[] texts)
         {
-            if (_danmakuContainer == null || _danmakuTexts.Length == 0)
+            if (_danmakuContainer == null || texts == null || texts.Length == 0)
                 yield break;
 
             float containerWidth = _danmakuContainer.rect.width;
@@ -258,7 +315,7 @@ namespace ResultScene.BuzzReaction
                 GameObject obj = _danmakuPool.Get();
                 if (obj.TryGetComponent(out DanmakuComment danmaku))
                 {
-                    string randomText = _danmakuTexts[Random.Range(0, _danmakuTexts.Length)];
+                    string randomText = texts[Random.Range(0, texts.Length)];
                     float randomY = Random.Range(_danmakuMinY, _danmakuMaxY);
 
                     danmaku.Initialize(
@@ -269,7 +326,7 @@ namespace ResultScene.BuzzReaction
                         endX
                     );
                 }
-                yield return new WaitForSeconds(_danmakuSpawnInterval);
+                yield return new WaitForSeconds(interval);
             }
         }
     }

@@ -79,12 +79,12 @@ namespace ResultScene.Tests
         [TestCase(8000, Rank.A)]
         [TestCase(7999, Rank.B)]
         [TestCase(5000, Rank.B)]
-        [TestCase(4999, Rank.C)]
-        [TestCase(0, Rank.C)]
-        [TestCase(-100, Rank.C)]
+        [TestCase(4999, Rank.B)]
+        [TestCase(0, Rank.B)]
+        [TestCase(-100, Rank.B)]
         public void DetermineRank_ReturnsCorrectRank(int score, Rank expectedRank)
         {
-            Rank actualRank = ResultScoreCalculator.DetermineRank(score, 10000, 8000, 5000);
+            Rank actualRank = ResultScoreCalculator.DetermineRank(score, 10000, 8000);
             Assert.AreEqual(expectedRank, actualRank);
         }
     }
