@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 public sealed class SubjectTimelineControllerPlayModeTests
@@ -160,6 +162,191 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator GameStage0InspectorSettingsMatchThePublishedRandomSpawnSpecification()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
+        var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var spawnSettings = GetPrivateField<Array>(timeline, "spawnSettings");
+
+        Assert.That(timeline, Is.Not.Null);
+        Assert.That(photoCamera, Is.Not.Null);
+        Assert.That(stageController, Is.Not.Null);
+        Assert.That(spawnSettings, Has.Length.EqualTo(6));
+
+        var randomSubjectIds = new HashSet<SubjectId>();
+        var foundFixedDog = false;
+        foreach (var spawnSetting in spawnSettings)
+        {
+            if (!GetPublicProperty<bool>(spawnSetting, "IsRandom"))
+            {
+                var route = InvokePublicMethod(spawnSetting, "CreateFixedRoute");
+                AssertRouteMatchesSpecification(
+                    route,
+                    SubjectId.Dog,
+                    new Vector2(-9.5f, 0f),
+                    SubjectMoveDirection.LeftToRight,
+                    4f,
+                    0f,
+                    0f,
+                    0.3f,
+                    photoCamera,
+                    GetPrivateField<float>(stageController, "playingDuration")
+                );
+                foundFixedDog = true;
+                continue;
+            }
+
+            var randomRoutes = GetPrivateField<Array>(spawnSetting, "randomRoutes");
+            Assert.That(randomRoutes, Is.Not.Empty);
+            var subjectId = GetRouteSubjectId(randomRoutes.GetValue(0));
+            Assert.That(randomSubjectIds.Add(subjectId), Is.True);
+
+            switch (subjectId)
+            {
+                case SubjectId.DirtyClothesPerson:
+                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 0.8f, 3f, 0f);
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(0),
+                        subjectId,
+                        new Vector2(-9.5f, 2f),
+                        SubjectMoveDirection.LeftToRight,
+                        3f,
+                        0f,
+                        0f,
+                        3f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    break;
+                case SubjectId.RabidDog:
+                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 1.5f, 4.5f, 0f);
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(0),
+                        subjectId,
+                        new Vector2(9.5f, -1f),
+                        SubjectMoveDirection.RightToLeft,
+                        5.5f,
+                        0f,
+                        0f,
+                        4.5f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    break;
+                case SubjectId.PlasticBag:
+                    AssertRandomSetting(spawnSetting, 1f, 1, 3, 1f, 5.5f, 0.5f);
+                    Assert.That(randomRoutes, Has.Length.EqualTo(2));
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(0),
+                        subjectId,
+                        new Vector2(-9.5f, -2.5f),
+                        SubjectMoveDirection.LeftToRight,
+                        4f,
+                        0.35f,
+                        1.2f,
+                        5.5f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(1),
+                        subjectId,
+                        new Vector2(9.5f, -1.6f),
+                        SubjectMoveDirection.RightToLeft,
+                        4.5f,
+                        0.35f,
+                        1.2f,
+                        5.5f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    break;
+                case SubjectId.Bird:
+                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 3f, 5.8f, 0f);
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(0),
+                        subjectId,
+                        new Vector2(9.5f, 2f),
+                        SubjectMoveDirection.RightToLeft,
+                        4.5f,
+                        0f,
+                        0f,
+                        5.8f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    break;
+                case SubjectId.Sparrow:
+                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 4f, 6.5f, 0f);
+                    AssertRouteMatchesSpecification(
+                        randomRoutes.GetValue(0),
+                        subjectId,
+                        new Vector2(-9.5f, 1f),
+                        SubjectMoveDirection.LeftToRight,
+                        5f,
+                        0f,
+                        0f,
+                        6.5f,
+                        photoCamera,
+                        GetPrivateField<float>(stageController, "playingDuration")
+                    );
+                    break;
+                default:
+                    Assert.Fail($"Unexpected random subject: {subjectId}.");
+                    break;
+            }
+        }
+
+        Assert.That(foundFixedDog, Is.True);
+        Assert.That(
+            randomSubjectIds,
+            Is.EquivalentTo(
+                new[]
+                {
+                    SubjectId.DirtyClothesPerson,
+                    SubjectId.RabidDog,
+                    SubjectId.PlasticBag,
+                    SubjectId.Bird,
+                    SubjectId.Sparrow,
+                }
+            )
+        );
+    }
+
+    [UnityTest]
+    public IEnumerator GameStage0ReenteringPlayingRebuildsAndResetsTheRandomSpawnSchedule()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return null;
+
+        var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
+        SetPrivateField(timeline, "spawnRandom", new System.Random(0));
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+
+        yield return null;
+
+        var firstSchedule = DescribeScheduledSpawns(timeline);
+        Assert.That(firstSchedule, Is.Not.Empty);
+        SetPrivateField(timeline, "elapsedTimeSeconds", 10f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+        Assert.That(spawnRoot.childCount, Is.EqualTo(firstSchedule.Count));
+
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
+        yield return null;
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        var secondSchedule = DescribeScheduledSpawns(timeline);
+        Assert.That(spawnRoot.childCount, Is.EqualTo(0));
+        CollectionAssert.AreNotEqual(firstSchedule, secondSchedule);
+    }
+
+    [UnityTest]
     public IEnumerator ReenteringPlayingResetsTimelineAndReplacesPreviousDog()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -229,6 +416,138 @@ public sealed class SubjectTimelineControllerPlayModeTests
             Is.EqualTo(Stage0Controller.Stage0State.Completed)
         );
         Assert.That(dog.position.x, Is.EqualTo(completedPositionX));
+    }
+
+    private static void AssertRandomSetting(
+        object spawnSetting,
+        float appearanceProbability,
+        int minimumSpawnCount,
+        int maximumSpawnCount,
+        float earliestSpawnTimeSeconds,
+        float latestSpawnTimeSeconds,
+        float minimumSpawnIntervalSeconds
+    )
+    {
+        Assert.That(
+            GetPrivateField<float>(spawnSetting, "appearanceProbability"),
+            Is.EqualTo(appearanceProbability)
+        );
+        Assert.That(
+            GetPrivateField<int>(spawnSetting, "minimumSpawnCount"),
+            Is.EqualTo(minimumSpawnCount)
+        );
+        Assert.That(
+            GetPrivateField<int>(spawnSetting, "maximumSpawnCount"),
+            Is.EqualTo(maximumSpawnCount)
+        );
+        Assert.That(
+            GetPrivateField<float>(spawnSetting, "earliestSpawnTimeSeconds"),
+            Is.EqualTo(earliestSpawnTimeSeconds)
+        );
+        Assert.That(
+            GetPrivateField<float>(spawnSetting, "latestSpawnTimeSeconds"),
+            Is.EqualTo(latestSpawnTimeSeconds)
+        );
+        Assert.That(
+            GetPrivateField<float>(spawnSetting, "minimumSpawnIntervalSeconds"),
+            Is.EqualTo(minimumSpawnIntervalSeconds)
+        );
+    }
+
+    private static void AssertRouteMatchesSpecification(
+        object route,
+        SubjectId expectedSubjectId,
+        Vector2 expectedSpawnPosition,
+        SubjectMoveDirection expectedMoveDirection,
+        float expectedMoveSpeed,
+        float expectedVerticalSwayAmplitude,
+        float expectedVerticalSwayFrequencyHz,
+        float latestSpawnTimeSeconds,
+        Camera photoCamera,
+        float playingDuration
+    )
+    {
+        var subjectPrefab = GetPublicProperty<GameObject>(route, "SubjectPrefab");
+        var spawnPosition = GetPublicProperty<Vector2>(route, "SpawnPosition");
+        var moveDirection = GetPublicProperty<SubjectMoveDirection>(route, "MoveDirection");
+        var moveSpeed = GetPublicProperty<float>(route, "MoveSpeed");
+
+        Assert.That(subjectPrefab, Is.Not.Null);
+        Assert.That(GetRouteSubjectId(route), Is.EqualTo(expectedSubjectId));
+        Assert.That(spawnPosition, Is.EqualTo(expectedSpawnPosition));
+        Assert.That(moveDirection, Is.EqualTo(expectedMoveDirection));
+        Assert.That(moveSpeed, Is.EqualTo(expectedMoveSpeed));
+        Assert.That(
+            GetPublicProperty<float>(route, "VerticalSwayAmplitude"),
+            Is.EqualTo(expectedVerticalSwayAmplitude)
+        );
+        Assert.That(
+            GetPublicProperty<float>(route, "VerticalSwayFrequencyHz"),
+            Is.EqualTo(expectedVerticalSwayFrequencyHz)
+        );
+        Assert.That(GetPublicProperty<float>(route, "SelectionWeight"), Is.EqualTo(1f));
+
+        var photoFrameHalfWidth = photoCamera.orthographicSize * photoCamera.aspect;
+        Assert.That(Mathf.Abs(spawnPosition.x), Is.GreaterThan(photoFrameHalfWidth));
+        Assert.That(
+            spawnPosition.x < 0f,
+            Is.EqualTo(moveDirection == SubjectMoveDirection.LeftToRight)
+        );
+        var timeToReachPhotoFrame = (Mathf.Abs(spawnPosition.x) - photoFrameHalfWidth) / moveSpeed;
+        Assert.That(
+            latestSpawnTimeSeconds + timeToReachPhotoFrame,
+            Is.LessThanOrEqualTo(playingDuration)
+        );
+    }
+
+    private static SubjectId GetRouteSubjectId(object route)
+    {
+        var subjectPrefab = GetPublicProperty<GameObject>(route, "SubjectPrefab");
+        Assert.That(subjectPrefab, Is.Not.Null);
+        var stageSubject = subjectPrefab.GetComponent<StageSubject>();
+        Assert.That(stageSubject, Is.Not.Null);
+        return stageSubject.Id;
+    }
+
+    private static List<string> DescribeScheduledSpawns(SubjectTimelineController timeline)
+    {
+        var scheduledSpawns = GetPrivateField<System.Collections.IList>(
+            timeline,
+            "scheduledSpawns"
+        );
+        var description = new List<string>(scheduledSpawns.Count);
+        foreach (var scheduledSpawn in scheduledSpawns)
+        {
+            var scheduledSpawnType = scheduledSpawn.GetType();
+            var spawnTimeSeconds = (float)
+                scheduledSpawnType
+                    .GetProperty("SpawnTimeSeconds", BindingFlags.Instance | BindingFlags.Public)
+                    .GetValue(scheduledSpawn);
+            var route = scheduledSpawnType
+                .GetProperty("Route", BindingFlags.Instance | BindingFlags.Public)
+                .GetValue(scheduledSpawn);
+            description.Add($"{GetRouteSubjectId(route)}:{spawnTimeSeconds:R}");
+        }
+
+        return description;
+    }
+
+    private static T GetPublicProperty<T>(object target, string propertyName)
+    {
+        var property = target
+            .GetType()
+            .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        Assert.That(property, Is.Not.Null, $"Property '{propertyName}' was not found.");
+        return (T)property.GetValue(target);
+    }
+
+    private static object InvokePublicMethod(object target, string methodName)
+    {
+        var method = target
+            .GetType()
+            .GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
+        Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
+        return method.Invoke(target, null);
     }
 
     private Stage0Controller CreateStageController(Stage0Controller.Stage0State state)
