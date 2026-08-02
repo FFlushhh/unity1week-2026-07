@@ -152,6 +152,23 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator CapturedPhotoImageUsesFourByThreeDisplayFrame()
+        {
+            capturedImage = new Texture2D(1440, 1080);
+            var resultData = CreateResultData();
+            resultData.CapturedImage = capturedImage;
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var capturedPhotoImage = GetCapturedPhotoImage(manager);
+            var displayRect = capturedPhotoImage.rectTransform.rect;
+
+            Assert.That(displayRect.width / displayRect.height, Is.EqualTo(4f / 3f).Within(0.001f));
+            Assert.That(capturedPhotoImage.rectTransform.localScale, Is.EqualTo(Vector3.one));
+        }
+
+        [UnityTest]
         public IEnumerator DestroyingRawImageBeforeManagerStillDestroysCapturedImage()
         {
             capturedImage = new Texture2D(2, 2);
