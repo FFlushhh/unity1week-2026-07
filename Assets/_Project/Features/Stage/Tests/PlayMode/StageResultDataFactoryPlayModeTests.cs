@@ -56,6 +56,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     [TestCase(SubjectId.PlasticBag, "ビニール袋")]
     [TestCase(SubjectId.Bird, "鳥")]
     [TestCase(SubjectId.Sparrow, "スズメ")]
+    [TestCase(SubjectId.SelfieGirl, "自撮り")]
     public void UsesResultBonusNameForEverySubjectId(SubjectId subjectId, string expectedBonusName)
     {
         var capturedPhoto = CreateCapturedPhoto(subjectId);
@@ -65,6 +66,50 @@ public sealed class StageResultDataFactoryPlayModeTests
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo(expectedBonusName));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void CreatesBonusesForAllSevenSubjectsInFixedDisplayOrderWhenAllCaptured()
+    {
+        var capturedPhoto = CreateCapturedPhoto(
+            SubjectId.Dog,
+            SubjectId.DirtyClothesPerson,
+            SubjectId.RabidDog,
+            SubjectId.PlasticBag,
+            SubjectId.Bird,
+            SubjectId.Sparrow,
+            SubjectId.SelfieGirl
+        );
+
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+
+        var expectedNamesInOrder = new[]
+        {
+            "犬",
+            "汚れた服の人",
+            "狂犬",
+            "ビニール袋",
+            "鳥",
+            "スズメ",
+            "自撮り",
+        };
+        Assert.That(resultData.Bonuses, Has.Count.EqualTo(expectedNamesInOrder.Length));
+        for (var i = 0; i < expectedNamesInOrder.Length; i++)
+        {
+            Assert.That(resultData.Bonuses[i].BonusName, Is.EqualTo(expectedNamesInOrder[i]));
+            Assert.That(resultData.Bonuses[i].Count, Is.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public void DoesNotIncludeSelfieGirlBonusWhenNotCaptured()
+    {
+        var capturedPhoto = CreateCapturedPhoto(SubjectId.Dog);
+
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+
+        Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
+        Assert.That(resultData.Bonuses.Exists(bonus => bonus.BonusName == "自撮り"), Is.False);
     }
 
     [Test]
