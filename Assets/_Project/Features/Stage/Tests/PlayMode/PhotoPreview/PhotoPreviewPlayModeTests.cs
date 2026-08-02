@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -225,6 +226,67 @@ public sealed class PhotoPreviewPlayModeTests
             new Vector2(835f, -337f),
             new Vector2(120f, 120f)
         );
+    }
+
+    [UnityTest]
+    public IEnumerator CameraUiUsesOnlyRuntimeSpritesAndTheShutterIsTheOnlyButton()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var photoFrame = GameObject.Find("PhotoFrame").transform;
+        AssertSpriteTextureName(photoFrame, "CameraUiFrame", "camera_ui_frame");
+        AssertSpriteTextureName(photoFrame, "CameraSwitchDecoration", "camera_switch_button");
+        AssertSpriteTextureName(photoFrame, "ShutterButton", "shutter_button");
+        AssertSpriteTextureName(
+            photoFrame.Find("ThumbnailSlot"),
+            "ThumbnailFrame",
+            "thumbnail_frame"
+        );
+        AssertSpriteTextureName(
+            photoFrame,
+            "PhotoVideoModeDecoration",
+            "photo_video_mode_selector"
+        );
+        AssertSpriteTextureName(photoFrame, "ZoomSelectorDecoration", "zoom_selector");
+        AssertSpriteTextureName(photoFrame, "FlashDecoration", "flash_button");
+        AssertSpriteTextureName(photoFrame, "LivePhotoDecoration", "live_photo_button");
+        AssertSpriteTextureName(photoFrame, "AspectRatioDecoration", "aspect_ratio_button");
+        AssertSpriteTextureName(photoFrame, "CameraTimerDecoration", "timer_button");
+        AssertSpriteTextureName(
+            photoFrame,
+            "CameraControlsMenuDecoration",
+            "camera_controls_menu_button"
+        );
+
+        var allowedTextureNames = new HashSet<string>
+        {
+            "camera_ui_frame",
+            "camera_switch_button",
+            "shutter_button",
+            "thumbnail_frame",
+            "photo_video_mode_selector",
+            "zoom_selector",
+            "flash_button",
+            "live_photo_button",
+            "aspect_ratio_button",
+            "timer_button",
+            "camera_controls_menu_button",
+        };
+        foreach (var image in photoFrame.GetComponentsInChildren<Image>(includeInactive: true))
+        {
+            Assert.That(image.sprite, Is.Not.Null, $"{image.name} must use a UI Sprite.");
+            Assert.That(
+                allowedTextureNames.Contains(image.sprite.texture.name),
+                Is.True,
+                $"{image.name} must not reference a complete preview or sprite sheet."
+            );
+        }
+
+        var buttons = photoFrame.GetComponentsInChildren<Button>(includeInactive: true);
+        Assert.That(buttons, Has.Length.EqualTo(1));
+        Assert.That(buttons[0].gameObject.name, Is.EqualTo("ShutterButton"));
+        Assert.That(GameObject.Find("ExposureDecoration"), Is.Null);
+        Assert.That(GameObject.Find("StylesDecoration"), Is.Null);
     }
 
     [UnityTest]
@@ -550,6 +612,21 @@ public sealed class PhotoPreviewPlayModeTests
 
             yield return null;
         }
+    }
+
+    private static void AssertSpriteTextureName(
+        Transform parent,
+        string name,
+        string expectedTextureName
+    )
+    {
+        Assert.That(parent, Is.Not.Null, $"Parent for {name} was not found.");
+        var child = parent.Find(name);
+        Assert.That(child, Is.Not.Null, $"{name} was not found.");
+        var image = child.GetComponent<Image>();
+        Assert.That(image, Is.Not.Null, $"{name} Image was not found.");
+        Assert.That(image.sprite, Is.Not.Null, $"{name} Sprite was not found.");
+        Assert.That(image.sprite.texture.name, Is.EqualTo(expectedTextureName));
     }
 
     private static void AssertDecoration(
