@@ -15,12 +15,12 @@ namespace ResultScene.BuzzReaction
         [SerializeField]
         private RectTransform _danmakuContainer;
 
-        [Header("Audio")]
+        [Header("Audio (SoundManager Index)")]
         [SerializeField]
-        private AudioSource _audioSource;
+        private float _seVolumeScale = 0.3f;
 
         [SerializeField]
-        private AudioClip _countUpClip;
+        private int _countUpSeIndex = 16;
 
         [Header("Animation Curves")]
         [Tooltip("パネルのバウンド用カーブ。1.0で開始・終了するように設定します。")]
@@ -141,10 +141,9 @@ namespace ResultScene.BuzzReaction
         {
             StopAllCoroutines();
 
-            if (_audioSource != null)
+            if (SoundManager.Instance != null)
             {
-                _audioSource.Stop();
-                _audioSource.pitch = 1f;
+                SoundManager.Instance.StopPitchedSE();
             }
 
             if (_postPanel != null)
@@ -241,9 +240,6 @@ namespace ResultScene.BuzzReaction
 
         private IEnumerator CountUpAudioRoutine(float soundInterval)
         {
-            if (_audioSource == null || _countUpClip == null)
-                yield break;
-
             float elapsed = 0f;
             float initialPitch = 1.0f;
             float targetPitch = 2.0f;
@@ -257,16 +253,16 @@ namespace ResultScene.BuzzReaction
                 // ピッチを上げながらオーディオを再生
                 if (elapsed >= nextSoundTime)
                 {
-                    _audioSource.pitch = Mathf.Lerp(initialPitch, targetPitch, normalizedTime);
-                    _audioSource.PlayOneShot(_countUpClip);
+                    float currentPitch = Mathf.Lerp(initialPitch, targetPitch, normalizedTime);
+                    if (SoundManager.Instance != null)
+                    {
+                        SoundManager.Instance.PlaySE(_countUpSeIndex, currentPitch, _seVolumeScale);
+                    }
                     nextSoundTime = elapsed + soundInterval;
                 }
 
                 yield return null;
             }
-
-            // 念のためピッチをリセット
-            _audioSource.pitch = 1.0f;
         }
 
         private IEnumerator SpawnHeartsRoutine(float interval)

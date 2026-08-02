@@ -15,6 +15,8 @@ public class SoundManager : MonoBehaviour
     [SerializeField]
     private AudioSource _seAudioSource;
 
+    private AudioSource _pitchedSeAudioSource;
+
     [Header("全体音量設定 (0.0 ～ 1.0)")]
     [SerializeField, Range(0f, 1f)]
     private float _masterBgmVolume = 1.0f;
@@ -42,6 +44,9 @@ public class SoundManager : MonoBehaviour
         if (_seAudioSource == null)
             _seAudioSource = gameObject.AddComponent<AudioSource>();
 
+        if (_pitchedSeAudioSource == null)
+            _pitchedSeAudioSource = gameObject.AddComponent<AudioSource>();
+
         _bgmAudioSource.loop = true;
     }
 
@@ -49,7 +54,7 @@ public class SoundManager : MonoBehaviour
     /// SE（効果音）を番号指定で再生
     /// </summary>
     /// <param name="index">リストの要素番号 (0, 1, 2...)</param>
-    public void PlaySE(int index)
+    public void PlaySE(int index, float pitch = 1.0f, float volumeScale = 1.0f)
     {
         if (_audioDataList == null || index < 0 || index >= _audioDataList.seList.Count)
         {
@@ -60,9 +65,20 @@ public class SoundManager : MonoBehaviour
         AudioItem item = _audioDataList.seList[index];
         if (item.clip != null)
         {
-            // 全体SE音量 × 音源固有の音量倍率
-            float finalVolume = _masterSeVolume * item.volume;
-            _seAudioSource.PlayOneShot(item.clip, finalVolume);
+            float finalVolume = _masterSeVolume * item.volume * volumeScale;
+
+            if (Mathf.Approximately(pitch, 1.0f))
+            {
+                // 通常のSEは共通のAudioSourceで再生
+                _seAudioSource.pitch = 1.0f;
+                _seAudioSource.PlayOneShot(item.clip, finalVolume);
+            }
+            else
+            {
+                // ピッチが変更されている場合は専用のAudioSourceで再生（他のSEに影響を与えないため）
+                _pitchedSeAudioSource.pitch = pitch;
+                _pitchedSeAudioSource.PlayOneShot(item.clip, finalVolume);
+            }
         }
     }
 
@@ -101,6 +117,17 @@ public class SoundManager : MonoBehaviour
     {
         _bgmAudioSource.Stop();
         _currentBgmIndex = -1;
+    }
+
+    /// <summary>
+    /// ピッチ変更用オーディオソースの再生を即時停止します
+    /// </summary>
+    public void StopPitchedSE()
+    {
+        if (_pitchedSeAudioSource != null)
+        {
+            _pitchedSeAudioSource.Stop();
+        }
     }
 
     #region 全体音量設定用プロパティ（オプション設定UIなどから操作用）
