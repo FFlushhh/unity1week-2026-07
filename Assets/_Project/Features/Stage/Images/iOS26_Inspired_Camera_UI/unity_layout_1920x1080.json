@@ -1,0 +1,112 @@
+{
+  "referenceResolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "coordinateNotes": {
+    "screenTopLeft": "Pixel center coordinates with origin at the top-left.",
+    "unityCenterAnchor": "Recommended anchoredPosition when the RectTransform anchor is screen center; +Y is upward.",
+    "size": "Recommended display size in reference-resolution pixels."
+  },
+  "placements": [
+    {
+      "asset": "camera_ui_frame.png",
+      "screenTopLeft": { "x": 960, "y": 540 },
+      "unityCenterAnchor": { "x": 0, "y": 0 },
+      "size": { "width": 1920, "height": 1080 }
+    },
+    {
+      "asset": "shutter_button.png",
+      "screenTopLeft": { "x": 187, "y": 528 },
+      "unityCenterAnchor": { "x": -773, "y": 12 },
+      "size": { "width": 243, "height": 243 }
+    },
+    {
+      "asset": "thumbnail_frame.png",
+      "screenTopLeft": { "x": 167, "y": 877 },
+      "unityCenterAnchor": { "x": -793, "y": -337 },
+      "size": { "width": 146, "height": 146 }
+    },
+    {
+      "asset": "camera_switch_button.png",
+      "screenTopLeft": { "x": 164, "y": 163 },
+      "unityCenterAnchor": { "x": -796, "y": 377 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "photo_video_mode_selector.png",
+      "screenTopLeft": { "x": 414, "y": 525 },
+      "unityCenterAnchor": { "x": -546, "y": 15 },
+      "size": { "width": 114, "height": 297 }
+    },
+    {
+      "asset": "zoom_selector.png",
+      "screenTopLeft": { "x": 577, "y": 526 },
+      "unityCenterAnchor": { "x": -383, "y": 14 },
+      "size": { "width": 100, "height": 293 }
+    },
+    {
+      "asset": "flash_button.png",
+      "screenTopLeft": { "x": 1795, "y": 163 },
+      "unityCenterAnchor": { "x": 835, "y": 377 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "live_photo_button.png",
+      "screenTopLeft": { "x": 1795, "y": 342 },
+      "unityCenterAnchor": { "x": 835, "y": 198 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "aspect_ratio_button.png",
+      "screenTopLeft": { "x": 1795, "y": 524 },
+      "unityCenterAnchor": { "x": 835, "y": 16 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "timer_button.png",
+      "screenTopLeft": { "x": 1795, "y": 699 },
+      "unityCenterAnchor": { "x": 835, "y": -159 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "camera_controls_menu_button.png",
+      "screenTopLeft": { "x": 1795, "y": 877 },
+      "unityCenterAnchor": { "x": 835, "y": -337 },
+      "size": { "width": 120, "height": 120 }
+    },
+    {
+      "asset": "exposure_button.png",
+      "screenTopLeft": { "x": 1615, "y": 524 },
+      "unityCenterAnchor": { "x": 655, "y": 16 },
+      "size": { "width": 120, "height": 120 },
+      "note": "Optional expanded-controls position."
+    },
+    {
+      "asset": "styles_button.png",
+      "screenTopLeft": { "x": 1615, "y": 699 },
+      "unityCenterAnchor": { "x": 655, "y": -159 },
+      "size": { "width": 120, "height": 120 },
+      "note": "Optional expanded-controls position."
+    }
+  ],
+  "spriteSheet": {
+    "asset": "all_controls_sprite_sheet.png",
+    "size": { "width": 2048, "height": 1536 },
+    "cellSize": { "width": 512, "height": 512 },
+    "unityRectsBottomLeftOrigin": [
+      { "name": "shutter_button", "x": 0, "y": 1024, "width": 512, "height": 512 },
+      { "name": "thumbnail_frame", "x": 512, "y": 1024, "width": 512, "height": 512 },
+      { "name": "camera_switch_button", "x": 1024, "y": 1024, "width": 512, "height": 512 },
+      { "name": "flash_button", "x": 1536, "y": 1024, "width": 512, "height": 512 },
+      { "name": "live_photo_button", "x": 0, "y": 512, "width": 512, "height": 512 },
+      { "name": "timer_button", "x": 512, "y": 512, "width": 512, "height": 512 },
+      { "name": "exposure_button", "x": 1024, "y": 512, "width": 512, "height": 512 },
+      { "name": "styles_button", "x": 1536, "y": 512, "width": 512, "height": 512 },
+      { "name": "aspect_ratio_button", "x": 0, "y": 0, "width": 512, "height": 512 },
+      { "name": "camera_controls_menu_button", "x": 512, "y": 0, "width": 512, "height": 512 },
+      { "name": "photo_video_mode_selector", "x": 1024, "y": 0, "width": 512, "height": 512 },
+      { "name": "zoom_selector", "x": 1536, "y": 0, "width": 512, "height": 512 }
+    ]
+  }
+}

@@ -7,8 +7,6 @@ using ResultScene;
 /// </summary>
 public static class StageResultDataFactory
 {
-    private const int BaseScore = 1000;
-
     public static ResultData Create(
         CapturedPhoto capturedPhoto,
         string playerName,
@@ -25,7 +23,6 @@ public static class StageResultDataFactory
             PlayerName = playerName,
             LocationName = locationName,
             CapturedImage = capturedPhoto.Image,
-            BaseScore = BaseScore,
             Bonuses = CreateBonuses(capturedPhoto),
         };
     }

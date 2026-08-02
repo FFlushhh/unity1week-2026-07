@@ -51,8 +51,7 @@ namespace ResultScene.Tests
             var resultData = new ResultData
             {
                 PlayerName = "TestPlayer",
-                LocationName = "TestLocation",
-                BaseScore = 1000,
+                LocationName = "Stage 0",
                 Bonuses = new List<BonusInputData>(),
             };
             ResultDataTransporter.CurrentData = resultData;
@@ -72,15 +71,13 @@ namespace ResultScene.Tests
 
             yield return null; // Wait a frame
 
-            // Verify Next button is active (which happens at the very end of FinishSequence)
-            var nextButtonField = typeof(ResultSceneManager).GetField(
-                "_nextButton",
+            // Verify sequence is finished (which happens at the very end of FinishSequence)
+            var isSequenceFinishedField = typeof(ResultSceneManager).GetField(
+                "_isSequenceFinished",
                 BindingFlags.NonPublic | BindingFlags.Instance
             );
-            var nextButton = nextButtonField.GetValue(manager) as GameObject;
-
-            Assert.IsNotNull(nextButton);
-            Assert.IsTrue(nextButton.activeSelf);
+            var isSequenceFinished = (bool)isSequenceFinishedField.GetValue(manager);
+            Assert.IsTrue(isSequenceFinished);
             Assert.That(ResultDataTransporter.CurrentData, Is.Null);
         }
 
@@ -152,6 +149,23 @@ namespace ResultScene.Tests
 
             Assert.That(snsImage.texture, Is.Null);
             Assert.That(capturedImage == null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator CapturedPhotoImageUsesFourByThreeDisplayFrame()
+        {
+            capturedImage = new Texture2D(1440, 1080);
+            var resultData = CreateResultData();
+            resultData.CapturedImage = capturedImage;
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var capturedPhotoImage = GetCapturedPhotoImage(manager);
+            var displayRect = capturedPhotoImage.rectTransform.rect;
+
+            Assert.That(displayRect.width / displayRect.height, Is.EqualTo(4f / 3f).Within(0.001f));
+            Assert.That(capturedPhotoImage.rectTransform.localScale, Is.EqualTo(Vector3.one));
         }
 
         [UnityTest]
@@ -231,8 +245,10 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = -1,
-                Bonuses = new System.Collections.Generic.List<BonusInputData>(),
+                Bonuses = new System.Collections.Generic.List<BonusInputData>
+                {
+                    new BonusInputData { BonusName = "NegativePenalty", Count = 1 },
+                },
             };
             ResultDataTransporter.CurrentData = data;
 
@@ -241,6 +257,23 @@ namespace ResultScene.Tests
 
             var manager = Object.FindAnyObjectByType<ResultSceneManager>();
             Assert.IsNotNull(manager);
+
+            // 合計スコアが負値になる状況をエミュレートするため、負のボーナスマスタを動的に注入
+            var bonusMaster =
+                GetPrivateField<System.Collections.Generic.List<ResultScene.BonusScoreMaster>>(
+                    manager,
+                    "_bonusMaster"
+                );
+            if (bonusMaster != null)
+            {
+                bonusMaster.Add(
+                    new ResultScene.BonusScoreMaster
+                    {
+                        BonusName = "NegativePenalty",
+                        ScorePerItem = -5000,
+                    }
+                );
+            }
 
             var endSequenceMethod = typeof(ResultSceneManager).GetMethod(
                 "EndSequenceEarly",
@@ -268,7 +301,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = 1000,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
 
@@ -316,7 +348,9 @@ namespace ResultScene.Tests
                 soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
             }
 
-            ResultDataTransporter.CurrentData = CreateResultData(1000);
+            soundManager.StopPitchedSE();
+
+            ResultDataTransporter.CurrentData = CreateResultData();
 
             SceneManager.LoadScene("ResultScene");
             yield return null;
@@ -345,7 +379,7 @@ namespace ResultScene.Tests
                 soundManager = dummySoundManagerObj.AddComponent<global::SoundManager>();
             }
 
-            var data = CreateResultData(1000);
+            var data = CreateResultData();
             ResultDataTransporter.CurrentData = data;
 
             SceneManager.LoadScene("ResultScene");
@@ -391,7 +425,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = 1000,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
 
@@ -435,7 +468,6 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "Stage 0",
-                BaseScore = 1000,
                 Bonuses = new List<BonusInputData>(bonuses),
             };
         }
@@ -494,13 +526,12 @@ namespace ResultScene.Tests
             return (int)field.GetValue(manager);
         }
 
-        private static ResultData CreateResultData(int baseScore)
+        private static ResultData CreateResultData()
         {
             return new ResultData
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                BaseScore = baseScore,
                 Bonuses = new System.Collections.Generic.List<BonusInputData>(),
             };
         }
