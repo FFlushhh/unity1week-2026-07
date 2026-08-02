@@ -1,11 +1,7 @@
 {
-    "name": "Result",
+    "name": "Project.SoundSetting",
     "rootNamespace": "",
-    "references": [
-        "Unity.TextMeshPro",
-        "Unity.InputSystem",
-        "Project.SoundSetting"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

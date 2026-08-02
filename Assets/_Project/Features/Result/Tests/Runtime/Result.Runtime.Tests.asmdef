@@ -3,7 +3,8 @@
     "references": [
         "Result",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Project.SoundSetting"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
