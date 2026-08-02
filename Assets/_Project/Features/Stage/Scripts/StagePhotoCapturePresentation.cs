@@ -33,6 +33,13 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
     [Min(0f)]
     private float capturedPhotoScaleDuration = 0.16f;
 
+    [Header("SE Settings")]
+    [SerializeField, Tooltip("シャッター音のSE番号 (SoundManagerのSEリスト順)")]
+    private int shutterSeIndex = 0;
+
+    [SerializeField, Tooltip("ヒエラルキー上のSoundManagerのオブジェクト名")]
+    private string soundManagerObjectName = "Sound_Manager";
+
     private CancellationTokenSource activePresentationCancellation;
     private bool isPlaying;
     private bool hasInitialPreviewScale;
@@ -75,6 +82,10 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
     {
         EnsureInitialPreviewScale();
         isPlaying = true;
+
+        // ★ シャッター演出開始時にSEを鳴らす
+        PlayShutterSE();
+
         activePresentationCancellation = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken
         );
@@ -121,6 +132,45 @@ public sealed class StagePhotoCapturePresentation : MonoBehaviour
             }
 
             presentationCancellation.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// SendMessageを使ってSoundManagerからシャッター音を再生します。
+    /// </summary>
+    private void PlayShutterSE()
+    {
+        if (string.IsNullOrEmpty(soundManagerObjectName))
+            return;
+
+        GameObject soundObj = GameObject.Find(soundManagerObjectName);
+        if (soundObj == null)
+            return;
+
+        // ヒエラルキー上のSoundManagerコンポーネントを取得
+        var soundManager = soundObj.GetComponent("SoundManager");
+        if (soundManager != null)
+        {
+            // メソッド情報を検索して、引数3つ(index, pitch, volumeScale)を正しく渡して実行する
+            var method = soundManager
+                .GetType()
+                .GetMethod(
+                    "PlaySE",
+                    new System.Type[] { typeof(int), typeof(float), typeof(float) }
+                );
+            if (method != null)
+            {
+                // index, pitch(1.0f), volumeScale(1.0f) を指定して呼び出し
+                method.Invoke(soundManager, new object[] { shutterSeIndex, 1.0f, 1.0f });
+            }
+            else
+            {
+                // デフォルト引数なし(int単体)の旧バージョンPlaySEフォールバック
+                var fallbackMethod = soundManager
+                    .GetType()
+                    .GetMethod("PlaySE", new System.Type[] { typeof(int) });
+                fallbackMethod?.Invoke(soundManager, new object[] { shutterSeIndex });
+            }
         }
     }
 

@@ -2203,6 +2203,8 @@ MonoBehaviour:
   blackoutHoldDuration: 0.08
   blackoutFadeOutDuration: 0.08
   capturedPhotoScaleDuration: 0.16
+  shutterSeIndex: 5
+  soundManagerObjectName: Sound_Manager
 --- !u!1 &229000
 GameObject:
   m_ObjectHideFlags: 0
@@ -3422,6 +3424,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Project.Stage::SceneSoundManager
   _bgmIndex: 1
+  _isLoop: 1
   _soundManagerObjectName: Sound_Manager
 --- !u!4 &1947246472
 Transform:
