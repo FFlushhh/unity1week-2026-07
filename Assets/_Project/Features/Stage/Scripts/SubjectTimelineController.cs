@@ -214,16 +214,24 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private readonly struct ScheduledSubjectSpawn
     {
-        public ScheduledSubjectSpawn(float spawnTimeSeconds, SubjectSpawnRoute route, int sortOrder)
+        public ScheduledSubjectSpawn(
+            float spawnTimeSeconds,
+            SubjectSpawnRoute route,
+            bool isHorizontallyMirrored,
+            int sortOrder
+        )
         {
             SpawnTimeSeconds = spawnTimeSeconds;
             Route = route;
+            IsHorizontallyMirrored = isHorizontallyMirrored;
             SortOrder = sortOrder;
         }
 
         public float SpawnTimeSeconds { get; }
 
         public SubjectSpawnRoute Route { get; }
+
+        public bool IsHorizontallyMirrored { get; }
 
         public int SortOrder { get; }
     }
@@ -236,6 +244,9 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     [SerializeField]
     private SubjectSpawnSetting[] spawnSettings;
+
+    [SerializeField, Range(0f, 1f)]
+    private float oppositeSideProbability = 0.5f;
 
     private readonly List<GameObject> spawnedSubjects = new();
     private readonly List<ScheduledSubjectSpawn> scheduledSpawns = new();
@@ -376,6 +387,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
                     new ScheduledSubjectSpawn(
                         spawnSetting.FixedSpawnTimeSeconds,
                         spawnSetting.CreateFixedRoute(),
+                        ShouldSpawnFromOppositeSide(),
                         sortOrder++
                     )
                 );
@@ -412,7 +424,12 @@ public sealed class SubjectTimelineController : MonoBehaviour
                 }
 
                 scheduledSpawns.Add(
-                    new ScheduledSubjectSpawn(entry.SpawnTimeSeconds, route, sortOrder++)
+                    new ScheduledSubjectSpawn(
+                        entry.SpawnTimeSeconds,
+                        route,
+                        ShouldSpawnFromOppositeSide(),
+                        sortOrder++
+                    )
                 );
             }
         }
@@ -427,12 +444,13 @@ public sealed class SubjectTimelineController : MonoBehaviour
             && elapsedTimeSeconds >= scheduledSpawns[nextScheduledSpawnIndex].SpawnTimeSeconds
         )
         {
-            SpawnSubject(scheduledSpawns[nextScheduledSpawnIndex].Route);
+            var scheduledSpawn = scheduledSpawns[nextScheduledSpawnIndex];
+            SpawnSubject(scheduledSpawn.Route, scheduledSpawn.IsHorizontallyMirrored);
             nextScheduledSpawnIndex++;
         }
     }
 
-    private void SpawnSubject(SubjectSpawnRoute spawnRoute)
+    private void SpawnSubject(SubjectSpawnRoute spawnRoute, bool isHorizontallyMirrored)
     {
         if (spawnRoute.SubjectPrefab == null)
         {
@@ -446,11 +464,19 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return;
         }
 
+        var spawnPosition = spawnRoute.SpawnPosition;
+        var moveDirection = spawnRoute.MoveDirection;
+        if (isHorizontallyMirrored)
+        {
+            spawnPosition.x = -spawnPosition.x;
+            moveDirection = ReverseMoveDirection(moveDirection);
+        }
+
         var subject = Instantiate(spawnRoute.SubjectPrefab, subjectSpawnRoot);
-        subject.transform.localPosition = spawnRoute.SpawnPosition;
+        subject.transform.localPosition = spawnPosition;
         subject.transform.localScale *= spawnRoute.Scale;
 
-        if (!TryPositionPathAnchorAtSpawnPosition(subject, spawnRoute))
+        if (!TryPositionPathAnchorAtSpawnPosition(subject, spawnRoute, spawnPosition))
         {
             Destroy(subject);
             return;
@@ -468,17 +494,19 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
 
         subjectMover.Configure(
-            spawnRoute.MoveDirection,
+            moveDirection,
             spawnRoute.MoveSpeed,
             spawnRoute.VerticalSwayAmplitude,
             spawnRoute.VerticalSwayFrequencyHz
         );
+        ApplyHorizontalMirror(subject, isHorizontallyMirrored);
         spawnedSubjects.Add(subject);
     }
 
     private bool TryPositionPathAnchorAtSpawnPosition(
         GameObject subject,
-        SubjectSpawnRoute spawnRoute
+        SubjectSpawnRoute spawnRoute,
+        Vector2 spawnPosition
     )
     {
         if (!spawnRoute.UsePathAnchorForSpawnPosition)
@@ -504,9 +532,33 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return false;
         }
 
-        var desiredAnchorPosition = subjectSpawnRoot.TransformPoint(spawnRoute.SpawnPosition);
+        var desiredAnchorPosition = subjectSpawnRoot.TransformPoint(spawnPosition);
         subject.transform.position += desiredAnchorPosition - stageSubject.PathAnchor.position;
         return true;
+    }
+
+    private bool ShouldSpawnFromOppositeSide()
+    {
+        return spawnRandom.NextDouble() < Mathf.Clamp01(oppositeSideProbability);
+    }
+
+    private static SubjectMoveDirection ReverseMoveDirection(SubjectMoveDirection moveDirection)
+    {
+        return moveDirection == SubjectMoveDirection.LeftToRight
+            ? SubjectMoveDirection.RightToLeft
+            : SubjectMoveDirection.LeftToRight;
+    }
+
+    private static void ApplyHorizontalMirror(GameObject subject, bool isHorizontallyMirrored)
+    {
+        if (
+            isHorizontallyMirrored
+            && subject.TryGetComponent<StageSubject>(out var stageSubject)
+            && stageSubject.SubjectRenderer != null
+        )
+        {
+            stageSubject.SubjectRenderer.flipX = !stageSubject.SubjectRenderer.flipX;
+        }
     }
 
     private void StopSpawnedSubjects()

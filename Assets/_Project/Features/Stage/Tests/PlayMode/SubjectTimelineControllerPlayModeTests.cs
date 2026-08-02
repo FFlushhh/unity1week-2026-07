@@ -106,6 +106,54 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator PlayingMirrorsFixedSpawnPositionDirectionAndSpriteWhenOppositeSideIsSelected()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateFacingDogPrefab();
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 5f);
+        SetPrivateField(timeline, "oppositeSideProbability", 1f);
+
+        yield return null;
+
+        Assert.That(GetFirstScheduledSpawnHorizontalMirror(timeline), Is.True);
+        SetPrivateField(timeline, "elapsedTimeSeconds", 5f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        var spawnedDog = spawnRoot.GetChild(0);
+        var mover = spawnedDog.GetComponent<SubjectMover>();
+        var stageSubject = spawnedDog.GetComponent<StageSubject>();
+        Assert.That(spawnedDog.localPosition.x, Is.EqualTo(10f));
+        Assert.That(
+            GetPrivateField<SubjectMoveDirection>(mover, "moveDirection"),
+            Is.EqualTo(SubjectMoveDirection.RightToLeft)
+        );
+        Assert.That(stageSubject.SubjectRenderer.flipX, Is.True);
+    }
+
+    [UnityTest]
+    public IEnumerator RandomSpawnKeepsItsOppositeSideSelectionInTheGeneratedSchedule()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateFacingDogPrefab();
+        var timeline = CreateRandomTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            minimumSpawnCount: 1,
+            maximumSpawnCount: 1,
+            earliestSpawnTimeSeconds: 5f,
+            latestSpawnTimeSeconds: 5f
+        );
+        SetPrivateField(timeline, "oppositeSideProbability", 1f);
+
+        yield return null;
+
+        Assert.That(GetFirstScheduledSpawnHorizontalMirror(timeline), Is.True);
+    }
+
+    [UnityTest]
     public IEnumerator PlayingSpawnsEveryGeneratedRandomEntryOnlyOnce()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -175,6 +223,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(photoCamera, Is.Not.Null);
         Assert.That(stageController, Is.Not.Null);
         Assert.That(spawnSettings, Has.Length.EqualTo(6));
+        Assert.That(GetPrivateField<float>(timeline, "oppositeSideProbability"), Is.EqualTo(0.5f));
 
         var randomSubjectIds = new HashSet<SubjectId>();
         var foundFixedDog = false;
@@ -339,6 +388,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
         SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
         yield return null;
         SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
         yield return null;
 
         var secondSchedule = DescribeScheduledSpawns(timeline);
@@ -597,6 +647,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                 verticalSwayFrequencyHz
             )
         );
+        SetPrivateField(timeline, "oppositeSideProbability", 0f);
         return timeline;
     }
 
@@ -625,6 +676,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                 latestSpawnTimeSeconds
             )
         );
+        SetPrivateField(timeline, "oppositeSideProbability", 0f);
         return timeline;
     }
 
@@ -678,6 +730,21 @@ public sealed class SubjectTimelineControllerPlayModeTests
         return settings;
     }
 
+    private static bool GetFirstScheduledSpawnHorizontalMirror(SubjectTimelineController timeline)
+    {
+        var scheduledSpawns = GetPrivateField<System.Collections.IList>(
+            timeline,
+            "scheduledSpawns"
+        );
+        Assert.That(scheduledSpawns, Has.Count.EqualTo(1));
+
+        var isHorizontallyMirroredProperty = scheduledSpawns[0]
+            .GetType()
+            .GetProperty("IsHorizontallyMirrored", BindingFlags.Instance | BindingFlags.Public);
+        Assert.That(isHorizontallyMirroredProperty, Is.Not.Null);
+        return (bool)isHorizontallyMirroredProperty.GetValue(scheduledSpawns[0]);
+    }
+
     private static float GetFirstScheduledSpawnTime(SubjectTimelineController timeline)
     {
         var scheduledSpawns = GetPrivateField<System.Collections.IList>(
@@ -697,6 +764,15 @@ public sealed class SubjectTimelineControllerPlayModeTests
     {
         var dogPrefab = CreateGameObject("Dog");
         dogPrefab.AddComponent<SubjectMover>();
+        return dogPrefab;
+    }
+
+    private GameObject CreateFacingDogPrefab()
+    {
+        var dogPrefab = CreateDogPrefab();
+        var spriteRenderer = dogPrefab.AddComponent<SpriteRenderer>();
+        var stageSubject = dogPrefab.AddComponent<StageSubject>();
+        SetPrivateField(stageSubject, "subjectRenderer", spriteRenderer);
         return dogPrefab;
     }
 

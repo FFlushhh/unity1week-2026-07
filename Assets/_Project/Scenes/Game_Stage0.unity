@@ -1958,6 +1958,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stageController: {fileID: 206002}
   subjectSpawnRoot: {fileID: 202001}
+  oppositeSideProbability: 0.5
   spawnSettings:
   - spawnMode: 0
     subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
