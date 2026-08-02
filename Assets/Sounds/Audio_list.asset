@@ -14,7 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioDataList
   bgmList:
   - clip: {fileID: 8300000, guid: b24f9abfc1c680d48bd68ba691f3011b, type: 3}
-    volume: 0.6
+    volume: 0.4
+  - clip: {fileID: 8300000, guid: cebdf9ca63117274bac36d56bf7769cb, type: 3}
+    volume: 0.4
+  - clip: {fileID: 8300000, guid: 8e5f33ad542d1f146ae9f0e4d2964e07, type: 3}
+    volume: 0.2
+  - clip: {fileID: 8300000, guid: 3e04ed0d20431184fbf7f0c3d331ea05, type: 3}
+    volume: 0.2
+  - clip: {fileID: 8300000, guid: 8e9efc9497a2a8744916813bdffa3e7d, type: 3}
+    volume: 0.2
   seList:
   - clip: {fileID: 8300000, guid: 6cfcb820bcb644645ae3f0f8b9e8eb46, type: 3}
     volume: 1
