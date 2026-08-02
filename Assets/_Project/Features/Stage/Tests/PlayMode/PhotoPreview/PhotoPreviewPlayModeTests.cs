@@ -94,6 +94,21 @@ public sealed class PhotoPreviewPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator TimerIsPositionedAtTheTopCenterWithoutOverlappingSideControls()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+
+        var timer = GameObject.Find("TimerText");
+        Assert.That(timer, Is.Not.Null);
+
+        var timerRect = timer.GetComponent<RectTransform>();
+        Assert.That(timerRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 1f)));
+        Assert.That(timerRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 1f)));
+        Assert.That(timerRect.anchoredPosition, Is.EqualTo(new Vector2(0f, -60f)));
+        Assert.That(timerRect.sizeDelta, Is.EqualTo(new Vector2(220f, 80f)));
+    }
+
+    [UnityTest]
     public IEnumerator CameraUiUsesTheConfiguredDecorationsAndOnlyTheShutterIsInteractive()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);

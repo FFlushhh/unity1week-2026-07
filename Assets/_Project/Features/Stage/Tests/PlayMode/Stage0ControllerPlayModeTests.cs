@@ -28,6 +28,20 @@ public sealed class Stage0ControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator StartMessageHidesTimerAndShutterWhileShowingTheMessage()
+    {
+        var controller = CreateController(startMessageDuration: 10f, playingDuration: 10f);
+
+        yield return null;
+
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+        Assert.That(GetPrivateField<GameObject>(controller, "startMessage").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "photoFrame").activeSelf, Is.True);
+    }
+
+    [UnityTest]
     public IEnumerator ZeroPlayingDurationImmediatelyEntersGameOver()
     {
         var controller = CreateController(startMessageDuration: 0f, playingDuration: 0f);
@@ -77,6 +91,9 @@ public sealed class Stage0ControllerPlayModeTests
         yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
 
         Assert.That(controller.RemainingTime, Is.GreaterThan(0f));
+        Assert.That(GetPrivateField<GameObject>(controller, "startMessage").activeSelf, Is.False);
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.True);
         yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
 
         var remainingTimeAtGameOver = controller.RemainingTime;
@@ -101,6 +118,8 @@ public sealed class Stage0ControllerPlayModeTests
             Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
         );
         Assert.That(controller.RemainingTime, Is.GreaterThan(0f));
+        Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.True);
+        Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
     }
 
     [UnityTest]
