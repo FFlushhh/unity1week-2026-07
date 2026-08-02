@@ -1959,42 +1959,110 @@ MonoBehaviour:
   stageController: {fileID: 206002}
   subjectSpawnRoot: {fileID: 202001}
   spawnSettings:
-  - subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
-    spawnTimeSeconds: 1
+  - spawnMode: 0
+    subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
+    spawnTimeSeconds: 0.3
     spawnPosition: {x: -9.5, y: 0}
     moveDirection: 0
-    moveSpeed: 2
+    moveSpeed: 4
     scale: 1
-  - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
-    spawnTimeSeconds: 2
-    spawnPosition: {x: -9.5, y: 2}
-    moveDirection: 0
-    moveSpeed: 1.5
-    scale: 1
-  - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
-    spawnTimeSeconds: 3
-    spawnPosition: {x: 9.5, y: -1}
-    moveDirection: 1
-    moveSpeed: 2.5
-    scale: 1
-  - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
-    spawnTimeSeconds: 4.5
-    spawnPosition: {x: -9.5, y: -2}
-    moveDirection: 0
-    moveSpeed: 1.8
-    scale: 1
-  - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
-    spawnTimeSeconds: 6
-    spawnPosition: {x: 9.5, y: 2}
-    moveDirection: 1
-    moveSpeed: 3
-    scale: 1
-  - subjectPrefab: {fileID: 440001, guid: be4bf6ac0a774ff2a099eeb4fbcf275c, type: 3}
-    spawnTimeSeconds: 8
-    spawnPosition: {x: -9.5, y: 1}
-    moveDirection: 0
-    moveSpeed: 3
-    scale: 1
+    usePathAnchorForSpawnPosition: 0
+    verticalSwayAmplitude: 0
+    verticalSwayFrequencyHz: 0
+  - spawnMode: 1
+    appearanceProbability: 0.5
+    minimumSpawnCount: 1
+    maximumSpawnCount: 1
+    earliestSpawnTimeSeconds: 0.8
+    latestSpawnTimeSeconds: 3
+    minimumSpawnIntervalSeconds: 0
+    randomRoutes:
+    - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
+      spawnPosition: {x: -9.5, y: 2}
+      moveDirection: 0
+      moveSpeed: 3
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
+  - spawnMode: 1
+    appearanceProbability: 0.5
+    minimumSpawnCount: 1
+    maximumSpawnCount: 1
+    earliestSpawnTimeSeconds: 1.5
+    latestSpawnTimeSeconds: 4.5
+    minimumSpawnIntervalSeconds: 0
+    randomRoutes:
+    - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
+      spawnPosition: {x: 9.5, y: -1}
+      moveDirection: 1
+      moveSpeed: 5.5
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
+  - spawnMode: 1
+    appearanceProbability: 1
+    minimumSpawnCount: 1
+    maximumSpawnCount: 3
+    earliestSpawnTimeSeconds: 1
+    latestSpawnTimeSeconds: 5.5
+    minimumSpawnIntervalSeconds: 0.5
+    randomRoutes:
+    - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
+      spawnPosition: {x: -9.5, y: -2.5}
+      moveDirection: 0
+      moveSpeed: 4
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0.35
+      verticalSwayFrequencyHz: 1.2
+      selectionWeight: 1
+    - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
+      spawnPosition: {x: 9.5, y: -1.6}
+      moveDirection: 1
+      moveSpeed: 4.5
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0.35
+      verticalSwayFrequencyHz: 1.2
+      selectionWeight: 1
+  - spawnMode: 1
+    appearanceProbability: 0.5
+    minimumSpawnCount: 1
+    maximumSpawnCount: 1
+    earliestSpawnTimeSeconds: 3
+    latestSpawnTimeSeconds: 5.8
+    minimumSpawnIntervalSeconds: 0
+    randomRoutes:
+    - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
+      spawnPosition: {x: 9.5, y: 2}
+      moveDirection: 1
+      moveSpeed: 4.5
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
+  - spawnMode: 1
+    appearanceProbability: 0.5
+    minimumSpawnCount: 1
+    maximumSpawnCount: 1
+    earliestSpawnTimeSeconds: 4
+    latestSpawnTimeSeconds: 6.5
+    minimumSpawnIntervalSeconds: 0
+    randomRoutes:
+    - subjectPrefab: {fileID: 440001, guid: be4bf6ac0a774ff2a099eeb4fbcf275c, type: 3}
+      spawnPosition: {x: -9.5, y: 1}
+      moveDirection: 0
+      moveSpeed: 5
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
 --- !u!1 &225000
 GameObject:
   m_ObjectHideFlags: 0

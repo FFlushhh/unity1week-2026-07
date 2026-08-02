@@ -376,17 +376,18 @@ public sealed class PhotoPreviewPlayModeTests
         var spawnSettings = GetPrivateField<Array>(timeline, "spawnSettings");
         var halfWidth = photoCamera.orthographicSize * photoCamera.aspect;
 
-        foreach (var spawnSetting in spawnSettings)
+        foreach (var spawnRoute in GetConfiguredSpawnRoutes(spawnSettings))
         {
-            var settingType = spawnSetting.GetType();
             var spawnPosition = (Vector2)
-                settingType
+                spawnRoute
+                    .GetType()
                     .GetProperty("SpawnPosition", BindingFlags.Instance | BindingFlags.Public)
-                    .GetValue(spawnSetting);
+                    .GetValue(spawnRoute);
             var subjectPrefab = (GameObject)
-                settingType
+                spawnRoute
+                    .GetType()
                     .GetProperty("SubjectPrefab", BindingFlags.Instance | BindingFlags.Public)
-                    .GetValue(spawnSetting);
+                    .GetValue(spawnRoute);
 
             Assert.That(subjectPrefab.layer, Is.EqualTo(photoSubjectLayer));
             Assert.That(Mathf.Abs(spawnPosition.x), Is.EqualTo(9.5f));
@@ -414,13 +415,13 @@ public sealed class PhotoPreviewPlayModeTests
 
         var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
         var spawnSettings = GetPrivateField<Array>(timeline, "spawnSettings");
-        foreach (var spawnSetting in spawnSettings)
+        foreach (var spawnRoute in GetConfiguredSpawnRoutes(spawnSettings))
         {
             var subjectPrefab = (GameObject)
-                spawnSetting
+                spawnRoute
                     .GetType()
                     .GetProperty("SubjectPrefab", BindingFlags.Instance | BindingFlags.Public)
-                    .GetValue(spawnSetting);
+                    .GetValue(spawnRoute);
             var stageSubject = subjectPrefab.GetComponent<StageSubject>();
 
             Assert.That(stageSubject, Is.Not.Null);
@@ -716,6 +717,32 @@ public sealed class PhotoPreviewPlayModeTests
         SetPrivateField(presentation, "blackoutHoldDuration", hold);
         SetPrivateField(presentation, "blackoutFadeOutDuration", fadeOut);
         SetPrivateField(presentation, "capturedPhotoScaleDuration", previewScale);
+    }
+
+    private static IEnumerable<object> GetConfiguredSpawnRoutes(Array spawnSettings)
+    {
+        foreach (var spawnSetting in spawnSettings)
+        {
+            var settingType = spawnSetting.GetType();
+            var isRandom = (bool)
+                settingType
+                    .GetProperty("IsRandom", BindingFlags.Instance | BindingFlags.Public)
+                    .GetValue(spawnSetting);
+
+            if (!isRandom)
+            {
+                yield return settingType
+                    .GetMethod("CreateFixedRoute", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(spawnSetting, null);
+                continue;
+            }
+
+            var randomRoutes = GetPrivateField<Array>(spawnSetting, "randomRoutes");
+            foreach (var randomRoute in randomRoutes)
+            {
+                yield return randomRoute;
+            }
+        }
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)

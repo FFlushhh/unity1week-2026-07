@@ -104,6 +104,62 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator PlayingSpawnsEveryGeneratedRandomEntryOnlyOnce()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        CreateRandomTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            minimumSpawnCount: 3,
+            maximumSpawnCount: 3,
+            earliestSpawnTimeSeconds: 0f,
+            latestSpawnTimeSeconds: 0f
+        );
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(3));
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(3));
+    }
+
+    [UnityTest]
+    public IEnumerator ReenteringPlayingBuildsANewRandomSchedule()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        var timeline = CreateRandomTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            minimumSpawnCount: 1,
+            maximumSpawnCount: 1,
+            earliestSpawnTimeSeconds: 5f,
+            latestSpawnTimeSeconds: 6f
+        );
+        SetPrivateField(timeline, "spawnRandom", new System.Random(0));
+
+        yield return null;
+
+        var firstSpawnTimeSeconds = GetFirstScheduledSpawnTime(timeline);
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
+        yield return null;
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        var secondSpawnTimeSeconds = GetFirstScheduledSpawnTime(timeline);
+
+        Assert.That(secondSpawnTimeSeconds, Is.Not.EqualTo(firstSpawnTimeSeconds));
+        Assert.That(spawnRoot.childCount, Is.EqualTo(0));
+    }
+
+    [UnityTest]
     public IEnumerator ReenteringPlayingResetsTimelineAndReplacesPreviousDog()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -223,6 +279,99 @@ public sealed class SubjectTimelineControllerPlayModeTests
             )
         );
         return timeline;
+    }
+
+    private SubjectTimelineController CreateRandomTimeline(
+        Stage0Controller stageController,
+        Transform spawnRoot,
+        GameObject subjectPrefab,
+        int minimumSpawnCount,
+        int maximumSpawnCount,
+        float earliestSpawnTimeSeconds,
+        float latestSpawnTimeSeconds
+    )
+    {
+        var timeline = CreateGameObject("SubjectTimeline")
+            .AddComponent<SubjectTimelineController>();
+        SetPrivateField(timeline, "stageController", stageController);
+        SetPrivateField(timeline, "subjectSpawnRoot", spawnRoot);
+        SetPrivateField(
+            timeline,
+            "spawnSettings",
+            CreateRandomSpawnSettings(
+                subjectPrefab,
+                minimumSpawnCount,
+                maximumSpawnCount,
+                earliestSpawnTimeSeconds,
+                latestSpawnTimeSeconds
+            )
+        );
+        return timeline;
+    }
+
+    private Array CreateRandomSpawnSettings(
+        GameObject subjectPrefab,
+        int minimumSpawnCount,
+        int maximumSpawnCount,
+        float earliestSpawnTimeSeconds,
+        float latestSpawnTimeSeconds
+    )
+    {
+        var settingType = typeof(SubjectTimelineController).GetNestedType(
+            "SubjectSpawnSetting",
+            PrivateInstance
+        );
+        var routeType = typeof(SubjectTimelineController).GetNestedType(
+            "SubjectSpawnRoute",
+            PrivateInstance
+        );
+        var spawnModeType = typeof(SubjectTimelineController).GetNestedType(
+            "SubjectSpawnMode",
+            PrivateInstance
+        );
+        Assert.That(settingType, Is.Not.Null);
+        Assert.That(routeType, Is.Not.Null);
+        Assert.That(spawnModeType, Is.Not.Null);
+
+        var route = Activator.CreateInstance(routeType);
+        SetPrivateField(route, "subjectPrefab", subjectPrefab);
+        SetPrivateField(route, "spawnPosition", new Vector2(-10f, 2f));
+        SetPrivateField(route, "moveDirection", SubjectMoveDirection.LeftToRight);
+        SetPrivateField(route, "moveSpeed", 2f);
+        SetPrivateField(route, "scale", 1f);
+        SetPrivateField(route, "selectionWeight", 1f);
+
+        var routes = Array.CreateInstance(routeType, 1);
+        routes.SetValue(route, 0);
+
+        var setting = Activator.CreateInstance(settingType);
+        SetPrivateField(setting, "spawnMode", Enum.ToObject(spawnModeType, 1));
+        SetPrivateField(setting, "appearanceProbability", 1f);
+        SetPrivateField(setting, "minimumSpawnCount", minimumSpawnCount);
+        SetPrivateField(setting, "maximumSpawnCount", maximumSpawnCount);
+        SetPrivateField(setting, "earliestSpawnTimeSeconds", earliestSpawnTimeSeconds);
+        SetPrivateField(setting, "latestSpawnTimeSeconds", latestSpawnTimeSeconds);
+        SetPrivateField(setting, "minimumSpawnIntervalSeconds", 0f);
+        SetPrivateField(setting, "randomRoutes", routes);
+
+        var settings = Array.CreateInstance(settingType, 1);
+        settings.SetValue(setting, 0);
+        return settings;
+    }
+
+    private static float GetFirstScheduledSpawnTime(SubjectTimelineController timeline)
+    {
+        var scheduledSpawns = GetPrivateField<System.Collections.IList>(
+            timeline,
+            "scheduledSpawns"
+        );
+        Assert.That(scheduledSpawns, Has.Count.EqualTo(1));
+
+        var spawnTimeProperty = scheduledSpawns[0]
+            .GetType()
+            .GetProperty("SpawnTimeSeconds", BindingFlags.Instance | BindingFlags.Public);
+        Assert.That(spawnTimeProperty, Is.Not.Null);
+        return (float)spawnTimeProperty.GetValue(scheduledSpawns[0]);
     }
 
     private GameObject CreateDogPrefab()
