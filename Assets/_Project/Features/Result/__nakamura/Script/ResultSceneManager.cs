@@ -114,21 +114,18 @@ namespace ResultScene
         [SerializeField]
         private Sprite _illustrationBSprite;
 
-        [Header("Audio")]
+        [Header("Audio (SoundManager Indices)")]
         [SerializeField]
-        private AudioSource _audioSource;
+        private int _sePopIndex = 15;
 
         [SerializeField]
-        private AudioClip _sePop;
+        private int _seSlideUpIndex = 16;
 
         [SerializeField]
-        private AudioClip _seSlideUp;
+        private int _seStampIndex = 16;
 
         [SerializeField]
-        private AudioClip _seStamp;
-
-        [SerializeField]
-        private AudioClip _seScoreCount;
+        private int _seScoreCountIndex = 16;
 
         [Header("Misc")]
         [SerializeField]
@@ -348,7 +345,7 @@ namespace ResultScene
             yield return WaitOrSkipCoroutine(0.5f);
 
             if (!_isSkipped)
-                PlaySound(_seSlideUp);
+                PlaySound(_seSlideUpIndex);
             yield return SlideUpTotalScoreAreaSequenceCoroutine();
 
             Rank rank = GenerateSnsContent(data);
@@ -368,7 +365,7 @@ namespace ResultScene
             SetIllustration(_totalScore);
 
             if (!_isSkipped)
-                PlaySound(_seStamp);
+                PlaySound(_seStampIndex);
             yield return StampAnimationSequenceCoroutine();
 
             if (!_isSkipped)
@@ -453,7 +450,7 @@ namespace ResultScene
             }
 
             if (!_isSkipped)
-                PlaySound(_sePop);
+                PlaySound(_sePopIndex);
 
             yield return null;
 
@@ -509,8 +506,7 @@ namespace ResultScene
             float duration = 0.8f;
             float elapsed = 0f;
 
-            if (_seScoreCount != null)
-                PlaySound(_seScoreCount);
+            PlaySound(_seScoreCountIndex);
 
             while (elapsed < duration && !_isSkipped)
             {
@@ -691,11 +687,11 @@ namespace ResultScene
             }
         }
 
-        private void PlaySound(AudioClip clip)
+        private void PlaySound(int seIndex)
         {
-            if (_audioSource != null && clip != null)
+            if (SoundManager.Instance != null)
             {
-                _audioSource.PlayOneShot(clip);
+                SoundManager.Instance.PlaySE(seIndex);
             }
         }
 
