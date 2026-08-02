@@ -175,6 +175,18 @@ namespace ResultScene
         private Coroutine _sequenceCoroutine;
         private Texture2D _ownedCapturedImage;
 
+        [Header("Transition Presentation")]
+        [SerializeField]
+        private Animator _transitionAnimator;
+
+        [SerializeField]
+        private string _transitionTriggerName = "Change";
+
+        [SerializeField]
+        private float _fadeDuration = 0.6f;
+
+        private bool _isTransitioning = false; // 重複遷移防止フラグ
+
         private void Start()
         {
             if (ResultDataTransporter.CurrentData != null)
@@ -262,7 +274,7 @@ namespace ResultScene
                     if (_holdKeyText != null)
                     {
                         // 長押し時間に応じて色を変化させ、さらに少しだけ文字を拡大させる（直感的なチャージ感の演出）
-                        float progress = Mathf.Clamp01(_transitionKeyHoldTime / 2.0f);
+                        float progress = Mathf.Clamp01(_transitionKeyHoldTime / 1.0f);
                         _holdKeyText.color = Color.Lerp(
                             _holdTextStartColor,
                             _holdTextEndColor,
@@ -275,9 +287,10 @@ namespace ResultScene
                         );
                     }
 
-                    if (_transitionKeyHoldTime >= 2.0f)
+                    if (_transitionKeyHoldTime >= 2.0f && !_isTransitioning)
                     {
-                        OnNextButtonClicked();
+                        _isTransitioning = true;
+                        StartCoroutine(TransitionWithAnimationCoroutine());
                         _transitionKeyHoldTime = 0f; // 重複実行防止
                     }
                 }
@@ -915,9 +928,36 @@ namespace ResultScene
             }
         }
 
+        /// <summary>
+        /// アニメーションを再生し、指定時間（0.6秒）待ってから次のシーンへ遷移します
+        /// </summary>
+        private IEnumerator TransitionWithAnimationCoroutine()
+        {
+            // 1. アニメーションのトリガーを実行
+            if (_transitionAnimator != null && !string.IsNullOrEmpty(_transitionTriggerName))
+            {
+                _transitionAnimator.SetTrigger(_transitionTriggerName);
+            }
+
+            // 2. 0.6秒間待機
+            if (_fadeDuration > 0f)
+            {
+                yield return new WaitForSeconds(_fadeDuration);
+            }
+
+            // 3. シーン遷移実行
+            UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
+        }
+
+        /// <summary>
+        /// UIボタン（NextButton等）から直接呼ばれた場合にも対応
+        /// </summary>
         public void OnNextButtonClicked()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
+            if (_isTransitioning)
+                return;
+            _isTransitioning = true;
+            StartCoroutine(TransitionWithAnimationCoroutine());
         }
 
         private void OnDestroy()
