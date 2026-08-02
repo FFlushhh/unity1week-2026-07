@@ -14,6 +14,13 @@ namespace ResultScene
         public int ScorePerItem;
     }
 
+    [System.Serializable]
+    public struct BaseScoreMapping
+    {
+        public string ImageName;
+        public int Score;
+    }
+
     public class ResultSceneManager : MonoBehaviour
     {
         [Header("Debug & Test")]
@@ -60,6 +67,16 @@ namespace ResultScene
 
         [SerializeField]
         private ScrollRect _scoreScrollRect;
+
+        [Header("Base Score Settings")]
+        [SerializeField]
+        private Transform _baseScoreContainer;
+
+        [SerializeField]
+        private int _defaultBaseScore = 1000;
+
+        [SerializeField]
+        private List<BaseScoreMapping> _baseScoreMaster = new List<BaseScoreMapping>();
 
         [Header("Right Panel (Total & Rank)")]
         [SerializeField]
@@ -130,10 +147,6 @@ namespace ResultScene
         [SerializeField]
         private int _seScoreCountIndex = 16;
 
-        [Header("Misc")]
-        [SerializeField]
-        private GameObject _nextButton;
-
         [SerializeField]
         private RectTransform _shakeTarget;
 
@@ -144,9 +157,20 @@ namespace ResultScene
         [SerializeField]
         private BuzzReaction.BuzzReactionManager _buzzReactionManager;
 
+        [Header("Hold to Skip UI")]
+        [SerializeField]
+        private TMPro.TextMeshProUGUI _holdKeyText;
+
+        [SerializeField]
+        private Color _holdTextStartColor = new Color(1f, 1f, 1f, 0.4f); // 待機時の色
+
+        [SerializeField]
+        private Color _holdTextEndColor = new Color(1f, 0.9f, 0.2f, 1f); // ゲージMAX時の色（黄色っぽく発光するイメージ）
+
         private int _totalScore;
         private bool _isSequenceFinished = false;
         private bool _isSkipped = false;
+        private float _transitionKeyHoldTime = 0f;
 
         private Coroutine _sequenceCoroutine;
         private Texture2D _ownedCapturedImage;
@@ -164,7 +188,6 @@ namespace ResultScene
                 {
                     PlayerName = _testData.PlayerName,
                     LocationName = _testData.LocationName,
-                    BaseScore = _testData.BaseScore,
                     Bonuses =
                         _testData.Bonuses != null
                             ? new List<BonusInputData>(_testData.Bonuses)
@@ -211,6 +234,7 @@ namespace ResultScene
             );
             copy.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
             copy.Apply();
+            copy.name = original.name; // 名前も引き継ぐ
 
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(tmp);
@@ -226,11 +250,134 @@ namespace ResultScene
                 {
                     SkipPresentation();
                 }
-                else if (_isSequenceFinished)
+                // 画面遷移はUIボタン（NextButton）のクリックのみで行うため、ここでの自動遷移は削除
+            }
+
+            if (_isSequenceFinished)
+            {
+                if (CheckLongPressTransitionInput())
                 {
-                    OnNextButtonClicked();
+                    _transitionKeyHoldTime += Time.deltaTime;
+
+                    if (_holdKeyText != null)
+                    {
+                        // 長押し時間に応じて色を変化させ、さらに少しだけ文字を拡大させる（直感的なチャージ感の演出）
+                        float progress = Mathf.Clamp01(_transitionKeyHoldTime / 2.0f);
+                        _holdKeyText.color = Color.Lerp(
+                            _holdTextStartColor,
+                            _holdTextEndColor,
+                            progress
+                        );
+                        _holdKeyText.transform.localScale = Vector3.Lerp(
+                            Vector3.one,
+                            new Vector3(1.15f, 1.15f, 1.15f),
+                            progress
+                        );
+                    }
+
+                    if (_transitionKeyHoldTime >= 2.0f)
+                    {
+                        OnNextButtonClicked();
+                        _transitionKeyHoldTime = 0f; // 重複実行防止
+                    }
+                }
+                else
+                {
+                    _transitionKeyHoldTime = 0f;
+
+                    if (_holdKeyText != null)
+                    {
+                        // キーを離したら元の色・サイズに即座に戻す
+                        _holdKeyText.color = _holdTextStartColor;
+                        _holdKeyText.transform.localScale = Vector3.one;
+                    }
                 }
             }
+
+            if (_scoreScrollRect != null)
+            {
+                HandleKeyboardScroll();
+            }
+        }
+
+        private void HandleKeyboardScroll()
+        {
+            float scrollDir = 0f;
+
+#if ENABLE_INPUT_SYSTEM
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.isPressed)
+                    scrollDir += 1f;
+                if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.isPressed)
+                    scrollDir -= 1f;
+            }
+#else
+            if (UnityEngine.Input.GetKey(KeyCode.UpArrow))
+                scrollDir += 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.DownArrow))
+                scrollDir -= 1f;
+#endif
+
+            if (scrollDir != 0f)
+            {
+                // スクロール速度（適宜調整）
+                float scrollSpeed = 1.5f;
+                _scoreScrollRect.verticalNormalizedPosition +=
+                    scrollDir * Time.deltaTime * scrollSpeed;
+                _scoreScrollRect.verticalNormalizedPosition = Mathf.Clamp01(
+                    _scoreScrollRect.verticalNormalizedPosition
+                );
+            }
+        }
+
+        private bool CheckLongPressTransitionInput()
+        {
+#if ENABLE_INPUT_SYSTEM
+            bool isKeyboardPressed = false;
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                isKeyboardPressed =
+                    UnityEngine.InputSystem.Keyboard.current.spaceKey.isPressed
+                    || UnityEngine.InputSystem.Keyboard.current.enterKey.isPressed
+                    || UnityEngine.InputSystem.Keyboard.current.numpadEnterKey.isPressed;
+            }
+
+            bool isPointerPressed = false;
+            if (UnityEngine.InputSystem.Mouse.current != null)
+            {
+                isPointerPressed = UnityEngine.InputSystem.Mouse.current.leftButton.isPressed;
+            }
+            if (!isPointerPressed && UnityEngine.InputSystem.Touchscreen.current != null)
+            {
+                isPointerPressed = UnityEngine
+                    .InputSystem
+                    .Touchscreen
+                    .current
+                    .primaryTouch
+                    .press
+                    .isPressed;
+            }
+
+            return isKeyboardPressed || isPointerPressed;
+#else
+            bool isKeyboardPressed =
+                UnityEngine.Input.GetKey(KeyCode.Space)
+                || UnityEngine.Input.GetKey(KeyCode.Return)
+                || UnityEngine.Input.GetKey(KeyCode.KeypadEnter);
+
+            bool isPointerPressed =
+                UnityEngine.Input.GetMouseButton(0)
+                || (
+                    UnityEngine.Input.touchCount > 0
+                    && (
+                        UnityEngine.Input.GetTouch(0).phase == TouchPhase.Moved
+                        || UnityEngine.Input.GetTouch(0).phase == TouchPhase.Stationary
+                    )
+                );
+
+            return isKeyboardPressed || isPointerPressed;
+#endif
         }
 
         private bool CheckActionInput() //クリック（タッチ）およびSpace/Enter判定
@@ -296,7 +443,7 @@ namespace ResultScene
             if (data != null)
             {
                 _totalScore = ResultScoreCalculator.CalculateTotalScore(
-                    data.BaseScore,
+                    GetActualBaseScore(data),
                     data.Bonuses,
                     _bonusMaster
                 );
@@ -320,8 +467,16 @@ namespace ResultScene
 
             yield return WaitOrSkipCoroutine(0.5f);
 
-            _totalScore = data.BaseScore;
-            yield return AddScoreItemSequenceCoroutine("基礎スコア", data.BaseScore);
+            // 1. 基礎スコアの追加
+            string baseScoreName = GetBaseScoreName(data);
+            int actualBaseScore = GetActualBaseScore(data);
+
+            _totalScore = actualBaseScore;
+            yield return AddScoreItemSequenceCoroutine(
+                baseScoreName,
+                actualBaseScore,
+                _baseScoreContainer
+            );
 
             if (data.Bonuses != null)
             {
@@ -403,13 +558,41 @@ namespace ResultScene
                 _rankLabel.SetActive(false);
             if (_illustrationImage != null)
                 _illustrationImage.gameObject.SetActive(false);
-            if (_nextButton != null)
-                _nextButton.SetActive(false);
+            if (_holdKeyText != null)
+                _holdKeyText.gameObject.SetActive(false);
+
+            if (_scoreScrollRect != null)
+            {
+                // エラーの原因となるスクロールバーの参照をプログラムから強制解除（これをしないとドラッグすらバグるため残します）
+                _scoreScrollRect.verticalScrollbar = null;
+            }
+
+            if (_scoreListContent != null)
+            {
+                // Contentの高さが自動調整されないとスクロールできないため、ContentSizeFitterを強制適用
+                if (
+                    !_scoreListContent.TryGetComponent<UnityEngine.UI.ContentSizeFitter>(
+                        out var fitter
+                    )
+                )
+                {
+                    fitter =
+                        _scoreListContent.gameObject.AddComponent<UnityEngine.UI.ContentSizeFitter>();
+                }
+                fitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+            }
 
             // 既存のリスト要素はここで解放
             foreach (Transform child in _scoreListContent)
             {
                 Destroy(child.gameObject);
+            }
+            if (_baseScoreContainer != null)
+            {
+                foreach (Transform child in _baseScoreContainer)
+                {
+                    Destroy(child.gameObject);
+                }
             }
         }
 
@@ -434,8 +617,38 @@ namespace ResultScene
             return rank;
         }
 
-        private IEnumerator AddScoreItemSequenceCoroutine(string itemName, int score)
+        private string GetBaseScoreName(ResultData data)
         {
+            if (data.CapturedImage != null && !string.IsNullOrEmpty(data.CapturedImage.name))
+            {
+                return data.CapturedImage.name;
+            }
+            if (!string.IsNullOrEmpty(data.LocationName))
+            {
+                return data.LocationName;
+            }
+            return "基礎スコア";
+        }
+
+        private int GetActualBaseScore(ResultData data)
+        {
+            string baseScoreName = GetBaseScoreName(data);
+            int actualBaseScore = _defaultBaseScore;
+            var mapping = _baseScoreMaster.FirstOrDefault(x => x.ImageName == baseScoreName);
+            if (mapping.ImageName != null)
+            {
+                actualBaseScore = mapping.Score;
+            }
+            return actualBaseScore;
+        }
+
+        private IEnumerator AddScoreItemSequenceCoroutine(
+            string itemName,
+            int score,
+            Transform customParent = null
+        )
+        {
+            Transform parent = customParent != null ? customParent : _scoreListContent;
             if (_scoreItemPrefab == null)
             {
                 Debug.LogError(
@@ -444,7 +657,7 @@ namespace ResultScene
                 yield break;
             }
 
-            GameObject itemObj = Instantiate(_scoreItemPrefab, _scoreListContent);
+            GameObject itemObj = Instantiate(_scoreItemPrefab, parent);
             itemObj.transform.localScale = Vector3.one;
 
             if (itemObj.TryGetComponent<ScoreItemUI>(out var itemUI))
@@ -616,8 +829,12 @@ namespace ResultScene
                 _rankStampImage.rectTransform.localScale = Vector3.one;
             }
 
-            if (_nextButton != null)
-                _nextButton.SetActive(true);
+            if (_holdKeyText != null)
+            {
+                _holdKeyText.gameObject.SetActive(true);
+                _holdKeyText.color = _holdTextStartColor;
+                _holdKeyText.transform.localScale = Vector3.one;
+            }
         }
 
         private void SetRankStamp(int score)

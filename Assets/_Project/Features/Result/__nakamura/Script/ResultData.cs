@@ -14,7 +14,6 @@ namespace ResultScene
         public Texture2D CapturedImage;
 
         [Header("スコア情報")]
-        public int BaseScore; // 基礎点
         public List<BonusInputData> Bonuses;
     }
 

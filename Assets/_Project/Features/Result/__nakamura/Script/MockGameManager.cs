@@ -12,7 +12,6 @@ namespace ResultScene
         {
             PlayerName = "テスター",
             LocationName = "秋葉原",
-            BaseScore = 1000,
             Bonuses = new List<BonusInputData>
             {
                 new BonusInputData { BonusName = "犬", Count = 1 },
@@ -31,7 +30,6 @@ namespace ResultScene
             {
                 PlayerName = MockData.PlayerName,
                 LocationName = MockData.LocationName,
-                BaseScore = MockData.BaseScore,
                 Bonuses =
                     MockData.Bonuses != null
                         ? new List<BonusInputData>(MockData.Bonuses)
@@ -74,6 +72,7 @@ namespace ResultScene
             );
             copy.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
             copy.Apply();
+            copy.name = original.name;
 
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(tmp);
