@@ -20,12 +20,39 @@ public sealed class SubjectMover : MonoBehaviour
     [SerializeField, Min(0f)]
     private float despawnPositionX = 10f;
 
+    [SerializeField, Min(0f)]
+    private float verticalSwayAmplitude;
+
+    [SerializeField, Min(0f)]
+    private float verticalSwayFrequencyHz;
+
     private bool isStopped;
+    private float verticalSwayBasePositionY;
+    private float verticalSwayElapsedSeconds;
+
+    private void Awake()
+    {
+        verticalSwayBasePositionY = transform.localPosition.y;
+    }
 
     public void Configure(SubjectMoveDirection direction, float speed)
     {
+        Configure(direction, speed, verticalSwayAmplitude, verticalSwayFrequencyHz);
+    }
+
+    public void Configure(
+        SubjectMoveDirection direction,
+        float speed,
+        float swayAmplitude,
+        float swayFrequencyHz
+    )
+    {
         moveDirection = direction;
         moveSpeed = Mathf.Max(0f, speed);
+        verticalSwayAmplitude = Mathf.Max(0f, swayAmplitude);
+        verticalSwayFrequencyHz = Mathf.Max(0f, swayFrequencyHz);
+        verticalSwayBasePositionY = transform.localPosition.y;
+        verticalSwayElapsedSeconds = 0f;
         isStopped = false;
     }
 
@@ -48,6 +75,23 @@ public sealed class SubjectMover : MonoBehaviour
         }
 
         transform.position += GetMoveDirection() * (moveSpeed * Time.deltaTime);
+        ApplyVerticalSway();
+    }
+
+    private void ApplyVerticalSway()
+    {
+        if (verticalSwayAmplitude <= 0f || verticalSwayFrequencyHz <= 0f)
+        {
+            return;
+        }
+
+        verticalSwayElapsedSeconds += Time.deltaTime;
+        var localPosition = transform.localPosition;
+        localPosition.y =
+            verticalSwayBasePositionY
+            + verticalSwayAmplitude
+                * Mathf.Sin(2f * Mathf.PI * verticalSwayFrequencyHz * verticalSwayElapsedSeconds);
+        transform.localPosition = localPosition;
     }
 
     private bool HasReachedDespawnPosition()
