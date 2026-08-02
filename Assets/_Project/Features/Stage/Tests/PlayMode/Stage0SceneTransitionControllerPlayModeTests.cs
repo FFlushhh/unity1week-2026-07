@@ -60,7 +60,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         Assert.That(didTransfer, Is.True);
         Assert.That(resultData, Is.SameAs(ResultDataTransporter.CurrentData));
         Assert.That(resultData.CapturedImage, Is.SameAs(capturedImage));
-        Assert.That(resultData.BaseScore, Is.EqualTo(1000));
+        Assert.That(resultData.PlayerName, Is.EqualTo("プレイヤー"));
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("犬"));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
@@ -97,7 +97,6 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         {
             PlayerName = "PreviousPlayer",
             LocationName = "PreviousStage",
-            BaseScore = 1000,
             Bonuses = new List<BonusInputData>(),
         };
         ResultDataTransporter.CurrentData = previousData;
@@ -286,7 +285,6 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         {
             PlayerName = "PreviousPlayer",
             LocationName = "PreviousStage",
-            BaseScore = 1000,
             Bonuses = new List<BonusInputData>(),
         };
         ResultDataTransporter.CurrentData = previousData;
