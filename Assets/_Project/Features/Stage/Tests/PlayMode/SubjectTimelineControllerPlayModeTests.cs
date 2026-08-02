@@ -213,12 +213,85 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator PlayingSpawnsEveryGeneratedRandomEntryOnlyOnce()
+    public IEnumerator StartMessageSpawnsScheduledSubjectsAndKeepsThemWhenPlayingStarts()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
+        SetPrivateField(timeline, "initialSpawnMinimumCount", 0);
+        SetPrivateField(timeline, "initialSpawnMaximumCount", 0);
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+        var scheduledDog = spawnRoot.GetChild(0).gameObject;
+
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+        Assert.That(spawnRoot.GetChild(0).gameObject, Is.EqualTo(scheduledDog));
+    }
+
+    [UnityTest]
+    public IEnumerator GameStage0StartsWithUniqueInitialSubjectsThatContinueMovingIntoPlaying()
+    {
+        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return null;
+
+        var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
+
+        Assert.That(
+            stageController.CurrentState,
+            Is.EqualTo(Stage0Controller.Stage0State.StartMessage)
+        );
+        Assert.That(spawnRoot.childCount, Is.InRange(2, 3));
+
+        var initialSubjectIds = new HashSet<SubjectId>();
+        var initialPositions = new Dictionary<Transform, Vector3>();
+        foreach (Transform initialSubject in spawnRoot)
+        {
+            var stageSubject = initialSubject.GetComponent<StageSubject>();
+            Assert.That(stageSubject, Is.Not.Null);
+            Assert.That(initialSubjectIds.Add(stageSubject.Id), Is.True);
+            Assert.That(initialSubject.position.x, Is.InRange(-5f, 5f));
+            initialPositions.Add(initialSubject, initialSubject.position);
+        }
+
+        yield return null;
+
+        var hasMovedInitialSubject = false;
+        foreach (var initialPosition in initialPositions)
+        {
+            if (initialPosition.Key.position != initialPosition.Value)
+            {
+                hasMovedInitialSubject = true;
+                break;
+            }
+        }
+
+        Assert.That(hasMovedInitialSubject, Is.True);
+
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(initialPositions.Count));
+        foreach (var initialPosition in initialPositions)
+        {
+            Assert.That(initialPosition.Key, Is.Not.Null);
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator PlayingStartsAnotherRandomBatchAfterCurrentBatchIsExhausted()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
-        CreateRandomTimeline(
+        var timeline = CreateRandomTimeline(
             stageController,
             spawnRoot,
             dogPrefab,
@@ -227,14 +300,17 @@ public sealed class SubjectTimelineControllerPlayModeTests
             earliestSpawnTimeSeconds: 0f,
             latestSpawnTimeSeconds: 0f
         );
+        timeline.enabled = false;
 
-        yield return null;
-
-        Assert.That(spawnRoot.childCount, Is.EqualTo(3));
-
-        yield return null;
+        InvokePrivateMethod(timeline, "BuildSpawnSchedule", true);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
 
         Assert.That(spawnRoot.childCount, Is.EqualTo(3));
+
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(6));
+        yield return null;
     }
 
     [UnityTest]
@@ -558,7 +634,36 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator CapturedWaitingForTimeoutKeepsDogMovingUntilCompletedStopsIt()
+    public IEnumerator GameOverPreventsNewRandomSpawnBatches()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateDogPrefab();
+        var timeline = CreateRandomTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            minimumSpawnCount: 1,
+            maximumSpawnCount: 1,
+            earliestSpawnTimeSeconds: 1f,
+            latestSpawnTimeSeconds: 1f
+        );
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(0));
+        SetPrivateField(timeline, "elapsedTimeSeconds", 1f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+        stageController.EnterGameOver();
+        yield return null;
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+    }
+
+    [UnityTest]
+    public IEnumerator CapturedWaitingForTimeoutKeepsDogMovingAfterCompletedUntilSceneExit()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
@@ -585,7 +690,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
             stageController.CurrentState,
             Is.EqualTo(Stage0Controller.Stage0State.Completed)
         );
-        Assert.That(dog.position.x, Is.EqualTo(completedPositionX));
+        Assert.That(dog.position.x, Is.GreaterThan(completedPositionX));
     }
 
     private static void AssertRandomSetting(
@@ -1000,10 +1105,14 @@ public sealed class SubjectTimelineControllerPlayModeTests
         field.SetValue(target, value);
     }
 
-    private static void InvokePrivateMethod(object target, string methodName)
+    private static void InvokePrivateMethod(
+        object target,
+        string methodName,
+        params object[] parameters
+    )
     {
         var method = target.GetType().GetMethod(methodName, PrivateInstance);
         Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
-        method.Invoke(target, null);
+        method.Invoke(target, parameters);
     }
 }

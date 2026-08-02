@@ -306,7 +306,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
     private readonly List<GameObject> spawnedSubjects = new();
     private readonly List<ScheduledSubjectSpawn> scheduledSpawns = new();
     private System.Random spawnRandom;
-    private bool hasStoppedForTerminalState;
+    private bool hasStoppedForGameOver;
     private bool hasEnteredPlaying;
     private float elapsedTimeSeconds;
     private int nextScheduledSpawnIndex;
@@ -331,6 +331,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
         stageController.StateChanged += HandleStageStateChanged;
         if (stageController.CurrentState == Stage0Controller.Stage0State.StartMessage)
         {
+            BuildSpawnSchedule();
             SpawnInitialSubjects();
         }
         else if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
@@ -364,15 +365,19 @@ public sealed class SubjectTimelineController : MonoBehaviour
                     && previousState != Stage0Controller.Stage0State.Playing
                 )
                 {
-                    ResetTimeline(hasEnteredPlaying);
-                    BuildSpawnSchedule();
+                    if (hasEnteredPlaying)
+                    {
+                        ResetTimeline();
+                        BuildSpawnSchedule();
+                    }
+
                     hasEnteredPlaying = true;
                 }
 
-                if (IsTerminalState(currentState) && !hasStoppedForTerminalState)
+                if (IsGameOverState(currentState) && !hasStoppedForGameOver)
                 {
                     StopSpawnedSubjects();
-                    hasStoppedForTerminalState = true;
+                    hasStoppedForGameOver = true;
                 }
 
                 if (IsTimelineRunning(currentState))
@@ -393,32 +398,30 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private void HandleStageStateChanged(Stage0Controller.Stage0State state)
     {
-        if (!IsTerminalState(state) || hasStoppedForTerminalState)
+        if (!IsGameOverState(state) || hasStoppedForGameOver)
         {
             return;
         }
 
         StopSpawnedSubjects();
-        hasStoppedForTerminalState = true;
+        hasStoppedForGameOver = true;
     }
 
     private static bool IsTimelineRunning(Stage0Controller.Stage0State state)
     {
-        return state == Stage0Controller.Stage0State.Playing
-            || state == Stage0Controller.Stage0State.CapturedWaitingForTimeout;
+        return state != Stage0Controller.Stage0State.GameOver;
     }
 
-    private static bool IsTerminalState(Stage0Controller.Stage0State state)
+    private static bool IsGameOverState(Stage0Controller.Stage0State state)
     {
-        return state == Stage0Controller.Stage0State.GameOver
-            || state == Stage0Controller.Stage0State.Completed;
+        return state == Stage0Controller.Stage0State.GameOver;
     }
 
     private void ResetTimeline(bool destroySpawnedSubjects = true)
     {
         elapsedTimeSeconds = 0f;
         nextScheduledSpawnIndex = 0;
-        hasStoppedForTerminalState = false;
+        hasStoppedForGameOver = false;
         scheduledSpawns.Clear();
         if (destroySpawnedSubjects)
         {
@@ -486,7 +489,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
     }
 
-    private void BuildSpawnSchedule()
+    private void BuildSpawnSchedule(bool includeFixedSpawns = true)
     {
         if (spawnSettings == null)
         {
@@ -508,6 +511,11 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
             if (!spawnSetting.IsRandom)
             {
+                if (!includeFixedSpawns)
+                {
+                    continue;
+                }
+
                 scheduledSpawns.Add(
                     new ScheduledSubjectSpawn(
                         spawnSetting.FixedSpawnTimeSeconds,
@@ -573,6 +581,19 @@ public sealed class SubjectTimelineController : MonoBehaviour
             SpawnSubject(scheduledSpawn.Route, scheduledSpawn.IsHorizontallyMirrored);
             nextScheduledSpawnIndex++;
         }
+
+        if (scheduledSpawns.Count > 0 && nextScheduledSpawnIndex >= scheduledSpawns.Count)
+        {
+            StartNextRandomSpawnBatch();
+        }
+    }
+
+    private void StartNextRandomSpawnBatch()
+    {
+        elapsedTimeSeconds = 0f;
+        nextScheduledSpawnIndex = 0;
+        scheduledSpawns.Clear();
+        BuildSpawnSchedule(includeFixedSpawns: false);
     }
 
     private void SpawnSubject(SubjectSpawnRoute spawnRoute, bool isHorizontallyMirrored)
