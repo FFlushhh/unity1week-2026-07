@@ -305,6 +305,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
 
     private readonly List<GameObject> spawnedSubjects = new();
     private readonly List<ScheduledSubjectSpawn> scheduledSpawns = new();
+    private readonly HashSet<int> assignedSubjectSortingOrders = new();
     private System.Random spawnRandom;
     private bool hasStoppedForGameOver;
     private bool hasEnteredPlaying;
@@ -423,6 +424,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
         nextScheduledSpawnIndex = 0;
         hasStoppedForGameOver = false;
         scheduledSpawns.Clear();
+        assignedSubjectSortingOrders.Clear();
         if (destroySpawnedSubjects)
         {
             DestroySpawnedSubjects();
@@ -628,6 +630,8 @@ public sealed class SubjectTimelineController : MonoBehaviour
             return;
         }
 
+        AssignUniqueSortingOrder(subject);
+
         var subjectMover = subject.GetComponent<SubjectMover>();
         if (subjectMover == null)
         {
@@ -647,6 +651,25 @@ public sealed class SubjectTimelineController : MonoBehaviour
         );
         ApplyHorizontalMirror(subject, isHorizontallyMirrored);
         spawnedSubjects.Add(subject);
+    }
+
+    private void AssignUniqueSortingOrder(GameObject subject)
+    {
+        if (
+            !subject.TryGetComponent<StageSubject>(out var stageSubject)
+            || stageSubject.SubjectRenderer == null
+        )
+        {
+            return;
+        }
+
+        var sortingOrder = stageSubject.SubjectRenderer.sortingOrder;
+        while (!assignedSubjectSortingOrders.Add(sortingOrder))
+        {
+            sortingOrder++;
+        }
+
+        stageSubject.SubjectRenderer.sortingOrder = sortingOrder;
     }
 
     private bool TryPositionPathAnchorAtSpawnPosition(

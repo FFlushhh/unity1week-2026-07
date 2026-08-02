@@ -154,6 +154,41 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator PlayingAssignsUniqueSortingOrdersToGeneratedSubjects()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateFacingDogPrefab();
+        dogPrefab.GetComponent<StageSubject>().SubjectRenderer.sortingOrder = 10;
+        var timeline = CreateRandomTimeline(
+            stageController,
+            spawnRoot,
+            dogPrefab,
+            minimumSpawnCount: 2,
+            maximumSpawnCount: 2,
+            earliestSpawnTimeSeconds: 0f,
+            latestSpawnTimeSeconds: 0f
+        );
+        timeline.enabled = false;
+
+        InvokePrivateMethod(timeline, "BuildSpawnSchedule", true);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(2));
+        var firstOrder = spawnRoot
+            .GetChild(0)
+            .GetComponent<StageSubject>()
+            .SubjectRenderer.sortingOrder;
+        var secondOrder = spawnRoot
+            .GetChild(1)
+            .GetComponent<StageSubject>()
+            .SubjectRenderer.sortingOrder;
+        Assert.That(firstOrder, Is.EqualTo(10));
+        Assert.That(secondOrder, Is.EqualTo(11));
+        yield return null;
+    }
+
+    [UnityTest]
     public IEnumerator StartMessageSpawnsUniqueInitialSubjectsInsideTheConfiguredHorizontalRange()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
