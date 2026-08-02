@@ -13,7 +13,7 @@ public class TitleManager : MonoBehaviour
     private string _transitionTriggerName = "Change"; // AnimatorのTrigger名
 
     [SerializeField]
-    private float _waitDuration = 0.6f; // アニメーションを待つ時間（秒）
+    private float _fadeDuration = 0.6f; // アニメーションを待つ時間（秒）
 
     [Header("遷移先")]
     [SerializeField]
@@ -24,8 +24,8 @@ public class TitleManager : MonoBehaviour
     public bool IsFading => _isFading; //[cite: 1]
     public float FadeDuration
     {
-        get => _waitDuration;
-        set => _waitDuration = value;
+        get => _fadeDuration;
+        set => _fadeDuration = value;
     }
     public string NextSceneName
     {
@@ -97,9 +97,9 @@ public class TitleManager : MonoBehaviour
         }
 
         // 2. 指定時間（0.6秒）だけアニメーション再生を待つ
-        if (_waitDuration > 0f)
+        if (_fadeDuration > 0f)
         {
-            yield return new WaitForSeconds(_waitDuration);
+            yield return new WaitForSeconds(_fadeDuration);
         }
 
         // 3. シーン切り替えを実行

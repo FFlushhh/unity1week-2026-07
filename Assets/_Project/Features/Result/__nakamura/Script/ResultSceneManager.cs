@@ -183,7 +183,7 @@ namespace ResultScene
         private string _transitionTriggerName = "Change";
 
         [SerializeField]
-        private float _transitionWaitDuration = 0.6f;
+        private float _fadeDuration = 0.6f;
 
         private bool _isTransitioning = false; // 重複遷移防止フラグ
 
@@ -940,9 +940,9 @@ namespace ResultScene
             }
 
             // 2. 0.6秒間待機
-            if (_transitionWaitDuration > 0f)
+            if (_fadeDuration > 0f)
             {
-                yield return new WaitForSeconds(_transitionWaitDuration);
+                yield return new WaitForSeconds(_fadeDuration);
             }
 
             // 3. シーン遷移実行

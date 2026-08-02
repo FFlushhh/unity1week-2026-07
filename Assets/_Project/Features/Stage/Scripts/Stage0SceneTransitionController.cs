@@ -39,6 +39,19 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
     [SerializeField]
     private string transitionTriggerName = "Start";
 
+    // ★ 0.6秒の待機時間を変数化（デフォルトは 0.6 秒）
+    [SerializeField]
+    private float transitionWaitDuration = 0.6f;
+
+    /// <summary>
+    /// テスト時などに待機時間を変更・スキップするためのプロパティ
+    /// </summary>
+    public float TransitionWaitDuration
+    {
+        get => transitionWaitDuration;
+        set => transitionWaitDuration = Mathf.Max(0f, value);
+    }
+
     private void Awake()
     {
         lifetimeCancellation = CancellationTokenSource.CreateLinkedTokenSource(
@@ -122,8 +135,14 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
                 transitionAnimator.SetTrigger(transitionTriggerName);
             }
 
-            // ★ 0.6秒間待機（アニメーション再生用）
-            await UniTask.Delay(TimeSpan.FromSeconds(0.6f), cancellationToken: cancellationToken);
+            // ★ 固定値(0.6f) から transitionWaitDuration に変更
+            if (transitionWaitDuration > 0f)
+            {
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(transitionWaitDuration),
+                    cancellationToken: cancellationToken
+                );
+            }
 
             if (stagePhotoCaptureController != null)
             {
