@@ -29,7 +29,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     private StagePhotoCapturePresentation capturePresentation;
 
     [Tooltip(
-        "リザルト画面での基礎スコア名などに使われる、撮影した画像の名前。未設定なら自動処理されます。"
+        "リザルト画面での基礎スコア名などに使われる、撮影した画像の名前。未設定ならステージ名で処理"
     )]
     [SerializeField]
     private string capturedImageName = "";
