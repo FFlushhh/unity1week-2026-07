@@ -230,7 +230,10 @@ namespace ResultScene.Tests
             {
                 PlayerName = "TestPlayer",
                 LocationName = "TestLocation",
-                Bonuses = new System.Collections.Generic.List<BonusInputData>(),
+                Bonuses = new System.Collections.Generic.List<BonusInputData>
+                {
+                    new BonusInputData { BonusName = "NegativePenalty", Count = 1 },
+                },
             };
             ResultDataTransporter.CurrentData = data;
 
@@ -239,6 +242,23 @@ namespace ResultScene.Tests
 
             var manager = Object.FindAnyObjectByType<ResultSceneManager>();
             Assert.IsNotNull(manager);
+
+            // 合計スコアが負値になる状況をエミュレートするため、負のボーナスマスタを動的に注入
+            var bonusMaster =
+                GetPrivateField<System.Collections.Generic.List<ResultScene.BonusScoreMaster>>(
+                    manager,
+                    "_bonusMaster"
+                );
+            if (bonusMaster != null)
+            {
+                bonusMaster.Add(
+                    new ResultScene.BonusScoreMaster
+                    {
+                        BonusName = "NegativePenalty",
+                        ScorePerItem = -5000,
+                    }
+                );
+            }
 
             var endSequenceMethod = typeof(ResultSceneManager).GetMethod(
                 "EndSequenceEarly",
