@@ -19,27 +19,19 @@ public class SceneSoundManager : MonoBehaviour
         GameObject soundObj = GameObject.Find(_soundManagerObjectName);
         if (soundObj != null)
         {
-            // SoundManager 側の PlayBGM または SendMessage でループフラグを渡す
             if (_isLoop)
             {
+                // ループありで再生
                 soundObj.SendMessage("PlayBGM", _bgmIndex, SendMessageOptions.DontRequireReceiver);
             }
             else
             {
-                // ループなしの場合は、Direct/Instance呼び出し または 専用メソッド
-                SoundManager soundMgr = soundObj.GetComponent<SoundManager>();
-                if (soundMgr != null)
-                {
-                    soundMgr.PlayBGMExtended(_bgmIndex, false);
-                }
-                else
-                {
-                    soundObj.SendMessage(
-                        "PlayBGM",
-                        _bgmIndex,
-                        SendMessageOptions.DontRequireReceiver
-                    );
-                }
+                // ループなし（単発）で再生
+                soundObj.SendMessage(
+                    "PlayBGMOnce",
+                    _bgmIndex,
+                    SendMessageOptions.DontRequireReceiver
+                );
             }
         }
         else

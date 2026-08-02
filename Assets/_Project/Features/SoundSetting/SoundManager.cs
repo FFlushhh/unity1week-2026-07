@@ -152,4 +152,26 @@ public class SoundManager : MonoBehaviour
         _masterSeVolume = Mathf.Clamp01(volume);
     }
     #endregion
+
+    public void PlayBGMOnce(int index)
+    {
+        if (_audioDataList == null || index < 0 || index >= _audioDataList.bgmList.Count)
+        {
+            Debug.LogWarning($"[SoundManager] BGM番号 {index} は無効です。");
+            return;
+        }
+
+        AudioItem item = _audioDataList.bgmList[index];
+        if (item.clip != null)
+        {
+            _currentBgmIndex = index;
+            _bgmAudioSource.clip = item.clip;
+            _bgmAudioSource.volume = _masterBgmVolume * item.volume;
+
+            // ★ループをオフにして再生する
+            _bgmAudioSource.loop = false;
+
+            _bgmAudioSource.Play();
+        }
+    }
 }
