@@ -210,6 +210,51 @@ public sealed class SubjectTimelineController : MonoBehaviour
             route = randomRoutes[routeIndex];
             return true;
         }
+
+        public bool TryGetInitialRoute(System.Random random, out SubjectSpawnRoute route)
+        {
+            route = null;
+            if (!IsRandom)
+            {
+                route = CreateFixedRoute();
+                return route.SubjectPrefab != null;
+            }
+
+            if (random == null || randomRoutes == null || randomRoutes.Length == 0)
+            {
+                return false;
+            }
+
+            var totalWeight = 0f;
+            foreach (var randomRoute in randomRoutes)
+            {
+                if (randomRoute == null)
+                {
+                    return false;
+                }
+
+                totalWeight += Mathf.Max(0f, randomRoute.SelectionWeight);
+            }
+
+            if (totalWeight <= 0f)
+            {
+                return false;
+            }
+
+            var selectedWeight = (float)(random.NextDouble() * totalWeight);
+            foreach (var randomRoute in randomRoutes)
+            {
+                selectedWeight -= Mathf.Max(0f, randomRoute.SelectionWeight);
+                if (selectedWeight <= 0f)
+                {
+                    route = randomRoute;
+                    return true;
+                }
+            }
+
+            route = randomRoutes[^1];
+            return true;
+        }
     }
 
     private readonly struct ScheduledSubjectSpawn
@@ -248,10 +293,21 @@ public sealed class SubjectTimelineController : MonoBehaviour
     [SerializeField, Range(0f, 1f)]
     private float oppositeSideProbability = 0.5f;
 
+    [Header("Initial Subjects")]
+    [SerializeField, Min(0)]
+    private int initialSpawnMinimumCount = 2;
+
+    [SerializeField, Min(0)]
+    private int initialSpawnMaximumCount = 3;
+
+    [SerializeField]
+    private Vector2 initialSpawnXRange = new(-5f, 5f);
+
     private readonly List<GameObject> spawnedSubjects = new();
     private readonly List<ScheduledSubjectSpawn> scheduledSpawns = new();
     private System.Random spawnRandom;
     private bool hasStoppedForTerminalState;
+    private bool hasEnteredPlaying;
     private float elapsedTimeSeconds;
     private int nextScheduledSpawnIndex;
 
@@ -273,9 +329,14 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
 
         stageController.StateChanged += HandleStageStateChanged;
-        if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
+        if (stageController.CurrentState == Stage0Controller.Stage0State.StartMessage)
+        {
+            SpawnInitialSubjects();
+        }
+        else if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
         {
             BuildSpawnSchedule();
+            hasEnteredPlaying = true;
         }
 
         RunTimelineAsync(destroyCancellationToken).Forget();
@@ -303,8 +364,9 @@ public sealed class SubjectTimelineController : MonoBehaviour
                     && previousState != Stage0Controller.Stage0State.Playing
                 )
                 {
-                    ResetTimeline();
+                    ResetTimeline(hasEnteredPlaying);
                     BuildSpawnSchedule();
+                    hasEnteredPlaying = true;
                 }
 
                 if (IsTerminalState(currentState) && !hasStoppedForTerminalState)
@@ -352,13 +414,76 @@ public sealed class SubjectTimelineController : MonoBehaviour
             || state == Stage0Controller.Stage0State.Completed;
     }
 
-    private void ResetTimeline()
+    private void ResetTimeline(bool destroySpawnedSubjects = true)
     {
         elapsedTimeSeconds = 0f;
         nextScheduledSpawnIndex = 0;
         hasStoppedForTerminalState = false;
         scheduledSpawns.Clear();
-        DestroySpawnedSubjects();
+        if (destroySpawnedSubjects)
+        {
+            DestroySpawnedSubjects();
+        }
+    }
+
+    private void SpawnInitialSubjects()
+    {
+        if (spawnSettings == null || initialSpawnMaximumCount <= 0)
+        {
+            return;
+        }
+
+        var candidateRoutes = new List<SubjectSpawnRoute>();
+        var candidateSubjectIds = new HashSet<SubjectId>();
+        foreach (var spawnSetting in spawnSettings)
+        {
+            if (
+                spawnSetting == null
+                || !spawnSetting.TryGetInitialRoute(spawnRandom, out var route)
+                || route.SubjectPrefab == null
+                || !route.SubjectPrefab.TryGetComponent<StageSubject>(out var stageSubject)
+                || !candidateSubjectIds.Add(stageSubject.Id)
+            )
+            {
+                continue;
+            }
+
+            candidateRoutes.Add(route);
+        }
+
+        var minimumCount = Mathf.Clamp(initialSpawnMinimumCount, 0, candidateRoutes.Count);
+        var maximumCount = Mathf.Clamp(
+            initialSpawnMaximumCount,
+            minimumCount,
+            candidateRoutes.Count
+        );
+        var spawnCount = spawnRandom.Next(minimumCount, maximumCount + 1);
+        var minimumX = Mathf.Min(initialSpawnXRange.x, initialSpawnXRange.y);
+        var maximumX = Mathf.Max(initialSpawnXRange.x, initialSpawnXRange.y);
+
+        for (var index = 0; index < spawnCount; index++)
+        {
+            var selectedRouteIndex = spawnRandom.Next(index, candidateRoutes.Count);
+            (candidateRoutes[index], candidateRoutes[selectedRouteIndex]) = (
+                candidateRoutes[selectedRouteIndex],
+                candidateRoutes[index]
+            );
+
+            var route = candidateRoutes[index];
+            var spawnPosition = route.SpawnPosition;
+            spawnPosition.x = Mathf.Lerp(minimumX, maximumX, (float)spawnRandom.NextDouble());
+            var initialRoute = new SubjectSpawnRoute(
+                route.SubjectPrefab,
+                spawnPosition,
+                route.MoveDirection,
+                route.MoveSpeed,
+                route.Scale,
+                route.UsePathAnchorForSpawnPosition,
+                route.VerticalSwayAmplitude,
+                route.VerticalSwayFrequencyHz
+            );
+            SpawnSubject(initialRoute, ShouldSpawnFromOppositeSide());
+        }
     }
 
     private void BuildSpawnSchedule()

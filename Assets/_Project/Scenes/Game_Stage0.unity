@@ -1959,6 +1959,9 @@ MonoBehaviour:
   stageController: {fileID: 206002}
   subjectSpawnRoot: {fileID: 202001}
   oppositeSideProbability: 0.5
+  initialSpawnMinimumCount: 2
+  initialSpawnMaximumCount: 3
+  initialSpawnXRange: {x: -5, y: 5}
   spawnSettings:
   - spawnMode: 0
     subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
@@ -1971,12 +1974,12 @@ MonoBehaviour:
     verticalSwayAmplitude: 0
     verticalSwayFrequencyHz: 0
   - spawnMode: 1
-    appearanceProbability: 0.5
+    appearanceProbability: 1
     minimumSpawnCount: 1
-    maximumSpawnCount: 1
-    earliestSpawnTimeSeconds: 0.8
+    maximumSpawnCount: 2
+    earliestSpawnTimeSeconds: 0.5
     latestSpawnTimeSeconds: 3
-    minimumSpawnIntervalSeconds: 0
+    minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
       spawnPosition: {x: -9.5, y: 2}
@@ -1988,12 +1991,12 @@ MonoBehaviour:
       verticalSwayFrequencyHz: 0
       selectionWeight: 1
   - spawnMode: 1
-    appearanceProbability: 0.5
+    appearanceProbability: 1
     minimumSpawnCount: 1
-    maximumSpawnCount: 1
-    earliestSpawnTimeSeconds: 1.5
-    latestSpawnTimeSeconds: 4.5
-    minimumSpawnIntervalSeconds: 0
+    maximumSpawnCount: 2
+    earliestSpawnTimeSeconds: 0.7
+    latestSpawnTimeSeconds: 3.8
+    minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
       spawnPosition: {x: 9.5, y: -1}
@@ -2006,11 +2009,11 @@ MonoBehaviour:
       selectionWeight: 1
   - spawnMode: 1
     appearanceProbability: 1
-    minimumSpawnCount: 1
+    minimumSpawnCount: 2
     maximumSpawnCount: 3
-    earliestSpawnTimeSeconds: 1
-    latestSpawnTimeSeconds: 5.5
-    minimumSpawnIntervalSeconds: 0.5
+    earliestSpawnTimeSeconds: 0.4
+    latestSpawnTimeSeconds: 4.8
+    minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
       spawnPosition: {x: -9.5, y: -2.5}
@@ -2031,12 +2034,12 @@ MonoBehaviour:
       verticalSwayFrequencyHz: 1.2
       selectionWeight: 1
   - spawnMode: 1
-    appearanceProbability: 0.5
+    appearanceProbability: 1
     minimumSpawnCount: 1
-    maximumSpawnCount: 1
-    earliestSpawnTimeSeconds: 3
-    latestSpawnTimeSeconds: 5.8
-    minimumSpawnIntervalSeconds: 0
+    maximumSpawnCount: 2
+    earliestSpawnTimeSeconds: 0.8
+    latestSpawnTimeSeconds: 4.5
+    minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
       spawnPosition: {x: 9.5, y: 2}
@@ -2048,12 +2051,12 @@ MonoBehaviour:
       verticalSwayFrequencyHz: 0
       selectionWeight: 1
   - spawnMode: 1
-    appearanceProbability: 0.5
-    minimumSpawnCount: 1
-    maximumSpawnCount: 1
-    earliestSpawnTimeSeconds: 4
-    latestSpawnTimeSeconds: 6.5
-    minimumSpawnIntervalSeconds: 0
+    appearanceProbability: 1
+    minimumSpawnCount: 2
+    maximumSpawnCount: 2
+    earliestSpawnTimeSeconds: 1.2
+    latestSpawnTimeSeconds: 5
+    minimumSpawnIntervalSeconds: 0.25
     randomRoutes:
     - subjectPrefab: {fileID: 440001, guid: be4bf6ac0a774ff2a099eeb4fbcf275c, type: 3}
       spawnPosition: {x: -9.5, y: 1}

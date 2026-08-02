@@ -154,6 +154,65 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator StartMessageSpawnsUniqueInitialSubjectsInsideTheConfiguredHorizontalRange()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateSubjectPrefab("Dog", SubjectId.Dog);
+        var dirtyClothesPersonPrefab = CreateSubjectPrefab(
+            "DirtyClothesPerson",
+            SubjectId.DirtyClothesPerson
+        );
+        var birdPrefab = CreateSubjectPrefab("Bird", SubjectId.Bird);
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 10f);
+        SetPrivateField(
+            timeline,
+            "spawnSettings",
+            CreateFixedSpawnSettings(dogPrefab, dirtyClothesPersonPrefab, birdPrefab)
+        );
+        SetPrivateField(timeline, "initialSpawnMinimumCount", 2);
+        SetPrivateField(timeline, "initialSpawnMaximumCount", 2);
+        SetPrivateField(timeline, "initialSpawnXRange", new Vector2(-5f, 5f));
+        SetPrivateField(timeline, "spawnRandom", new System.Random(0));
+
+        yield return null;
+
+        Assert.That(spawnRoot.childCount, Is.EqualTo(2));
+        var initialSubjectIds = new HashSet<SubjectId>();
+        foreach (Transform initialSubject in spawnRoot)
+        {
+            Assert.That(initialSubject.localPosition.x, Is.InRange(-5f, 5f));
+            Assert.That(
+                initialSubjectIds.Add(initialSubject.GetComponent<StageSubject>().Id),
+                Is.True
+            );
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator FirstPlayingEntryKeepsTheInitialSubjectsMoving()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var dogPrefab = CreateSubjectPrefab("Dog", SubjectId.Dog);
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 10f);
+        SetPrivateField(timeline, "initialSpawnMinimumCount", 1);
+        SetPrivateField(timeline, "initialSpawnMaximumCount", 1);
+        SetPrivateField(timeline, "initialSpawnXRange", Vector2.zero);
+
+        yield return null;
+
+        var initialDog = spawnRoot.GetChild(0).gameObject;
+        var positionBeforePlaying = initialDog.transform.position.x;
+        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        yield return null;
+
+        Assert.That(initialDog, Is.Not.Null);
+        Assert.That(initialDog.transform.position.x, Is.GreaterThan(positionBeforePlaying));
+        Assert.That(spawnRoot.childCount, Is.EqualTo(1));
+    }
+
+    [UnityTest]
     public IEnumerator PlayingSpawnsEveryGeneratedRandomEntryOnlyOnce()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -224,9 +283,17 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(stageController, Is.Not.Null);
         Assert.That(spawnSettings, Has.Length.EqualTo(6));
         Assert.That(GetPrivateField<float>(timeline, "oppositeSideProbability"), Is.EqualTo(0.5f));
+        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMinimumCount"), Is.EqualTo(2));
+        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMaximumCount"), Is.EqualTo(3));
+        Assert.That(
+            GetPrivateField<Vector2>(timeline, "initialSpawnXRange"),
+            Is.EqualTo(new Vector2(-5f, 5f))
+        );
 
         var randomSubjectIds = new HashSet<SubjectId>();
         var foundFixedDog = false;
+        var minimumSubjectCount = 1;
+        var maximumSubjectCount = 1;
         foreach (var spawnSetting in spawnSettings)
         {
             if (!GetPublicProperty<bool>(spawnSetting, "IsRandom"))
@@ -248,6 +315,8 @@ public sealed class SubjectTimelineControllerPlayModeTests
                 continue;
             }
 
+            minimumSubjectCount += GetPrivateField<int>(spawnSetting, "minimumSpawnCount");
+            maximumSubjectCount += GetPrivateField<int>(spawnSetting, "maximumSpawnCount");
             var randomRoutes = GetPrivateField<Array>(spawnSetting, "randomRoutes");
             Assert.That(randomRoutes, Is.Not.Empty);
             var subjectId = GetRouteSubjectId(randomRoutes.GetValue(0));
@@ -256,7 +325,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
             switch (subjectId)
             {
                 case SubjectId.DirtyClothesPerson:
-                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 0.8f, 3f, 0f);
+                    AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.5f, 3f, 0.25f);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -271,7 +340,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     );
                     break;
                 case SubjectId.RabidDog:
-                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 1.5f, 4.5f, 0f);
+                    AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.7f, 3.8f, 0.25f);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -286,7 +355,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     );
                     break;
                 case SubjectId.PlasticBag:
-                    AssertRandomSetting(spawnSetting, 1f, 1, 3, 1f, 5.5f, 0.5f);
+                    AssertRandomSetting(spawnSetting, 1f, 2, 3, 0.4f, 4.8f, 0.25f);
                     Assert.That(randomRoutes, Has.Length.EqualTo(2));
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
@@ -314,7 +383,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     );
                     break;
                 case SubjectId.Bird:
-                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 3f, 5.8f, 0f);
+                    AssertRandomSetting(spawnSetting, 1f, 1, 2, 0.8f, 4.5f, 0.25f);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -329,7 +398,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
                     );
                     break;
                 case SubjectId.Sparrow:
-                    AssertRandomSetting(spawnSetting, 0.5f, 1, 1, 4f, 6.5f, 0f);
+                    AssertRandomSetting(spawnSetting, 1f, 2, 2, 1.2f, 5f, 0.25f);
                     AssertRouteMatchesSpecification(
                         randomRoutes.GetValue(0),
                         subjectId,
@@ -350,6 +419,8 @@ public sealed class SubjectTimelineControllerPlayModeTests
         }
 
         Assert.That(foundFixedDog, Is.True);
+        Assert.That(minimumSubjectCount, Is.EqualTo(8));
+        Assert.That(maximumSubjectCount, Is.EqualTo(12));
         Assert.That(
             randomSubjectIds,
             Is.EquivalentTo(
@@ -383,7 +454,8 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(firstSchedule, Is.Not.Empty);
         SetPrivateField(timeline, "elapsedTimeSeconds", 10f);
         InvokePrivateMethod(timeline, "SpawnDueSubjects");
-        Assert.That(spawnRoot.childCount, Is.EqualTo(firstSchedule.Count));
+        var initialSubjectCount = spawnRoot.childCount - firstSchedule.Count;
+        Assert.That(initialSubjectCount, Is.InRange(2, 3));
 
         SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
         yield return null;
@@ -786,6 +858,39 @@ public sealed class SubjectTimelineControllerPlayModeTests
         var stageSubject = dogPrefab.AddComponent<StageSubject>();
         SetPrivateField(stageSubject, "pathAnchor", pathAnchor);
         return dogPrefab;
+    }
+
+    private GameObject CreateSubjectPrefab(string name, SubjectId subjectId)
+    {
+        var subjectPrefab = CreateGameObject(name);
+        subjectPrefab.AddComponent<SubjectMover>();
+        var stageSubject = subjectPrefab.AddComponent<StageSubject>();
+        SetPrivateField(stageSubject, "subjectId", subjectId);
+        return subjectPrefab;
+    }
+
+    private Array CreateFixedSpawnSettings(params GameObject[] subjectPrefabs)
+    {
+        var settingType = typeof(SubjectTimelineController).GetNestedType(
+            "SubjectSpawnSetting",
+            PrivateInstance
+        );
+        Assert.That(settingType, Is.Not.Null);
+
+        var settings = Array.CreateInstance(settingType, subjectPrefabs.Length);
+        for (var index = 0; index < subjectPrefabs.Length; index++)
+        {
+            var setting = Activator.CreateInstance(settingType);
+            SetPrivateField(setting, "subjectPrefab", subjectPrefabs[index]);
+            SetPrivateField(setting, "spawnTimeSeconds", 10f);
+            SetPrivateField(setting, "spawnPosition", new Vector2(-10f, index));
+            SetPrivateField(setting, "moveDirection", SubjectMoveDirection.LeftToRight);
+            SetPrivateField(setting, "moveSpeed", 2f);
+            SetPrivateField(setting, "scale", 1f);
+            settings.SetValue(setting, index);
+        }
+
+        return settings;
     }
 
     private Array CreateSpawnSettings(
