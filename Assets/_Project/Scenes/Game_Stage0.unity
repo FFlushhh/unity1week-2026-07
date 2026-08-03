@@ -1988,7 +1988,7 @@ MonoBehaviour:
   stageController: {fileID: 206002}
   subjectSpawnRoot: {fileID: 202001}
   spawnSettings:
-  - spawnMode: 0
+  - spawnMode: 1
     subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
     spawnTimeSeconds: 0.3
     spawnPosition: {x: -9.5, y: -4.4}
@@ -2000,11 +2000,20 @@ MonoBehaviour:
     verticalSwayFrequencyHz: 0
     appearanceProbability: 1
     minimumSpawnCount: 1
-    maximumSpawnCount: 1
+    maximumSpawnCount: 4
     earliestSpawnTimeSeconds: 0
     latestSpawnTimeSeconds: 1
     minimumSpawnIntervalSeconds: 0
-    randomRoutes: []
+    randomRoutes:
+    - subjectPrefab: {fileID: 3394256611354570963, guid: a7b821466dde4b938aa6964bf18db54b, type: 3}
+      spawnPosition: {x: -9.5, y: -4.4}
+      moveDirection: 0
+      moveSpeed: 4
+      scale: 1
+      usePathAnchorForSpawnPosition: 1
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
   - spawnMode: 1
     subjectPrefab: {fileID: 0}
     spawnTimeSeconds: 1
@@ -2020,7 +2029,7 @@ MonoBehaviour:
     maximumSpawnCount: 2
     earliestSpawnTimeSeconds: 0.5
     latestSpawnTimeSeconds: 3
-    minimumSpawnIntervalSeconds: 0.25
+    minimumSpawnIntervalSeconds: 0.8
     randomRoutes:
     - subjectPrefab: {fileID: 400001, guid: 9293c3abe23b4bdc81747e41969e67f7, type: 3}
       spawnPosition: {x: -9.5, y: -4.4}
@@ -2046,7 +2055,7 @@ MonoBehaviour:
     maximumSpawnCount: 2
     earliestSpawnTimeSeconds: 0.7
     latestSpawnTimeSeconds: 3.8
-    minimumSpawnIntervalSeconds: 0.25
+    minimumSpawnIntervalSeconds: 0.8
     randomRoutes:
     - subjectPrefab: {fileID: 410001, guid: 1ba73c2c2fca4245b6ab2532c6740f10, type: 3}
       spawnPosition: {x: 9.5, y: -4.4}
@@ -2068,11 +2077,37 @@ MonoBehaviour:
     verticalSwayAmplitude: 0
     verticalSwayFrequencyHz: 0
     appearanceProbability: 1
+    minimumSpawnCount: 1
+    maximumSpawnCount: 2
+    earliestSpawnTimeSeconds: 0.8
+    latestSpawnTimeSeconds: 4.5
+    minimumSpawnIntervalSeconds: 0.2
+    randomRoutes:
+    - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
+      spawnPosition: {x: 9.5, y: 2}
+      moveDirection: 1
+      moveSpeed: 4.5
+      scale: 1
+      usePathAnchorForSpawnPosition: 0
+      verticalSwayAmplitude: 0
+      verticalSwayFrequencyHz: 0
+      selectionWeight: 1
+  - spawnMode: 1
+    subjectPrefab: {fileID: 0}
+    spawnTimeSeconds: 1
+    spawnPosition: {x: -10, y: 0}
+    moveDirection: 0
+    moveSpeed: 2
+    scale: 1
+    usePathAnchorForSpawnPosition: 0
+    verticalSwayAmplitude: 0
+    verticalSwayFrequencyHz: 0
+    appearanceProbability: 1
     minimumSpawnCount: 2
     maximumSpawnCount: 3
     earliestSpawnTimeSeconds: 0.4
     latestSpawnTimeSeconds: 4.8
-    minimumSpawnIntervalSeconds: 0.25
+    minimumSpawnIntervalSeconds: 0.6
     randomRoutes:
     - subjectPrefab: {fileID: 420001, guid: ff0637f70bad4115b4741bcbd0048e57, type: 3}
       spawnPosition: {x: -9.5, y: -2.5}
@@ -2103,34 +2138,8 @@ MonoBehaviour:
     verticalSwayAmplitude: 0
     verticalSwayFrequencyHz: 0
     appearanceProbability: 1
-    minimumSpawnCount: 1
-    maximumSpawnCount: 2
-    earliestSpawnTimeSeconds: 0.8
-    latestSpawnTimeSeconds: 4.5
-    minimumSpawnIntervalSeconds: 0.25
-    randomRoutes:
-    - subjectPrefab: {fileID: 430001, guid: 1c00cbb1bcc348399c2d11f21839255c, type: 3}
-      spawnPosition: {x: 9.5, y: 2}
-      moveDirection: 1
-      moveSpeed: 4.5
-      scale: 1
-      usePathAnchorForSpawnPosition: 0
-      verticalSwayAmplitude: 0
-      verticalSwayFrequencyHz: 0
-      selectionWeight: 1
-  - spawnMode: 1
-    subjectPrefab: {fileID: 0}
-    spawnTimeSeconds: 1
-    spawnPosition: {x: -10, y: 0}
-    moveDirection: 0
-    moveSpeed: 2
-    scale: 1
-    usePathAnchorForSpawnPosition: 0
-    verticalSwayAmplitude: 0
-    verticalSwayFrequencyHz: 0
-    appearanceProbability: 1
     minimumSpawnCount: 2
-    maximumSpawnCount: 2
+    maximumSpawnCount: 5
     earliestSpawnTimeSeconds: 1.2
     latestSpawnTimeSeconds: 5
     minimumSpawnIntervalSeconds: 0.25
@@ -2144,9 +2153,9 @@ MonoBehaviour:
       verticalSwayAmplitude: 0
       verticalSwayFrequencyHz: 0
       selectionWeight: 1
-  oppositeSideProbability: 0.5
-  initialSpawnMinimumCount: 2
-  initialSpawnMaximumCount: 3
+  oppositeSideProbability: 0.49910003
+  initialSpawnMinimumCount: 1
+  initialSpawnMaximumCount: 4
   initialSpawnXRange: {x: -5, y: 5}
 --- !u!1 &225000
 GameObject:
