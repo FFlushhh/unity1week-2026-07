@@ -10,163 +10,213 @@ namespace ResultScene
     [System.Serializable]
     public class BonusScoreMaster
     {
+        [Tooltip("ボーナス名")]
         public string BonusName;
+
+        [Tooltip("ボーナス1個あたりのスコア")]
         public int ScorePerItem;
     }
 
     [System.Serializable]
     public struct BaseScoreMapping
     {
+        [Tooltip("画像ファイル等の名前")]
         public string ImageName;
+
+        [Tooltip("設定する基礎スコア")]
         public int Score;
     }
 
     public class ResultSceneManager : MonoBehaviour
     {
         [Header("Debug & Test")]
-        [SerializeField]
+        [SerializeField, Tooltip("テスト用のデータを使用するかどうか")]
         private bool _useTestData = false;
 
-        [SerializeField]
+        [SerializeField, Tooltip("テスト実行時に使用されるリザルトデータ")]
         private ResultData _testData;
 
         [Header("Master Data")]
-        [SerializeField]
+        [SerializeField, Tooltip("ボーナス名とスコアのマスターデータ")]
         private List<BonusScoreMaster> _bonusMaster = new List<BonusScoreMaster>()
         {
             new BonusScoreMaster { BonusName = "犬", ScorePerItem = 500 },
             new BonusScoreMaster { BonusName = "汚れた服の人", ScorePerItem = -600 },
             new BonusScoreMaster { BonusName = "狂犬", ScorePerItem = -800 },
             new BonusScoreMaster { BonusName = "ビニール袋", ScorePerItem = -100 },
-            new BonusScoreMaster { BonusName = "鳥", ScorePerItem = 800 },
-            new BonusScoreMaster { BonusName = "スズメ", ScorePerItem = 5 },
+            new BonusScoreMaster { BonusName = "ハト", ScorePerItem = 800 },
+            new BonusScoreMaster { BonusName = "青鳥", ScorePerItem = 5 },
             new BonusScoreMaster { BonusName = "自撮り", ScorePerItem = 1000 },
         };
 
         [Header("Left Panel (SNS)")]
-        [SerializeField]
+        [SerializeField, Tooltip("リザルト画面に表示する撮影した写真")]
         private RawImage _capturedPhotoImage;
 
-        [SerializeField]
+        [SerializeField, Tooltip("プレイヤー名を表示するテキストUI")]
         private TextMeshProUGUI _userNameText;
 
-        [SerializeField]
+        [SerializeField, Tooltip("SNS投稿風のテキストUI")]
         private TextMeshProUGUI _postText;
 
-        [SerializeField]
+        [SerializeField, Tooltip("いいね数を表示するテキストUI")]
         private TextMeshProUGUI _likeCountText;
 
         [Header("Right Panel (Score)")]
-        [SerializeField]
+        [SerializeField, Tooltip("撮影場所を表示するテキストUI")]
         private TextMeshProUGUI _locationNameText;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコア明細を並べる親要素（コンテンツ）")]
         private Transform _scoreListContent;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコア明細1行分のプレハブ")]
         private GameObject _scoreItemPrefab;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコアリストのスクロールビュー")]
         private ScrollRect _scoreScrollRect;
 
         [Header("Base Score Settings")]
-        [SerializeField]
+        [SerializeField, Tooltip("基礎スコアを表示する親要素")]
         private Transform _baseScoreContainer;
 
-        [SerializeField]
+        [SerializeField, Tooltip("マスターデータにない場合のデフォルト基礎スコア")]
         private int _defaultBaseScore = 1000;
 
-        [SerializeField]
+        [SerializeField, Tooltip("画像名ごとの基礎スコアマスターデータ")]
         private List<BaseScoreMapping> _baseScoreMaster = new List<BaseScoreMapping>();
 
         [Header("Right Panel (Total & Rank)")]
-        [SerializeField]
+        [SerializeField, Tooltip("合計スコアを表示するエリア")]
         private RectTransform _totalScoreArea;
 
-        [SerializeField]
+        [SerializeField, Tooltip("合計スコアを表示するテキストUI")]
         private TextMeshProUGUI _totalScoreText;
 
-        [SerializeField]
+        [SerializeField, Tooltip("ランクスタンプの画像UI")]
         private Image _rankStampImage;
 
-        [SerializeField]
+        [SerializeField, Tooltip("ランク表示のラベルオブジェクト")]
         private GameObject _rankLabel;
 
         [Header("Rank Thresholds")]
-        [SerializeField]
+        [SerializeField, Tooltip("Sランクになるスコアのしきい値")]
         private int _rankSThreshold = 10000;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Aランクになるスコアのしきい値")]
         private int _rankAThreshold = 8000;
 
         [Header("Post Texts")]
-        [SerializeField, TextArea(2, 4)]
+        [SerializeField, TextArea(2, 4), Tooltip("Sランク時の投稿テキスト")]
         private string _postTextRankS = "奇跡の一枚が撮れた！最高！！";
 
-        [SerializeField, TextArea(2, 4)]
+        [SerializeField, TextArea(2, 4), Tooltip("Aランク時の投稿テキスト")]
         private string _postTextRankA = "かなり良い写真かも！";
 
-        [SerializeField, TextArea(2, 4)]
+        [SerializeField, TextArea(2, 4), Tooltip("Bランク時の投稿テキスト")]
         private string _postTextRankB = "まあまあかな。次はもっと頑張る";
 
         [Header("Rank Sprites")]
-        [SerializeField]
+        [SerializeField, Tooltip("Sランクのスタンプ用スプライト")]
         private Sprite _rankSSprite;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Aランクのスタンプ用スプライト")]
         private Sprite _rankASprite;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Bランクのスタンプ用スプライト")]
         private Sprite _rankBSprite;
 
         [Header("Rank Illustration")]
-        [SerializeField]
+        [SerializeField, Tooltip("ランクごとのイラストを表示する画像UI")]
         private Image _illustrationImage;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Sランクのイラストスプライト")]
         private Sprite _illustrationSSprite;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Aランクのイラストスプライト")]
         private Sprite _illustrationASprite;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Bランクのイラストスプライト")]
         private Sprite _illustrationBSprite;
 
         [Header("Audio (SoundManager Indices)")]
-        [SerializeField]
+        [SerializeField, Tooltip("SEの音量スケール（0〜1）")]
         private float _seVolumeScale = 0.3f;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコア項目追加時のSEインデックス")]
         private int _sePopIndex = 15;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコアエリアスライド時のSEインデックス")]
         private int _seSlideUpIndex = 16;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スタンプ押下時のSEインデックス")]
         private int _seStampIndex = 16;
 
-        [SerializeField]
+        [SerializeField, Tooltip("スコアカウントアップ中のSEインデックス")]
         private int _seScoreCountIndex = 16;
 
-        [SerializeField]
+        [SerializeField, Tooltip("画面揺れ演出の対象となるUI")]
         private RectTransform _shakeTarget;
 
-        [SerializeField]
+        [SerializeField, Tooltip("次に遷移するシーンの名前")]
         private string _nextSceneName = "MockGameScene";
 
         [Header("Buzz Reaction")]
-        [SerializeField]
+        [SerializeField, Tooltip("バズリアクション（いいね演出）を管理するコンポーネント")]
         private BuzzReaction.BuzzReactionManager _buzzReactionManager;
 
         [Header("Hold to Skip UI")]
-        [SerializeField]
+        [SerializeField, Tooltip("長押しスキップ案内のテキストUI")]
         private TMPro.TextMeshProUGUI _holdKeyText;
 
-        [SerializeField]
+        [SerializeField, Tooltip("長押しスキップ待機時のテキスト色")]
         private Color _holdTextStartColor = new Color(1f, 1f, 1f, 0.4f); // 待機時の色
 
-        [SerializeField]
+        [SerializeField, Tooltip("長押しスキップ完了時のテキスト色")]
         private Color _holdTextEndColor = new Color(1f, 0.9f, 0.2f, 1f); // ゲージMAX時の色（黄色っぽく発光するイメージ）
+
+        [Header("Animation & Timing Parameters")]
+        [SerializeField, Tooltip("基礎スコア表示前の待機時間")]
+        private float _waitBeforeBaseScore = 0.5f;
+
+        [SerializeField, Tooltip("ボーナススコア表示後の待機時間")]
+        private float _waitBeforeTotalScore = 0.5f;
+
+        [SerializeField, Tooltip("スコア追加ごとの待機時間")]
+        private float _waitBetweenScoreItems = 0.2f;
+
+        [SerializeField, Tooltip("合計スコア表示エリアのスライド時間")]
+        private float _totalScoreSlideDuration = 0.3f;
+
+        [SerializeField, Tooltip("合計スコアのカウントアップ時間")]
+        private float _scoreCountUpDuration = 0.8f;
+
+        [SerializeField, Tooltip("スタンプ表示前の待機時間")]
+        private float _waitBeforeStamp = 0.2f;
+
+        [SerializeField, Tooltip("スタンプのアニメーション時間")]
+        private float _stampAnimationDuration = 0.2f;
+
+        [SerializeField, Tooltip("スタンプアニメーションの開始スケール")]
+        private float _stampStartScale = 1.5f;
+
+        [SerializeField, Tooltip("画面揺れ（Shake）の持続時間")]
+        private float _shakeDuration = 0.2f;
+
+        [SerializeField, Tooltip("画面揺れ（Shake）の大きさ")]
+        private float _shakeMagnitude = 15f;
+
+        [SerializeField, Tooltip("リザルト演出終了後の待機時間")]
+        private float _waitAfterResult = 0.5f;
+
+        [Header("Hold to Skip UI Parameters")]
+        [SerializeField, Tooltip("長押し完了までの必要時間")]
+        private float _holdToSkipRequiredTime = 0.5f;
+
+        [SerializeField, Tooltip("長押し中の最大スケール")]
+        private float _holdToSkipMaxScale = 1.15f;
+
+        [SerializeField, Tooltip("キーボード操作時のスクロール速度")]
+        private float _keyboardScrollSpeed = 1.5f;
 
         private int _totalScore;
         private bool _isSequenceFinished = false;
@@ -177,13 +227,13 @@ namespace ResultScene
         private Texture2D _ownedCapturedImage;
 
         [Header("Transition Presentation")]
-        [SerializeField]
+        [SerializeField, Tooltip("シーン遷移演出用のアニメーター")]
         private Animator _transitionAnimator;
 
-        [SerializeField]
+        [SerializeField, Tooltip("シーン遷移アニメーションのトリガー名")]
         private string _transitionTriggerName = "Change";
 
-        [SerializeField]
+        [SerializeField, Tooltip("シーン遷移時のフェード時間")]
         private float _fadeDuration = 0.6f;
 
         private bool _isTransitioning = false; // 重複遷移防止フラグ
@@ -275,7 +325,9 @@ namespace ResultScene
                     if (_holdKeyText != null)
                     {
                         // 長押し時間に応じて色を変化させ、さらに少しだけ文字を拡大させる（直感的なチャージ感の演出）
-                        float progress = Mathf.Clamp01(_transitionKeyHoldTime / 1.0f);
+                        float progress = Mathf.Clamp01(
+                            _transitionKeyHoldTime / _holdToSkipRequiredTime
+                        );
                         _holdKeyText.color = Color.Lerp(
                             _holdTextStartColor,
                             _holdTextEndColor,
@@ -283,12 +335,12 @@ namespace ResultScene
                         );
                         _holdKeyText.transform.localScale = Vector3.Lerp(
                             Vector3.one,
-                            new Vector3(1.15f, 1.15f, 1.15f),
+                            Vector3.one * _holdToSkipMaxScale,
                             progress
                         );
                     }
 
-                    if (_transitionKeyHoldTime >= 0.5f && !_isTransitioning)
+                    if (_transitionKeyHoldTime >= _holdToSkipRequiredTime && !_isTransitioning)
                     {
                         _isTransitioning = true;
                         StartCoroutine(TransitionWithAnimationCoroutine());
@@ -336,7 +388,7 @@ namespace ResultScene
             if (scrollDir != 0f)
             {
                 // スクロール速度（適宜調整）
-                float scrollSpeed = 1.5f;
+                float scrollSpeed = _keyboardScrollSpeed;
                 _scoreScrollRect.verticalNormalizedPosition +=
                     scrollDir * Time.deltaTime * scrollSpeed;
                 _scoreScrollRect.verticalNormalizedPosition = Mathf.Clamp01(
@@ -479,7 +531,7 @@ namespace ResultScene
         {
             InitializeUI(data);
 
-            yield return WaitOrSkipCoroutine(0.5f);
+            yield return WaitOrSkipCoroutine(_waitBeforeBaseScore);
 
             // 1. 基礎スコアの追加
             string baseScoreName = GetBaseScoreName(data);
@@ -514,7 +566,7 @@ namespace ResultScene
                 }
             }
 
-            yield return WaitOrSkipCoroutine(0.5f);
+            yield return WaitOrSkipCoroutine(_waitBeforeTotalScore);
 
             if (!_isSkipped)
                 PlaySound(_seSlideUpIndex);
@@ -529,7 +581,7 @@ namespace ResultScene
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
 
-            yield return WaitOrSkipCoroutine(0.2f);
+            yield return WaitOrSkipCoroutine(_waitBeforeStamp);
 
             if (_rankLabel != null)
                 _rankLabel.SetActive(true);
@@ -541,9 +593,9 @@ namespace ResultScene
             yield return StampAnimationSequenceCoroutine();
 
             if (!_isSkipped)
-                StartCoroutine(UIShakeCoroutine(0.2f, 15f));
+                StartCoroutine(UIShakeCoroutine(_shakeDuration, _shakeMagnitude));
 
-            yield return WaitOrSkipCoroutine(0.5f);
+            yield return WaitOrSkipCoroutine(_waitAfterResult);
 
             FinishSequence();
         }
@@ -688,7 +740,7 @@ namespace ResultScene
                 _scoreScrollRect.verticalNormalizedPosition = 0f;
 
             if (!_isSkipped)
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(_waitBetweenScoreItems);
         }
 
         private IEnumerator SlideUpTotalScoreAreaSequenceCoroutine()
@@ -706,7 +758,7 @@ namespace ResultScene
                 yield break;
             }
 
-            float duration = 0.3f;
+            float duration = _totalScoreSlideDuration;
             float elapsed = 0f;
             Vector2 startPos = new Vector2(
                 _totalScoreArea.anchoredPosition.x,
@@ -733,7 +785,7 @@ namespace ResultScene
                 yield break;
             }
 
-            float duration = 0.8f;
+            float duration = _scoreCountUpDuration;
             float elapsed = 0f;
 
             PlaySound(_seScoreCountIndex);
@@ -775,9 +827,9 @@ namespace ResultScene
                 yield break;
             }
 
-            float duration = 0.2f;
+            float duration = _stampAnimationDuration;
             float elapsed = 0f;
-            Vector3 startScale = Vector3.one * 1.5f;
+            Vector3 startScale = Vector3.one * _stampStartScale;
             Vector3 endScale = Vector3.one;
 
             while (elapsed < duration && !_isSkipped)

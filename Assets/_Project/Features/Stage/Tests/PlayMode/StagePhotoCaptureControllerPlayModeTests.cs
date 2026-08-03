@@ -327,7 +327,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
             "Stage 0"
         );
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
-        Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("鳥"));
+        Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("ハト"));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
 
         var capturedPixels = captureController.CapturedPhoto.Image.GetPixels32();

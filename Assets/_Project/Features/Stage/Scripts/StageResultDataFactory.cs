@@ -34,8 +34,8 @@ public static class StageResultDataFactory
         AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.DirtyClothesPerson, "汚れた服の人");
         AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.RabidDog, "狂犬");
         AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.PlasticBag, "ビニール袋");
-        AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.Bird, "鳥");
-        AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.Sparrow, "スズメ");
+        AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.Bird, "ハト");
+        AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.Sparrow, "青鳥");
         AddBonusIfCaptured(bonuses, capturedPhoto, SubjectId.SelfieGirl, "自撮り");
         return bonuses;
     }

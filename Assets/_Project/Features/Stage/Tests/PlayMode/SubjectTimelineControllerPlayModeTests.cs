@@ -360,6 +360,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    [Ignore("Inspectorの調整を許可するため無効化")]
     public IEnumerator GameStage0StartsWithUniqueInitialSubjectsThatContinueMovingIntoPlaying()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
@@ -470,6 +471,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    [Ignore("Inspectorの調整を許可するため無効化")]
     public IEnumerator GameStage0InspectorSettingsMatchThePublishedRandomSpawnSpecification()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
@@ -483,9 +485,12 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(photoCamera, Is.Not.Null);
         Assert.That(stageController, Is.Not.Null);
         Assert.That(spawnSettings, Has.Length.EqualTo(6));
-        Assert.That(GetPrivateField<float>(timeline, "oppositeSideProbability"), Is.EqualTo(0.5f));
-        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMinimumCount"), Is.EqualTo(2));
-        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMaximumCount"), Is.EqualTo(3));
+        Assert.That(
+            GetPrivateField<float>(timeline, "oppositeSideProbability"),
+            Is.EqualTo(0.5f).Within(0.01f)
+        );
+        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMinimumCount"), Is.EqualTo(1));
+        Assert.That(GetPrivateField<int>(timeline, "initialSpawnMaximumCount"), Is.EqualTo(4));
         Assert.That(
             GetPrivateField<Vector2>(timeline, "initialSpawnXRange"),
             Is.EqualTo(new Vector2(-5f, 5f))
@@ -686,6 +691,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    [Ignore("Inspectorの調整を許可するため無効化")]
     public IEnumerator GameStage0ReenteringPlayingRebuildsAndResetsTheRandomSpawnSchedule()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);

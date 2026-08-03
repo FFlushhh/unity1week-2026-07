@@ -7,6 +7,11 @@ namespace ResultScene.BuzzReaction
     [RequireComponent(typeof(Image))]
     public class HeartParticle : MonoBehaviour
     {
+        [Header("Animation Settings")]
+        [SerializeField, Tooltip("寿命に対するフェード開始タイミング（0～1）")]
+        [Range(0f, 1f)]
+        private float _fadeStartRatio = 0.5f;
+
         private UIObjectPool _pool;
         private Image _image;
         private RectTransform _rectTransform;
@@ -48,9 +53,12 @@ namespace ResultScene.BuzzReaction
                 _rectTransform.anchoredPosition += velocity * Time.deltaTime;
 
                 // 後半の時間を使ってフェードアウトさせる
-                if (elapsed > duration * 0.5f)
+                float fadeStartTime = duration * _fadeStartRatio;
+                if (elapsed > fadeStartTime)
                 {
-                    float fadeRatio = (elapsed - duration * 0.5f) / (duration * 0.5f);
+                    float fadeDuration = duration * (1f - _fadeStartRatio);
+                    float fadeRatio =
+                        fadeDuration > 0f ? (elapsed - fadeStartTime) / fadeDuration : 1f;
                     Color c = _image.color;
                     c.a = Mathf.Lerp(1f, 0f, fadeRatio);
                     _image.color = c;

@@ -1511,9 +1511,9 @@ MonoBehaviour:
     ScorePerItem: -800
   - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
     ScorePerItem: -100
-  - BonusName: "\u9CE5"
-    ScorePerItem: 800
-  - BonusName: "\u30B9\u30BA\u30E1"
+  - BonusName: "\u30CF\u30C8"
+    ScorePerItem: 300
+  - BonusName: "\u9752\u9CE5"
     ScorePerItem: 5
   - BonusName: "\u81EA\u64AE\u308A"
     ScorePerItem: 1000
@@ -1540,8 +1540,8 @@ MonoBehaviour:
   _totalScoreText: {fileID: 1414148866}
   _rankStampImage: {fileID: 612857080}
   _rankLabel: {fileID: 2087848469}
-  _rankSThreshold: 2800
-  _rankAThreshold: 2000
+  _rankSThreshold: 3200
+  _rankAThreshold: 2850
   _postTextRankS: "\u5947\u8DE1\u306E\u4E00\u679A\u304C\u64AE\u308C\u305F\uFF01\u6700\u9AD8\uFF01\uFF01"
   _postTextRankA: "\u304B\u306A\u308A\u826F\u3044\u611F\u3058\u306E\u5199\u771F\uFF01"
   _postTextRankB: "\u57CE\u9580\u3067\u4E00\u679A\uFF01\u8FEB\u529B\u3042\u308B\uFF5E\uFF01"
@@ -1563,6 +1563,20 @@ MonoBehaviour:
   _holdKeyText: {fileID: 1461348441}
   _holdTextStartColor: {r: 1, g: 1, b: 1, a: 0.4}
   _holdTextEndColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  _waitBeforeBaseScore: 0.5
+  _waitBeforeTotalScore: 0.5
+  _waitBetweenScoreItems: 0.2
+  _totalScoreSlideDuration: 0.3
+  _scoreCountUpDuration: 0.8
+  _waitBeforeStamp: 0.2
+  _stampAnimationDuration: 0.2
+  _stampStartScale: 1.5
+  _shakeDuration: 0.2
+  _shakeMagnitude: 15
+  _waitAfterResult: 0.5
+  _holdToSkipRequiredTime: 0.5
+  _holdToSkipMaxScale: 1.15
+  _keyboardScrollSpeed: 1.5
   _transitionAnimator: {fileID: 1250904347}
   _transitionTriggerName: Change
   _fadeDuration: 0.6
@@ -2667,11 +2681,56 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db67b06efbecc6b4faa2b962dd41142d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Result::ResultScene.BuzzReaction.BuzzReactionManager
-  _postPanel: {fileID: 44390061}
-  _heartSpawnPoint: {fileID: 44390061}
-  _danmakuContainer: {fileID: 44390061}
+  _rankSHeartMultiplier: 2
+  _rankSDanmakuMultiplier: 2
+  _rankSAudioMultiplier: 2
+  _rankAHeartMultiplier: 0.7
+  _rankADanmakuMultiplier: 1
+  _rankAAudioMultiplier: 0.7
+  _rankBHeartMultiplier: 0.3
+  _rankBDanmakuMultiplier: 0.5
+  _rankBAudioMultiplier: 0.3
+  _heartSpawnInterval: 0.05
+  _heartMinVelocity: {x: -200, y: 400}
+  _heartMaxVelocity: {x: 400, y: 900}
+  _heartGravity: 1500
+  _heartDuration: 2
+  _danmakuSpawnInterval: 0.1
+  _danmakuStartXMargin: 200
+  _danmakuEndXMargin: 400
+  _danmakuMinY: -300
+  _danmakuMaxY: 300
+  _danmakuSpeed: 800
+  _danmakuTextsRankS:
+  - "\u795E\uFF01"
+  - "\u4F1D\u8AAC\u306E\u59CB\u307E\u308A"
+  - "\u3053\u308C\u306F\u4F38\u3073\u308B"
+  - "\u6700\u9AD8\u3058\u3083\u3093"
+  - "\u30D0\u30BA\u3063\u3066\u308B\uFF57"
+  - "\u3059\u3053"
+  - "\u52A9\u304B\u308B"
+  - "\u5929\u624D"
+  _danmakuTextsRankA:
+  - "\u3059\u3054\u3044\uFF01"
+  - "\u3044\u3044\u306D"
+  - "\u8349"
+  - "\u6700\u9AD8\u3058\u3083\u3093"
+  - "\u3059\u3053"
+  - "\u308F\u304B\u308B"
+  - "\u8349\u751F\u3048\u308B"
+  _danmakuTextsRankB:
+  - "\u3075\u3080"
+  - "\u306A\u308B\u307B\u3069"
+  - "\u8349"
+  - "\u3044\u3044\u306D"
+  - "\u307E\u3042\u307E\u3042"
+  - "\u304A\u3064"
   _seVolumeScale: 0.3
-  _countUpSeIndex: 8
+  _baseAudioInterval: 0.08
+  _countUpInitialPitch: 1
+  _countUpTargetPitch: 2
+  _countUpDuration: 2
+  _bounceDuration: 0.3
   _panelBounceCurve:
     serializedVersion: 2
     m_Curve:
@@ -2705,43 +2764,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _bounceDuration: 0.3
-  _countUpDuration: 2
+  _postPanel: {fileID: 44390061}
+  _heartSpawnPoint: {fileID: 44390061}
+  _danmakuContainer: {fileID: 44390061}
   _heartParticlePrefab: {fileID: 1271201893320645652, guid: 0e7b3e6c9b2b80943b84d4bfd6ef1838, type: 3}
   _danmakuCommentPrefab: {fileID: 4678314580746777283, guid: 5373b651bee3a6d4cb523a46ce0e3cef, type: 3}
-  _danmakuTextsRankS:
-  - "\u795E\uFF01"
-  - "\u4F1D\u8AAC\u306E\u59CB\u307E\u308A"
-  - "\u3053\u308C\u306F\u4F38\u3073\u308B"
-  - "\u6700\u9AD8\u3058\u3083\u3093"
-  - "\u30D0\u30BA\u3063\u3066\u308B\uFF57"
-  - "\u3059\u3053"
-  - "\u52A9\u304B\u308B"
-  - "\u5929\u624D"
-  _danmakuTextsRankA:
-  - "\u3059\u3054\u3044\uFF01"
-  - "\u3044\u3044\u306D"
-  - "\u8349"
-  - "\u6700\u9AD8\u3058\u3083\u3093"
-  - "\u3059\u3053"
-  - "\u308F\u304B\u308B"
-  - "\u8349\u751F\u3048\u308B"
-  _danmakuTextsRankB:
-  - "\u3075\u3080"
-  - "\u306A\u308B\u307B\u3069"
-  - "\u8349"
-  - "\u3044\u3044\u306D"
-  - "\u307E\u3042\u307E\u3042"
-  - "\u304A\u3064"
-  _heartDuration: 2
-  _heartGravity: 1500
-  _heartMinVelocity: {x: -200, y: 400}
-  _heartMaxVelocity: {x: 400, y: 900}
-  _heartSpawnInterval: 0.05
-  _danmakuSpeed: 800
-  _danmakuMinY: -300
-  _danmakuMaxY: 300
-  _danmakuSpawnInterval: 0.1
+  _countUpSeIndex: 8
 --- !u!4 &1875841041
 Transform:
   m_ObjectHideFlags: 0

@@ -5,47 +5,74 @@ namespace ResultScene.BuzzReaction
 {
     public class BuzzReactionManager : MonoBehaviour
     {
-        [Header("Target UI Elements")]
-        [SerializeField]
-        private RectTransform _postPanel;
+        [Header("--- 調整用パラメータ ---")]
+        [Header("Reaction Multipliers - Rank S")]
+        [SerializeField, Tooltip("Sランク時のハート発生量倍率")]
+        private float _rankSHeartMultiplier = 2.0f;
 
-        [SerializeField]
-        private RectTransform _heartSpawnPoint;
+        [SerializeField, Tooltip("Sランク時の弾幕発生量倍率")]
+        private float _rankSDanmakuMultiplier = 2.0f;
 
-        [SerializeField]
-        private RectTransform _danmakuContainer;
+        [SerializeField, Tooltip("Sランク時の音発生量倍率")]
+        private float _rankSAudioMultiplier = 2.0f;
 
-        [Header("Audio (SoundManager Index)")]
-        [SerializeField]
-        private float _seVolumeScale = 0.3f;
+        [Header("Reaction Multipliers - Rank A")]
+        [SerializeField, Tooltip("Aランク時のハート発生量倍率")]
+        private float _rankAHeartMultiplier = 1.0f;
 
-        [SerializeField]
-        private int _countUpSeIndex = 16;
+        [SerializeField, Tooltip("Aランク時の弾幕発生量倍率")]
+        private float _rankADanmakuMultiplier = 1.0f;
 
-        [Header("Animation Curves")]
-        [Tooltip("パネルのバウンド用カーブ。1.0で開始・終了するように設定します。")]
-        [SerializeField]
-        private AnimationCurve _panelBounceCurve = new AnimationCurve(
-            new Keyframe(0f, 1f),
-            new Keyframe(0.5f, 1.1f),
-            new Keyframe(1f, 1f)
-        );
+        [SerializeField, Tooltip("Aランク時の音発生量倍率")]
+        private float _rankAAudioMultiplier = 1.0f;
 
-        [Header("Timing Parameters")]
-        [SerializeField]
-        private float _bounceDuration = 0.3f;
+        [Header("Reaction Multipliers - Rank B")]
+        [SerializeField, Tooltip("Bランク時のハート発生量倍率")]
+        private float _rankBHeartMultiplier = 0.5f;
 
-        [SerializeField]
-        private float _countUpDuration = 2.0f;
+        [SerializeField, Tooltip("Bランク時の弾幕発生量倍率")]
+        private float _rankBDanmakuMultiplier = 0.5f;
 
-        [Header("Prefabs & Resources")]
-        [SerializeField]
-        private GameObject _heartParticlePrefab;
+        [SerializeField, Tooltip("Bランク時の音発生量倍率")]
+        private float _rankBAudioMultiplier = 0.5f;
 
-        [SerializeField]
-        private GameObject _danmakuCommentPrefab;
+        [Header("Heart Particle Settings")]
+        [SerializeField, Tooltip("ハートパーティクルの生成間隔")]
+        private float _heartSpawnInterval = 0.05f;
 
-        [SerializeField]
+        [SerializeField, Tooltip("ハートパーティクルの初期速度の最小値")]
+        private Vector2 _heartMinVelocity = new Vector2(-200f, 400f);
+
+        [SerializeField, Tooltip("ハートパーティクルの初期速度の最大値")]
+        private Vector2 _heartMaxVelocity = new Vector2(400f, 900f);
+
+        [SerializeField, Tooltip("ハートパーティクルにかかる重力")]
+        private float _heartGravity = 1500f;
+
+        [SerializeField, Tooltip("ハートパーティクルの生存時間")]
+        private float _heartDuration = 2f;
+
+        [Header("Danmaku Settings")]
+        [SerializeField, Tooltip("弾幕コメントの生成間隔")]
+        private float _danmakuSpawnInterval = 0.1f;
+
+        [SerializeField, Tooltip("弾幕コメント開始位置のマージン")]
+        private float _danmakuStartXMargin = 200f;
+
+        [SerializeField, Tooltip("弾幕コメント終了位置のマージン")]
+        private float _danmakuEndXMargin = 400f;
+
+        [SerializeField, Tooltip("弾幕コメントのY座標の最小値")]
+        private float _danmakuMinY = -300f;
+
+        [SerializeField, Tooltip("弾幕コメントのY座標の最大値")]
+        private float _danmakuMaxY = 300f;
+
+        [SerializeField, Tooltip("弾幕コメントの移動速度")]
+        private float _danmakuSpeed = 800f;
+
+        [Header("Danmaku Texts")]
+        [SerializeField, Tooltip("Sランク時に流れる弾幕コメントのリスト")]
         private string[] _danmakuTextsRankS =
         {
             "神！",
@@ -58,7 +85,7 @@ namespace ResultScene.BuzzReaction
             "天才",
         };
 
-        [SerializeField]
+        [SerializeField, Tooltip("Aランク時に流れる弾幕コメントのリスト")]
         private string[] _danmakuTextsRankA =
         {
             "すごい！",
@@ -70,7 +97,7 @@ namespace ResultScene.BuzzReaction
             "草生える",
         };
 
-        [SerializeField]
+        [SerializeField, Tooltip("Bランク時に流れる弾幕コメントのリスト")]
         private string[] _danmakuTextsRankB =
         {
             "ふむ",
@@ -81,34 +108,54 @@ namespace ResultScene.BuzzReaction
             "おつ",
         };
 
-        [Header("Heart Particle Settings")]
-        [SerializeField]
-        private float _heartDuration = 2f;
+        [Header("Audio Settings")]
+        [SerializeField, Range(0f, 1f), Tooltip("SEの音量スケール")]
+        private float _seVolumeScale = 0.3f;
 
-        [SerializeField]
-        private float _heartGravity = 1500f;
+        [SerializeField, Tooltip("基準となる効果音の再生間隔")]
+        private float _baseAudioInterval = 0.08f;
 
-        [SerializeField]
-        private Vector2 _heartMinVelocity = new Vector2(-200f, 400f);
+        [SerializeField, Tooltip("カウントアップ開始時のピッチ")]
+        private float _countUpInitialPitch = 1.0f;
 
-        [SerializeField]
-        private Vector2 _heartMaxVelocity = new Vector2(400f, 900f);
+        [SerializeField, Tooltip("カウントアップ終了時のピッチ")]
+        private float _countUpTargetPitch = 2.0f;
 
-        [SerializeField]
-        private float _heartSpawnInterval = 0.05f;
+        [Header("Animation & Timing")]
+        [SerializeField, Tooltip("いいね数のカウントアップにかける時間")]
+        private float _countUpDuration = 2.0f;
 
-        [Header("Danmaku Settings")]
-        [SerializeField]
-        private float _danmakuSpeed = 800f;
+        [SerializeField, Tooltip("パネルがバウンドする演出の時間")]
+        private float _bounceDuration = 0.3f;
 
+        [Tooltip("パネルのバウンド用カーブ。1.0で開始・終了するように設定します。")]
         [SerializeField]
-        private float _danmakuMinY = -300f;
+        private AnimationCurve _panelBounceCurve = new AnimationCurve(
+            new Keyframe(0f, 1f),
+            new Keyframe(0.5f, 1.1f),
+            new Keyframe(1f, 1f)
+        );
 
-        [SerializeField]
-        private float _danmakuMaxY = 300f;
+        [Header("--- 参照用データ（基本変更不要） ---")]
+        [Header("Target UI Elements")]
+        [SerializeField, Tooltip("バウンド演出を行う対象のパネルUI")]
+        private RectTransform _postPanel;
 
-        [SerializeField]
-        private float _danmakuSpawnInterval = 0.1f;
+        [SerializeField, Tooltip("ハートパーティクルの生成基準点")]
+        private RectTransform _heartSpawnPoint;
+
+        [SerializeField, Tooltip("弾幕コメントを配置するコンテナUI")]
+        private RectTransform _danmakuContainer;
+
+        [Header("Prefabs & Resources")]
+        [SerializeField, Tooltip("生成するハートパーティクルのプレハブ")]
+        private GameObject _heartParticlePrefab;
+
+        [SerializeField, Tooltip("生成する弾幕コメントのプレハブ")]
+        private GameObject _danmakuCommentPrefab;
+
+        [SerializeField, Tooltip("カウントアップ時のSEインデックス")]
+        private int _countUpSeIndex = 16;
 
         private UIObjectPool _heartPool;
         private UIObjectPool _danmakuPool;
@@ -155,28 +202,33 @@ namespace ResultScene.BuzzReaction
 
         private IEnumerator ReactionSequenceRoutine(Rank rank)
         {
-            float heartInterval = _heartSpawnInterval;
-            float danmakuInterval = _danmakuSpawnInterval;
-            float audioInterval = 0.08f; // 基準となる効果音の間隔
-
-            switch (rank)
+            float heartMultiplier = rank switch
             {
-                case Rank.S:
-                    heartInterval *= 0.5f; // Sランクは2倍の頻度（多く）
-                    danmakuInterval *= 0.5f;
-                    audioInterval *= 0.5f;
-                    break;
-                case Rank.A:
-                    heartInterval *= 1.0f; // Aランクを基準量とする
-                    danmakuInterval *= 1.0f;
-                    audioInterval *= 1.0f;
-                    break;
-                case Rank.B:
-                    heartInterval *= 2.0f; // Bランクは半分の頻度
-                    danmakuInterval *= 2.0f;
-                    audioInterval *= 2.0f;
-                    break;
-            }
+                Rank.S => _rankSHeartMultiplier,
+                Rank.A => _rankAHeartMultiplier,
+                Rank.B => _rankBHeartMultiplier,
+                _ => _rankBHeartMultiplier,
+            };
+
+            float danmakuMultiplier = rank switch
+            {
+                Rank.S => _rankSDanmakuMultiplier,
+                Rank.A => _rankADanmakuMultiplier,
+                Rank.B => _rankBDanmakuMultiplier,
+                _ => _rankBDanmakuMultiplier,
+            };
+
+            float audioMultiplier = rank switch
+            {
+                Rank.S => _rankSAudioMultiplier,
+                Rank.A => _rankAAudioMultiplier,
+                Rank.B => _rankBAudioMultiplier,
+                _ => _rankBAudioMultiplier,
+            };
+
+            float heartInterval = _heartSpawnInterval / heartMultiplier;
+            float danmakuInterval = _danmakuSpawnInterval / danmakuMultiplier;
+            float audioInterval = _baseAudioInterval / audioMultiplier;
 
             string[] currentDanmakuTexts = rank switch
             {
@@ -189,7 +241,7 @@ namespace ResultScene.BuzzReaction
             // いいね数はResultSceneManagerだけが更新し、ここでは効果音と装飾演出のみ再生する。
             StartCoroutine(CountUpAudioRoutine(audioInterval));
 
-            // 2. ハートと弾幕の生成を開始
+            // ハートと弾幕の生成を開始
             Coroutine heartSpawning = null;
             if (_heartPool != null)
                 heartSpawning = StartCoroutine(SpawnHeartsRoutine(heartInterval));
@@ -200,7 +252,7 @@ namespace ResultScene.BuzzReaction
                     SpawnDanmakuRoutine(danmakuInterval, currentDanmakuTexts)
                 );
 
-            // 3. カウント中は定期的にパネルをバウンドさせる
+            // カウント中は定期的にパネルをバウンドさせる
             float elapsed = 0f;
             while (elapsed < _countUpDuration)
             {
@@ -241,8 +293,8 @@ namespace ResultScene.BuzzReaction
         private IEnumerator CountUpAudioRoutine(float soundInterval)
         {
             float elapsed = 0f;
-            float initialPitch = 1.0f;
-            float targetPitch = 2.0f;
+            float initialPitch = _countUpInitialPitch;
+            float targetPitch = _countUpTargetPitch;
             float nextSoundTime = 0f;
 
             while (elapsed < _countUpDuration)
@@ -303,8 +355,8 @@ namespace ResultScene.BuzzReaction
             if (containerWidth <= 0)
                 containerWidth = 1920f;
 
-            float startX = containerWidth * 0.5f + 200f; // 右端のすぐ外側から開始
-            float endX = -containerWidth * 0.5f - 400f; // 左端の外側を終点とする
+            float startX = containerWidth * 0.5f + _danmakuStartXMargin; // 右端のすぐ外側から開始
+            float endX = -containerWidth * 0.5f - _danmakuEndXMargin; // 左端の外側を終点とする
 
             while (true)
             {

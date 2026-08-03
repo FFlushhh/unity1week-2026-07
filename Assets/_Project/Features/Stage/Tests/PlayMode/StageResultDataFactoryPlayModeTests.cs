@@ -46,7 +46,7 @@ public sealed class StageResultDataFactoryPlayModeTests
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(2));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("犬"));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(2));
-        Assert.That(resultData.Bonuses[1].BonusName, Is.EqualTo("鳥"));
+        Assert.That(resultData.Bonuses[1].BonusName, Is.EqualTo("ハト"));
         Assert.That(resultData.Bonuses[1].Count, Is.EqualTo(1));
     }
 
@@ -54,8 +54,8 @@ public sealed class StageResultDataFactoryPlayModeTests
     [TestCase(SubjectId.DirtyClothesPerson, "汚れた服の人")]
     [TestCase(SubjectId.RabidDog, "狂犬")]
     [TestCase(SubjectId.PlasticBag, "ビニール袋")]
-    [TestCase(SubjectId.Bird, "鳥")]
-    [TestCase(SubjectId.Sparrow, "スズメ")]
+    [TestCase(SubjectId.Bird, "ハト")]
+    [TestCase(SubjectId.Sparrow, "青鳥")]
     [TestCase(SubjectId.SelfieGirl, "自撮り")]
     public void UsesResultBonusNameForEverySubjectId(SubjectId subjectId, string expectedBonusName)
     {
@@ -89,8 +89,8 @@ public sealed class StageResultDataFactoryPlayModeTests
             "汚れた服の人",
             "狂犬",
             "ビニール袋",
-            "鳥",
-            "スズメ",
+            "ハト",
+            "青鳥",
             "自撮り",
         };
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(expectedNamesInOrder.Length));
