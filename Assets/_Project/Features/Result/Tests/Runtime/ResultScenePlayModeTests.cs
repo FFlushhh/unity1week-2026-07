@@ -86,7 +86,7 @@ namespace ResultScene.Tests
         {
             var resultData = CreateResultData(
                 new BonusInputData { BonusName = "犬", Count = 2 },
-                new BonusInputData { BonusName = "鳥", Count = 1 }
+                new BonusInputData { BonusName = "ハト", Count = 1 }
             );
 
             var manager = default(ResultSceneManager);
@@ -174,8 +174,8 @@ namespace ResultScene.Tests
                 ("汚れた服の人", -600),
                 ("狂犬", -800),
                 ("ビニール袋", -100),
-                ("鳥", 800),
-                ("スズメ", 5),
+                ("ハト", 800),
+                ("青鳥", 5),
                 ("自撮り", 1000),
             };
 

@@ -15,7 +15,7 @@ namespace ResultScene
             Bonuses = new List<BonusInputData>
             {
                 new BonusInputData { BonusName = "犬", Count = 1 },
-                new BonusInputData { BonusName = "鳥", Count = 3 },
+                new BonusInputData { BonusName = "ハト", Count = 3 },
             },
         };
 
