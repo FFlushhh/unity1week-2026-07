@@ -718,15 +718,65 @@ public sealed class SubjectTimelineController : MonoBehaviour
             : SubjectMoveDirection.LeftToRight;
     }
 
+    /// <summary>
+    /// 見た目をSpriteRenderer.flipXで反転するとき、判断ポイントとColliderも
+    /// 左右反転させ、見た目と撮影判定の左右差をなくす。
+    /// </summary>
     private static void ApplyHorizontalMirror(GameObject subject, bool isHorizontallyMirrored)
     {
-        if (
-            isHorizontallyMirrored
-            && subject.TryGetComponent<StageSubject>(out var stageSubject)
-            && stageSubject.SubjectRenderer != null
-        )
+        if (!isHorizontallyMirrored || !subject.TryGetComponent<StageSubject>(out var stageSubject))
+        {
+            return;
+        }
+
+        if (stageSubject.SubjectRenderer != null)
         {
             stageSubject.SubjectRenderer.flipX = !stageSubject.SubjectRenderer.flipX;
+        }
+
+        MirrorJudgementPointHorizontally(stageSubject);
+        MirrorColliderHorizontally(subject);
+    }
+
+    private static void MirrorJudgementPointHorizontally(StageSubject stageSubject)
+    {
+        if (stageSubject.JudgementPoint == null)
+        {
+            return;
+        }
+
+        var localPosition = stageSubject.JudgementPoint.localPosition;
+        localPosition.x = -localPosition.x;
+        stageSubject.JudgementPoint.localPosition = localPosition;
+    }
+
+    private static void MirrorColliderHorizontally(GameObject subject)
+    {
+        if (!subject.TryGetComponent<PolygonCollider2D>(out var polygonCollider))
+        {
+            Debug.LogWarning(
+                $"[SubjectTimelineController] {subject.name} has no PolygonCollider2D to mirror. "
+                    + "Its collider will not match the flipped sprite.",
+                subject
+            );
+            return;
+        }
+
+        var offset = polygonCollider.offset;
+        offset.x = -offset.x;
+        polygonCollider.offset = offset;
+
+        for (var pathIndex = 0; pathIndex < polygonCollider.pathCount; pathIndex++)
+        {
+            var path = polygonCollider.GetPath(pathIndex);
+            for (var pointIndex = 0; pointIndex < path.Length; pointIndex++)
+            {
+                var point = path[pointIndex];
+                point.x = -point.x;
+                path[pointIndex] = point;
+            }
+
+            polygonCollider.SetPath(pathIndex, path);
         }
     }
 
