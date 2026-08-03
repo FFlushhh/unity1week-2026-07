@@ -23,6 +23,8 @@ MonoBehaviour:
     volume: 0.2
   - clip: {fileID: 8300000, guid: 8e9efc9497a2a8744916813bdffa3e7d, type: 3}
     volume: 0.2
+  - clip: {fileID: 8300000, guid: d2abd2b0606910f4abe9fe30303f3f45, type: 3}
+    volume: 0.2
   seList:
   - clip: {fileID: 8300000, guid: 6cfcb820bcb644645ae3f0f8b9e8eb46, type: 3}
     volume: 1
@@ -57,4 +59,6 @@ MonoBehaviour:
   - clip: {fileID: 8300000, guid: e5543356588af204c99225b295c1975b, type: 3}
     volume: 1
   - clip: {fileID: 8300000, guid: 8d731b87dcbc8cd4b8c4bc672a972987, type: 3}
+    volume: 1
+  - clip: {fileID: 8300000, guid: 574a5335c9d3470478ee605053bfaa58, type: 3}
     volume: 1
