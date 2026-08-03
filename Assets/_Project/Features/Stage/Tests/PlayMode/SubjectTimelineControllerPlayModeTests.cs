@@ -132,6 +132,96 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator PlayingMirrorsJudgementPointAndColliderWhenOppositeSideIsSelected()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var judgementPointLocalPosition = new Vector3(0.6f, 0.4f, 0f);
+        var colliderPoints = new[]
+        {
+            new Vector2(-1f, -1f),
+            new Vector2(1f, -1f),
+            new Vector2(0.5f, 1f),
+        };
+        var dogPrefab = CreateFacingDogPrefabWithColliderAndJudgementPoint(
+            judgementPointLocalPosition,
+            colliderPoints
+        );
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 5f);
+        SetPrivateField(timeline, "oppositeSideProbability", 1f);
+
+        yield return null;
+
+        SetPrivateField(timeline, "elapsedTimeSeconds", 5f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        var spawnedDog = spawnRoot.GetChild(0);
+        var stageSubject = spawnedDog.GetComponent<StageSubject>();
+        var polygonCollider = spawnedDog.GetComponent<PolygonCollider2D>();
+
+        Assert.That(stageSubject.SubjectRenderer.flipX, Is.True);
+        Assert.That(
+            stageSubject.JudgementPoint.localPosition.x,
+            Is.EqualTo(-judgementPointLocalPosition.x).Within(0.0001f)
+        );
+        Assert.That(
+            stageSubject.JudgementPoint.localPosition.y,
+            Is.EqualTo(judgementPointLocalPosition.y).Within(0.0001f)
+        );
+
+        var mirroredPath = polygonCollider.GetPath(0);
+        for (var index = 0; index < colliderPoints.Length; index++)
+        {
+            Assert.That(
+                mirroredPath[index].x,
+                Is.EqualTo(-colliderPoints[index].x).Within(0.0001f)
+            );
+            Assert.That(mirroredPath[index].y, Is.EqualTo(colliderPoints[index].y).Within(0.0001f));
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator PlayingDoesNotMirrorJudgementPointOrColliderWhenSameSideIsSelected()
+    {
+        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
+        var judgementPointLocalPosition = new Vector3(0.6f, 0.4f, 0f);
+        var colliderPoints = new[]
+        {
+            new Vector2(-1f, -1f),
+            new Vector2(1f, -1f),
+            new Vector2(0.5f, 1f),
+        };
+        var dogPrefab = CreateFacingDogPrefabWithColliderAndJudgementPoint(
+            judgementPointLocalPosition,
+            colliderPoints
+        );
+        var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 5f);
+        SetPrivateField(timeline, "oppositeSideProbability", 0f);
+
+        yield return null;
+
+        SetPrivateField(timeline, "elapsedTimeSeconds", 5f);
+        InvokePrivateMethod(timeline, "SpawnDueSubjects");
+
+        var spawnedDog = spawnRoot.GetChild(0);
+        var stageSubject = spawnedDog.GetComponent<StageSubject>();
+        var polygonCollider = spawnedDog.GetComponent<PolygonCollider2D>();
+
+        Assert.That(stageSubject.SubjectRenderer.flipX, Is.False);
+        Assert.That(
+            stageSubject.JudgementPoint.localPosition,
+            Is.EqualTo(judgementPointLocalPosition)
+        );
+
+        var unmirroredPath = polygonCollider.GetPath(0);
+        for (var index = 0; index < colliderPoints.Length; index++)
+        {
+            Assert.That(unmirroredPath[index], Is.EqualTo(colliderPoints[index]));
+        }
+    }
+
+    [UnityTest]
     public IEnumerator RandomSpawnKeepsItsOppositeSideSelectionInTheGeneratedSchedule()
     {
         var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
@@ -1041,6 +1131,24 @@ public sealed class SubjectTimelineControllerPlayModeTests
         var spriteRenderer = dogPrefab.AddComponent<SpriteRenderer>();
         var stageSubject = dogPrefab.AddComponent<StageSubject>();
         SetPrivateField(stageSubject, "subjectRenderer", spriteRenderer);
+        return dogPrefab;
+    }
+
+    private GameObject CreateFacingDogPrefabWithColliderAndJudgementPoint(
+        Vector3 judgementPointLocalPosition,
+        Vector2[] colliderPoints
+    )
+    {
+        var dogPrefab = CreateFacingDogPrefab();
+
+        var judgementPoint = CreateGameObject("JudgementPoint").transform;
+        judgementPoint.SetParent(dogPrefab.transform);
+        judgementPoint.localPosition = judgementPointLocalPosition;
+        SetPrivateField(dogPrefab.GetComponent<StageSubject>(), "judgementPoint", judgementPoint);
+
+        var polygonCollider = dogPrefab.AddComponent<PolygonCollider2D>();
+        polygonCollider.SetPath(0, colliderPoints);
+
         return dogPrefab;
     }
 
