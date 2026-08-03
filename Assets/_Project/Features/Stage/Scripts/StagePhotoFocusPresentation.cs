@@ -29,7 +29,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
     private float initialBlurStrength = 1f;
 
     [SerializeField, Min(0f)]
-    private float maxBlurRadiusPixels = 5f;
+    private float maxBlurRadiusPixels = 8f;
 
     [SerializeField, Min(0f)]
     private float blurLodScale = 0.5f;

@@ -5,12 +5,14 @@ using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 public sealed class Stage0ControllerPlayModeTests
 {
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
 
     private readonly List<GameObject> createdObjects = new();
+    private readonly List<Material> createdMaterials = new();
 
     [UnityTearDown]
     public IEnumerator TearDown()
@@ -24,13 +26,23 @@ public sealed class Stage0ControllerPlayModeTests
         }
 
         createdObjects.Clear();
+
+        foreach (var createdMaterial in createdMaterials)
+        {
+            if (createdMaterial != null)
+            {
+                Object.DestroyImmediate(createdMaterial);
+            }
+        }
+
+        createdMaterials.Clear();
         yield return null;
     }
 
     [UnityTest]
     public IEnumerator StartMessageHidesTimerAndShutterWhileShowingTheMessage()
     {
-        var controller = CreateController(startMessageDuration: 10f, playingDuration: 10f);
+        var controller = CreateController(startFocusDuration: 10f, playingDuration: 10f);
 
         yield return null;
 
@@ -44,7 +56,7 @@ public sealed class Stage0ControllerPlayModeTests
     [UnityTest]
     public IEnumerator ZeroPlayingDurationImmediatelyEntersGameOver()
     {
-        var controller = CreateController(startMessageDuration: 0f, playingDuration: 0f);
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 0f);
 
         yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
 
@@ -61,7 +73,7 @@ public sealed class Stage0ControllerPlayModeTests
     [UnityTest]
     public IEnumerator GameOverHidesContentUntilTheBlackFadeCompletes()
     {
-        var controller = CreateController(startMessageDuration: 0f, playingDuration: 0f);
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 0f);
         SetPrivateField(controller, "gameOverFadeDuration", 0.1f);
 
         yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
@@ -86,7 +98,7 @@ public sealed class Stage0ControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingCountdownReachesZeroAndThenStops()
     {
-        var controller = CreateController(startMessageDuration: 0f, playingDuration: 0.2f);
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 0.2f);
 
         yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
 
@@ -107,7 +119,7 @@ public sealed class Stage0ControllerPlayModeTests
     [UnityTest]
     public IEnumerator CapturedWaitingForTimeoutContinuesUntilTimeExpires()
     {
-        var controller = CreateController(startMessageDuration: 0f, playingDuration: 10f);
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 10f);
 
         yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
 
@@ -125,7 +137,7 @@ public sealed class Stage0ControllerPlayModeTests
     [UnityTest]
     public IEnumerator CaptureAtZeroTransitionsToCompletedOnceAndKeepsGameOverUiHidden()
     {
-        var controller = CreateController(startMessageDuration: 0f, playingDuration: 10f);
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 10f);
         var completedNotificationCount = 0;
         controller.StateChanged += state =>
         {
@@ -153,7 +165,100 @@ public sealed class Stage0ControllerPlayModeTests
         Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
     }
 
-    private Stage0Controller CreateController(float startMessageDuration, float playingDuration)
+    [UnityTest]
+    public IEnumerator PlayingStartsOnlyAfterTheFocusPresentationCompletes()
+    {
+        var controller = CreateController(startFocusDuration: 0.2f, playingDuration: 10f);
+        var focus = GetPrivateField<StagePhotoFocusPresentation>(
+            controller,
+            "photoFocusPresentation"
+        );
+
+        yield return null;
+
+        Assert.That(focus.IsPlaying, Is.True);
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+
+        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+
+        Assert.That(focus.IsPlaying, Is.False);
+    }
+
+    [UnityTest]
+    public IEnumerator ShutterAndTimerStayHiddenForTheWholeFocusPhase()
+    {
+        var controller = CreateController(startFocusDuration: 0.15f, playingDuration: 10f);
+        var focus = GetPrivateField<StagePhotoFocusPresentation>(
+            controller,
+            "photoFocusPresentation"
+        );
+
+        const double timeoutSeconds = 1d;
+        var timeoutAt = Time.realtimeSinceStartupAsDouble + timeoutSeconds;
+        while (focus.IsPlaying)
+        {
+            Assert.That(
+                controller.CurrentState,
+                Is.EqualTo(Stage0Controller.Stage0State.StartMessage)
+            );
+            Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
+            Assert.That(
+                GetPrivateField<GameObject>(controller, "shutterButton").activeSelf,
+                Is.False
+            );
+            Assert.That(controller.RemainingTime, Is.EqualTo(0f));
+
+            if (Time.realtimeSinceStartupAsDouble > timeoutAt)
+            {
+                Assert.Fail("Focus presentation did not complete in time.");
+            }
+
+            yield return null;
+        }
+
+        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+    }
+
+    [UnityTest]
+    public IEnumerator MissingFocusPresentationLogsAnErrorAndStillReachesPlaying()
+    {
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 10f);
+        SetPrivateField<StagePhotoFocusPresentation>(controller, "photoFocusPresentation", null);
+
+        LogAssert.Expect(
+            LogType.Error,
+            "[Stage0Controller] Photo focus presentation is not assigned."
+        );
+
+        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+    }
+
+    [UnityTest]
+    public IEnumerator EnteringGameOverDuringTheFocusPhaseClearsTheBlur()
+    {
+        var controller = CreateController(startFocusDuration: 1f, playingDuration: 10f);
+        var focus = GetPrivateField<StagePhotoFocusPresentation>(
+            controller,
+            "photoFocusPresentation"
+        );
+
+        yield return null;
+
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+        Assert.That(focus.IsPlaying, Is.True);
+
+        controller.EnterGameOver();
+        yield return null;
+
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.GameOver));
+        Assert.That(focus.IsPlaying, Is.False);
+
+        yield return new WaitForSeconds(1.2f);
+
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.GameOver));
+    }
+
+    private Stage0Controller CreateController(float startFocusDuration, float playingDuration)
     {
         var controllerObject = CreateGameObject("Stage0Controller");
         var startMessage = CreateGameObject("StartMessage");
@@ -166,9 +271,19 @@ public sealed class Stage0ControllerPlayModeTests
         var timerText = timerObject.AddComponent<TextMeshProUGUI>();
         var controller = controllerObject.AddComponent<Stage0Controller>();
 
+        var previewObject = CreateGameObject("PhotoPreview");
+        var preview = previewObject.AddComponent<RawImage>();
+        var blurMaterial = new Material(Shader.Find("Stage/PhotoPreviewBlur"));
+        createdMaterials.Add(blurMaterial);
+        var focus = controllerObject.AddComponent<StagePhotoFocusPresentation>();
+        SetPrivateField(focus, "photoPreview", preview);
+        SetPrivateField(focus, "blurMaterialSource", blurMaterial);
+        SetPrivateField(focus, "blurClearDuration", startFocusDuration);
+        SetPrivateField(focus, "postBlurWaitDuration", 0f);
+
         gameOverContent.transform.SetParent(gameOverPanel.transform);
         gameOverPanel.SetActive(false);
-        SetPrivateField(controller, "startMessageDuration", startMessageDuration);
+        SetPrivateField(controller, "photoFocusPresentation", focus);
         SetPrivateField(controller, "playingDuration", playingDuration);
         SetPrivateField(controller, "startMessage", startMessage);
         SetPrivateField(controller, "timer", timerObject);
@@ -213,17 +328,17 @@ public sealed class Stage0ControllerPlayModeTests
         );
     }
 
-    private static T GetPrivateField<T>(Stage0Controller controller, string fieldName)
+    private static T GetPrivateField<T>(object target, string fieldName)
     {
-        var field = typeof(Stage0Controller).GetField(fieldName, PrivateInstance);
+        var field = target.GetType().GetField(fieldName, PrivateInstance);
         Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
-        return (T)field.GetValue(controller);
+        return (T)field.GetValue(target);
     }
 
-    private static void SetPrivateField<T>(Stage0Controller controller, string fieldName, T value)
+    private static void SetPrivateField<T>(object target, string fieldName, T value)
     {
-        var field = typeof(Stage0Controller).GetField(fieldName, PrivateInstance);
+        var field = target.GetType().GetField(fieldName, PrivateInstance);
         Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
-        field.SetValue(controller, value);
+        field.SetValue(target, value);
     }
 }
