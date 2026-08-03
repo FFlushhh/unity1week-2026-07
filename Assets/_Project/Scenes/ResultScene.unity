@@ -1511,9 +1511,9 @@ MonoBehaviour:
     ScorePerItem: -800
   - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
     ScorePerItem: -100
-  - BonusName: "\u9CE5"
+  - BonusName: "\u9752\u3044\u9CE5"
     ScorePerItem: 800
-  - BonusName: "\u30B9\u30BA\u30E1"
+  - BonusName: "\u30CF\u30C8"
     ScorePerItem: 5
   - BonusName: "\u81EA\u64AE\u308A"
     ScorePerItem: 1000
