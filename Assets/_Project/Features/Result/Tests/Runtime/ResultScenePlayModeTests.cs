@@ -112,6 +112,130 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator ResultSequence_AddsThousandForSingleSelfieGirl()
+        {
+            var resultData = CreateResultData(
+                new BonusInputData { BonusName = "自撮り", Count = 1 }
+            );
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+            EndSequenceEarly(manager, resultData);
+
+            Assert.That(GetTotalScore(manager), Is.EqualTo(2000));
+        }
+
+        [UnityTest]
+        public IEnumerator ResultSequence_MultipliesSelfieGirlScoreByCount()
+        {
+            var resultData = CreateResultData(
+                new BonusInputData { BonusName = "自撮り", Count = 3 }
+            );
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+            EndSequenceEarly(manager, resultData);
+
+            Assert.That(GetTotalScore(manager), Is.EqualTo(4000));
+        }
+
+        [UnityTest]
+        public IEnumerator ResultSequence_CombinesSelfieGirlWithExistingBonuses()
+        {
+            var resultData = CreateResultData(
+                new BonusInputData { BonusName = "自撮り", Count = 1 },
+                new BonusInputData { BonusName = "犬", Count = 1 },
+                new BonusInputData { BonusName = "狂犬", Count = 1 }
+            );
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+            EndSequenceEarly(manager, resultData);
+
+            // 1000(基礎) + 1000(自撮り) + 500(犬) - 800(狂犬)
+            Assert.That(GetTotalScore(manager), Is.EqualTo(1700));
+        }
+
+        [UnityTest]
+        public IEnumerator SceneBonusMasterMatchesCodeDefaultsIncludingSelfieGirl()
+        {
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(
+                CreateResultData(),
+                loadedManager => manager = loadedManager
+            );
+
+            var bonusMaster = GetPrivateField<List<BonusScoreMaster>>(manager, "_bonusMaster");
+            Assert.That(bonusMaster, Is.Not.Null);
+
+            var expected = new (string BonusName, int ScorePerItem)[]
+            {
+                ("犬", 500),
+                ("汚れた服の人", -600),
+                ("狂犬", -800),
+                ("ビニール袋", -100),
+                ("鳥", 800),
+                ("スズメ", 5),
+                ("自撮り", 1000),
+            };
+
+            Assert.That(bonusMaster, Has.Count.EqualTo(expected.Length));
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.That(bonusMaster[i].BonusName, Is.EqualTo(expected[i].BonusName));
+                Assert.That(bonusMaster[i].ScorePerItem, Is.EqualTo(expected[i].ScorePerItem));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ResultSequence_SelfieGirlIsNotTreatedAsUnknownBonus()
+        {
+            var resultData = CreateResultData(
+                new BonusInputData { BonusName = "自撮り", Count = 1 }
+            );
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            // 未知ボーナスならLogErrorを出して明細へ追加されないため、明細の出現を待って検証する。
+            var scoreListContent = GetPrivateField<Transform>(manager, "_scoreListContent");
+            Assert.That(scoreListContent, Is.Not.Null);
+            yield return WaitForScoreItemName(scoreListContent, "自撮り");
+
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator ResultSequence_ShowsSelfieGirlWithCountInScoreList()
+        {
+            var resultData = CreateResultData(
+                new BonusInputData { BonusName = "自撮り", Count = 2 }
+            );
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var scoreListContent = GetPrivateField<Transform>(manager, "_scoreListContent");
+            Assert.That(scoreListContent, Is.Not.Null);
+
+            yield return WaitForScoreItemName(scoreListContent, "自撮り × 2");
+        }
+
+        [UnityTest]
+        public IEnumerator SceneKeepsRankThresholdsAfterAddingSelfieGirl()
+        {
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(
+                CreateResultData(),
+                loadedManager => manager = loadedManager
+            );
+
+            Assert.That(GetPrivateInt(manager, "_rankSThreshold"), Is.EqualTo(10000));
+            Assert.That(GetPrivateInt(manager, "_rankAThreshold"), Is.EqualTo(8000));
+            Assert.That(GetPrivateInt(manager, "_defaultBaseScore"), Is.EqualTo(1000));
+        }
+
+        [UnityTest]
         public IEnumerator ResultSequence_DisplaysBaseScoreForEmptyBonuses()
         {
             var resultData = CreateResultData();
@@ -514,6 +638,59 @@ namespace ResultScene.Tests
                 .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
             field.SetValue(target, value);
+        }
+
+        private static IEnumerator WaitForScoreItemName(
+            Transform scoreListContent,
+            string expectedItemName
+        )
+        {
+            const float timeoutSeconds = 5f;
+            var timeoutAt = Time.realtimeSinceStartup + timeoutSeconds;
+
+            while (Time.realtimeSinceStartup < timeoutAt)
+            {
+                if (CollectScoreItemNames(scoreListContent).Contains(expectedItemName))
+                {
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            Assert.Fail(
+                $"Score item '{expectedItemName}' was not displayed. "
+                    + $"Displayed items: {string.Join(", ", CollectScoreItemNames(scoreListContent))}"
+            );
+        }
+
+        private static List<string> CollectScoreItemNames(Transform scoreListContent)
+        {
+            var itemNames = new List<string>();
+            foreach (Transform child in scoreListContent)
+            {
+                if (!child.TryGetComponent<ScoreItemUI>(out var scoreItem))
+                {
+                    continue;
+                }
+
+                var nameText = GetPrivateField<Component>(scoreItem, "_nameText");
+                if (nameText != null)
+                {
+                    itemNames.Add(GetText(nameText));
+                }
+            }
+
+            return itemNames;
+        }
+
+        private static int GetPrivateInt(object target, string fieldName)
+        {
+            var field = target
+                .GetType()
+                .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
+            return (int)field.GetValue(target);
         }
 
         private static int GetTotalScore(ResultSceneManager manager)

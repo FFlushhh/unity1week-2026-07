@@ -1515,6 +1515,8 @@ MonoBehaviour:
     ScorePerItem: 800
   - BonusName: "\u30B9\u30BA\u30E1"
     ScorePerItem: 5
+  - BonusName: "\u81EA\u64AE\u308A"
+    ScorePerItem: 1000
   _capturedPhotoImage: {fileID: 44390066}
   _userNameText: {fileID: 301994809}
   _postText: {fileID: 1645326716}

@@ -40,6 +40,7 @@ namespace ResultScene
             new BonusScoreMaster { BonusName = "ビニール袋", ScorePerItem = -100 },
             new BonusScoreMaster { BonusName = "鳥", ScorePerItem = 800 },
             new BonusScoreMaster { BonusName = "スズメ", ScorePerItem = 5 },
+            new BonusScoreMaster { BonusName = "自撮り", ScorePerItem = 1000 },
         };
 
         [Header("Left Panel (SNS)")]
