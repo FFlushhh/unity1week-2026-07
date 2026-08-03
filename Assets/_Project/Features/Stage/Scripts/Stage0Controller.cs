@@ -19,8 +19,8 @@ public sealed class Stage0Controller : MonoBehaviour
     }
 
     [Header("State Settings")]
-    [SerializeField, Min(0f)]
-    private float startMessageDuration = 2f;
+    [SerializeField]
+    private StagePhotoFocusPresentation photoFocusPresentation;
 
     [SerializeField, Min(0f)]
     private float playingDuration = 10f;
@@ -72,16 +72,22 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         TransitionTo(Stage0State.StartMessage);
 
-        try
+        if (photoFocusPresentation == null)
         {
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(startMessageDuration),
-                cancellationToken: cancellationToken
-            );
+            // 開始演出の尺は演出側が持つ。未設定は設定漏れであり、進行は止めずに記録だけ残す。
+            Debug.LogError("[Stage0Controller] Photo focus presentation is not assigned.", this);
         }
-        catch (OperationCanceledException)
+        else
         {
-            return;
+            try
+            {
+                // ぼかし解除と解除後の待機が終わるまで撮影タイムを開始しない。
+                await photoFocusPresentation.PlayAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
         }
 
         if (currentState == Stage0State.StartMessage)
@@ -165,6 +171,12 @@ public sealed class Stage0Controller : MonoBehaviour
     private void ApplyUiFor(Stage0State state)
     {
         SetActive(startMessage, state == Stage0State.StartMessage);
+
+        if (state != Stage0State.StartMessage && photoFocusPresentation != null)
+        {
+            // StartMessage以外へ抜けるときにぼかしを残さない（外部からEnterGameOver等が呼ばれた場合の保険）。
+            photoFocusPresentation.ResetPresentation();
+        }
 
         if (state == Stage0State.GameOver)
         {
