@@ -397,7 +397,7 @@ public sealed class PhotoPreviewPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator SubjectsHaveCenteredJudgementPointsAndTheSceneJudgeUsesThePhotoFrame()
+    public IEnumerator SubjectsHaveMeaningfulJudgementPointsAndTheSceneJudgeUsesThePhotoFrame()
     {
         yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
 
@@ -428,8 +428,42 @@ public sealed class PhotoPreviewPlayModeTests
             Assert.That(stageSubject.JudgementPoint, Is.Not.Null);
             Assert.That(stageSubject.JudgementPoint.name, Is.EqualTo("JudgementPoint"));
             Assert.That(stageSubject.JudgementPoint.parent, Is.EqualTo(subjectPrefab.transform));
-            Assert.That(stageSubject.JudgementPoint.localPosition, Is.EqualTo(Vector3.zero));
             Assert.That(stageSubject.PathAnchor, Is.Not.Null);
+
+            // 判断点はSprite中心ではなく、被写体ごとに意味のある位置（顔・胴体・袋本体）へ置く。
+            Assert.That(
+                stageSubject.JudgementPoint.localPosition,
+                Is.EqualTo(ExpectedJudgementPoints[stageSubject.Id])
+            );
+
+            Assert.That(
+                subjectPrefab.GetComponent<PolygonCollider2D>(),
+                Is.Not.Null,
+                $"{stageSubject.Id} must approximate its opaque outline with a PolygonCollider2D."
+            );
+            Assert.That(
+                subjectPrefab.GetComponent<BoxCollider2D>(),
+                Is.Null,
+                $"{stageSubject.Id} must not keep the placeholder BoxCollider2D."
+            );
+
+            // OverlapPointは物理シーンへ登録済みのColliderにしか効かないため、Prefabを実体化して判定する。
+            var subjectInstance = UnityEngine.Object.Instantiate(subjectPrefab);
+            try
+            {
+                Physics2D.SyncTransforms();
+                var instanceSubject = subjectInstance.GetComponent<StageSubject>();
+                var instanceCollider = subjectInstance.GetComponent<PolygonCollider2D>();
+                Assert.That(
+                    instanceCollider.OverlapPoint(instanceSubject.JudgementPoint.position),
+                    Is.True,
+                    $"{stageSubject.Id} must place its judgement point inside its own collider."
+                );
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(subjectInstance);
+            }
 
             switch (stageSubject.Id)
             {
@@ -460,6 +494,22 @@ public sealed class PhotoPreviewPlayModeTests
             }
         }
     }
+
+    /// <summary>
+    /// 被写体ごとに確定した判断点のローカル座標。Sprite上の意味のある位置を正本とする。
+    /// </summary>
+    private static readonly System.Collections.Generic.Dictionary<
+        SubjectId,
+        Vector3
+    > ExpectedJudgementPoints = new()
+    {
+        { SubjectId.Dog, new Vector3(0.58f, 0.6f, 0f) },
+        { SubjectId.DirtyClothesPerson, new Vector3(-0.01f, 7.26f, 0f) },
+        { SubjectId.RabidDog, new Vector3(1.1f, -0.15f, 0f) },
+        { SubjectId.PlasticBag, new Vector3(-0.17f, -0.76f, 0f) },
+        { SubjectId.Bird, new Vector3(-0.05f, -0.5f, 0f) },
+        { SubjectId.Sparrow, new Vector3(0.1f, -0.67f, 0f) },
+    };
 
     [UnityTest]
     public IEnumerator SceneJudgeClassifiesThePhotoCameraViewportAndItsBorders()

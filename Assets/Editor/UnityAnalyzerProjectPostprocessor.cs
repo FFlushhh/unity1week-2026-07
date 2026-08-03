@@ -10,7 +10,8 @@ using UnityEditor;
 public sealed class UnityAnalyzerProjectPostprocessor : AssetPostprocessor
 {
     private const string AnalyzerFileName = "Microsoft.Unity.Analyzers.dll";
-    private const string AnalyzerProjectPath = "Assets/Analyzers/Microsoft.Unity.Analyzers.dll";
+    private const string AnalyzerProjectPath =
+        "Assets/_Project/Analyzers/Microsoft.Unity.Analyzers.dll";
 
     public static string OnGeneratedCSProject(string path, string content)
     {

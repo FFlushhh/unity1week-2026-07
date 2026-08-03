@@ -153,6 +153,44 @@ public sealed class PhotoFrameSubjectVisibilityPlayModeTests
         Assert.That(judge.IsCapturable(subject), Is.True);
     }
 
+    [UnityTest]
+    public IEnumerator OwnColliderDoesNotOccludeItsOwnJudgementPoint()
+    {
+        // 被写体自身のColliderは判断点を必ず覆うため、自己遮蔽しないことを明示的に確認する。
+        var subject = CreateSubject("Subject", new Vector2(0.5f, 0.5f), sortingOrder: 0);
+        yield return null;
+        Physics2D.SyncTransforms();
+
+        var ownCollider = subject.GetComponent<Collider2D>();
+        Assert.That(ownCollider.OverlapPoint(subject.JudgementPoint.position), Is.True);
+        Assert.That(judge.IsCapturable(subject), Is.True);
+    }
+
+    [UnityTest]
+    public IEnumerator DisabledRendererInFrontDoesNotOccludeSubject()
+    {
+        var subject = CreateSubject("Subject", new Vector2(0.5f, 0.5f), sortingOrder: 0);
+        var frontSubject = CreateSubject("FrontSubject", new Vector2(0.5f, 0.5f), sortingOrder: 10);
+        frontSubject.SubjectRenderer.enabled = false;
+        yield return null;
+        Physics2D.SyncTransforms();
+
+        Assert.That(judge.IsCapturable(subject), Is.True);
+    }
+
+    [UnityTest]
+    public IEnumerator InactiveSubjectInFrontDoesNotOccludeSubject()
+    {
+        var subject = CreateSubject("Subject", new Vector2(0.5f, 0.5f), sortingOrder: 0);
+        var frontSubject = CreateSubject("FrontSubject", new Vector2(0.5f, 0.5f), sortingOrder: 10);
+        yield return null;
+        Physics2D.SyncTransforms();
+        frontSubject.SubjectRenderer.gameObject.SetActive(false);
+        yield return null;
+
+        Assert.That(judge.IsCapturable(subject), Is.True);
+    }
+
     private const int PhotoSubjectLayer = 6;
 
     private StageSubject CreateSubject(

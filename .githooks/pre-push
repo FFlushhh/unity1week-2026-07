@@ -11,7 +11,7 @@ needs_check=false
 
 is_compilation_input() {
     case "$1" in
-        *.cs|*.asmdef|*.asmref|.editorconfig|global.json|.config/dotnet-tools.json|Packages/manifest.json|Packages/packages-lock.json|ProjectSettings/ProjectVersion.txt|Assets/Analyzers/*|Assets/Editor/UnityAnalyzerProjectPostprocessor.cs) return 0 ;;
+        *.cs|*.asmdef|*.asmref|.editorconfig|global.json|.config/dotnet-tools.json|Packages/manifest.json|Packages/packages-lock.json|ProjectSettings/ProjectVersion.txt|Assets/Analyzers/*|Assets/_Project/Analyzers/*|Assets/Editor/UnityAnalyzerProjectPostprocessor.cs) return 0 ;;
         *) return 1 ;;
     esac
 }

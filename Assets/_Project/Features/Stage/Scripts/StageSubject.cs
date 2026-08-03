@@ -8,6 +8,7 @@ public enum SubjectId
     PlasticBag,
     Bird,
     Sparrow,
+    SelfieGirl,
 }
 
 /// <summary>

@@ -23,6 +23,7 @@ public sealed class StageSubjectPlayModeTests
     [TestCase(SubjectId.PlasticBag, -100)]
     [TestCase(SubjectId.Bird, 800)]
     [TestCase(SubjectId.Sparrow, 5)]
+    [TestCase(SubjectId.SelfieGirl, 1000)]
     public void ReturnsConfiguredIdAndScore(SubjectId subjectId, int score)
     {
         subjectObject = new GameObject("Subject");
