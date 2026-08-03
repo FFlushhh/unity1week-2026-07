@@ -299,7 +299,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     private static StageSubject FindSelfieGirl()
     {
         var selfieGirls = new List<StageSubject>();
-        foreach (var subject in Object.FindObjectsByType<StageSubject>(FindObjectsSortMode.None))
+        foreach (var subject in Object.FindObjectsByType<StageSubject>(FindObjectsInactive.Exclude))
         {
             if (subject.Id == SubjectId.SelfieGirl)
             {
