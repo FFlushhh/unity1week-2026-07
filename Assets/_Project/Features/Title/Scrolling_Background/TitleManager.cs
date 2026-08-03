@@ -1,10 +1,18 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
+    [Header("UI Settings")]
+    [SerializeField]
+    private TMP_InputField _nameInputField; // 名前入力用の InputField 参照
+
+    [SerializeField]
+    private GameObject _profileEditPanel; // ★ プロフィール編集ウィンドウ（パネル）の参照を追加
+
     [Header("アニメーション設定")]
     [SerializeField]
     private Animator _transitionAnimator; // 遷移用アニメーションを持つAnimator
@@ -46,6 +54,18 @@ public class TitleManager : MonoBehaviour
 
     private void Update()
     {
+        // ★ 1. 名前入力欄にフォーカスがある（文字入力中）ときはスタートしない
+        if (_nameInputField != null && _nameInputField.isFocused)
+        {
+            return;
+        }
+
+        // ★ 2. プロフィール編集ウィンドウが開いている（アクティブな）ときはキー操作でのスタートを無効化する
+        if (_profileEditPanel != null && _profileEditPanel.activeSelf)
+        {
+            return;
+        }
+
         // 新しいInput Systemでのキーボード入力監視
         var keyboard = Keyboard.current;
         if (keyboard != null)
@@ -63,6 +83,12 @@ public class TitleManager : MonoBehaviour
 
     public void OnStartButtonClicked()
     {
+        // ★ ボタンクリック時も編集画面が開いている場合はガードする（誤クリック防止）
+        if (_profileEditPanel != null && _profileEditPanel.activeSelf)
+        {
+            return;
+        }
+
         StartGameProcess();
     }
 

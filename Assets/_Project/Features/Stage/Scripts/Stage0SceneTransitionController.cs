@@ -267,9 +267,12 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
 
         try
         {
+            // ★ PlayerPrefs から保存された名前を取得（設定されていなければ Inspector の playerName を使用）
+            string currentName = PlayerPrefs.GetString("PLAYER_NAME", playerName);
+
             transferredData = StageResultDataFactory.Create(
                 capturedPhoto,
-                playerName,
+                currentName, // ★ ここを固定値ではなく取得した名前で渡す
                 locationName
             );
             ResultDataTransporter.CurrentData = transferredData;
