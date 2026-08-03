@@ -53,6 +53,17 @@ public sealed class Stage0Controller : MonoBehaviour
     [SerializeField]
     private TMP_Text timerText;
 
+    // ★ ゲームオーバー時に再生する SE の設定
+    [Header("SE Settings")]
+    [SerializeField]
+    private int _gameOverSeIndex = 0; // ゲームオーバー時のSE番号 (SoundManagerのリスト順)
+
+    [SerializeField]
+    private float _gameOverSePitch = 1.0f; // SEのピッチ
+
+    [SerializeField]
+    private float _gameOverSeVolume = 1.0f; // SEの音量
+
     private Stage0State currentState;
     private float remainingTime;
     private bool hasInitialized;
@@ -74,14 +85,12 @@ public sealed class Stage0Controller : MonoBehaviour
 
         if (photoFocusPresentation == null)
         {
-            // 開始演出の尺は演出側が持つ。未設定は設定漏れであり、進行は止めずに記録だけ残す。
             Debug.LogError("[Stage0Controller] Photo focus presentation is not assigned.", this);
         }
         else
         {
             try
             {
-                // ぼかし解除と解除後の待機が終わるまで撮影タイムを開始しない。
                 await photoFocusPresentation.PlayAsync(cancellationToken);
             }
             catch (OperationCanceledException)
@@ -107,10 +116,6 @@ public sealed class Stage0Controller : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 撮影成功後、残り時間が終了するまで待つ状態へ移行します。
-    /// シャッター入力の実装を追加する後続ステップから呼び出します。
-    /// </summary>
     public void BeginCapturedWaitingForTimeout()
     {
         if (currentState != Stage0State.Playing)
@@ -125,10 +130,6 @@ public sealed class Stage0Controller : MonoBehaviour
         TransitionTo(Stage0State.CapturedWaitingForTimeout);
     }
 
-    /// <summary>
-    /// 制限時間終了時にGame Over状態へ移行します。
-    /// カウントダウンを実装する後続ステップから呼び出します。
-    /// </summary>
     public void EnterGameOver()
     {
         if (currentState == Stage0State.GameOver || currentState == Stage0State.Completed)
@@ -174,7 +175,6 @@ public sealed class Stage0Controller : MonoBehaviour
 
         if (state != Stage0State.StartMessage && photoFocusPresentation != null)
         {
-            // StartMessage以外へ抜けるときにぼかしを残さない（外部からEnterGameOver等が呼ばれた場合の保険）。
             photoFocusPresentation.ResetPresentation();
         }
 
@@ -196,6 +196,7 @@ public sealed class Stage0Controller : MonoBehaviour
         {
             Debug.LogError("[Stage0Controller] Game over UI is not assigned.", this);
             SetActive(gameOverPanel, true);
+            PlayGameOverSE(); // UI未設定時のフォールバック再生
             return;
         }
 
@@ -227,6 +228,9 @@ public sealed class Stage0Controller : MonoBehaviour
         SetActive(photoFrame, false);
         SetActive(shutterButton, false);
         SetActive(gameOverContent, true);
+
+        // ★ 暗転（フェード）が完了してゲームオーバー画面が表示された瞬間にSEを鳴らす！
+        PlayGameOverSE();
     }
 
     private void ResetGameOverPresentation()
@@ -276,5 +280,60 @@ public sealed class Stage0Controller : MonoBehaviour
         {
             target.SetActive(isActive);
         }
+    }
+
+    // ★ 安全に SoundManager から SE を呼び出す処理
+    private void PlayGameOverSE()
+    {
+        var soundManager = GetValidSoundManagerInstance();
+        if (soundManager != null)
+        {
+            var method = soundManager
+                .GetType()
+                .GetMethod("PlaySE", new[] { typeof(int), typeof(float), typeof(float) });
+            if (method != null)
+            {
+                method.Invoke(
+                    soundManager,
+                    new object[] { _gameOverSeIndex, _gameOverSePitch, _gameOverSeVolume }
+                );
+            }
+            else
+            {
+                soundManager.SendMessage(
+                    "PlaySE",
+                    _gameOverSeIndex,
+                    SendMessageOptions.DontRequireReceiver
+                );
+            }
+        }
+    }
+
+    // ★ 本物の SoundManager を検索して取得する安全メソッド
+    private Component GetValidSoundManagerInstance()
+    {
+        GameObject soundObj = GameObject.Find("Sound_Manager");
+        if (soundObj == null)
+            return null;
+
+        var comp = soundObj.GetComponent("SoundManager");
+        if (comp == null)
+            return null;
+
+        var instanceProp = comp.GetType()
+            .GetProperty(
+                "Instance",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+            );
+        if (instanceProp != null)
+        {
+            var activeInstance = instanceProp.GetValue(null) as Component;
+            if (activeInstance != null)
+            {
+                return activeInstance;
+            }
+        }
+
+        return comp;
     }
 }
