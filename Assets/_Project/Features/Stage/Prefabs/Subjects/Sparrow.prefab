@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 90051}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.1, y: -0.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -159,8 +159,8 @@ MonoBehaviour:
   judgementPoint: {fileID: 90052}
   pathAnchor: {fileID: 440002}
   subjectRenderer: {fileID: 440003}
---- !u!61 &440006
-BoxCollider2D:
+--- !u!60 &440006
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -193,15 +193,47 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.22, y: 0}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 4.5, y: 4.07}
-    newSize: {x: 1, y: 1}
+    newSize: {x: 4.5, y: 4.07}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.94, y: 0.93}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 1.51, y: 1.67}
+      - {x: 1.37, y: 1.45}
+      - {x: -0.05, y: 1.23}
+      - {x: -0.79, y: 1.0}
+      - {x: -0.98, y: 0.79}
+      - {x: -2.1, y: 0.56}
+      - {x: -1.97, y: 0.34}
+      - {x: -2.02, y: 0.12}
+      - {x: -1.84, y: -0.1}
+      - {x: -1.72, y: -0.32}
+      - {x: -1.35, y: -0.54}
+      - {x: -1.24, y: -0.76}
+      - {x: -0.38, y: -0.97}
+      - {x: -0.03, y: -1.2}
+      - {x: 0.36, y: -1.42}
+      - {x: 0.41, y: -1.47}
+      - {x: 0.45, y: -1.47}
+      - {x: 0.54, y: -1.42}
+      - {x: 1.44, y: -1.2}
+      - {x: 1.65, y: -0.97}
+      - {x: 1.61, y: -0.76}
+      - {x: 1.13, y: -0.54}
+      - {x: 1.49, y: -0.32}
+      - {x: 1.77, y: -0.1}
+      - {x: 1.72, y: 0.12}
+      - {x: 1.82, y: 0.34}
+      - {x: 1.69, y: 0.56}
+      - {x: 1.75, y: 0.79}
+      - {x: 1.76, y: 1.0}
+      - {x: 1.62, y: 1.23}
+      - {x: 1.64, y: 1.45}
+      - {x: 1.56, y: 1.67}
