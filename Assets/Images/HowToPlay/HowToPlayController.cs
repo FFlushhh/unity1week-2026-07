@@ -11,21 +11,18 @@ public class HowToPlayController : MonoBehaviour
     private bool _playSE = true;
 
     [SerializeField]
-    private int _seOpenIndex = 15; // 開くときのSEインデックス（例: Pop音など）
+    private int _seOpenIndex = 15;
 
     [SerializeField]
-    private int _seCloseIndex = 16; // 閉じるときのSEインデックス（例: キャンセル音など）
+    private int _seCloseIndex = 16;
 
     [SerializeField]
-    private float _seVolumeScale = 0.3f; // SEの音量スケール
+    private float _seVolumeScale = 0.3f;
 
+    // ★ Start() の中の SetActive(false) を削除（または Start ごと削除）
     private void Start()
     {
-        // 起動時は確実に閉じておく
-        if (_howToPlayPanel != null)
-        {
-            _howToPlayPanel.SetActive(false);
-        }
+        // ここにあった SetActive(false) を削除！
     }
 
     /// <summary>
@@ -52,9 +49,6 @@ public class HowToPlayController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// SoundManager経由でSEを再生します
-    /// </summary>
     private void PlaySound(int seIndex)
     {
         if (!_playSE)
