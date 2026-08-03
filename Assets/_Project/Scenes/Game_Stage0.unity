@@ -631,6 +631,9 @@ MonoBehaviour:
   gameOverFade: {fileID: 220004}
   gameOverContent: {fileID: 226000}
   timerText: {fileID: 216002}
+  _gameOverSeIndex: 3
+  _gameOverSePitch: 1
+  _gameOverSeVolume: 1
 --- !u!114 &206003
 MonoBehaviour:
   m_ObjectHideFlags: 0
