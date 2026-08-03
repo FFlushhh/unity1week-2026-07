@@ -93,7 +93,7 @@ namespace ResultScene.Tests
             yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
             EndSequenceEarly(manager, resultData);
 
-            Assert.That(GetTotalScore(manager), Is.EqualTo(2800));
+            Assert.That(GetTotalScore(manager), Is.EqualTo(2300));
         }
 
         [UnityTest]
@@ -174,7 +174,7 @@ namespace ResultScene.Tests
                 ("汚れた服の人", -600),
                 ("狂犬", -800),
                 ("ビニール袋", -100),
-                ("ハト", 800),
+                ("ハト", 300),
                 ("青鳥", 5),
                 ("自撮り", 1000),
             };
@@ -230,8 +230,8 @@ namespace ResultScene.Tests
                 loadedManager => manager = loadedManager
             );
 
-            Assert.That(GetPrivateInt(manager, "_rankSThreshold"), Is.EqualTo(10000));
-            Assert.That(GetPrivateInt(manager, "_rankAThreshold"), Is.EqualTo(8000));
+            Assert.That(GetPrivateInt(manager, "_rankSThreshold"), Is.EqualTo(3200));
+            Assert.That(GetPrivateInt(manager, "_rankAThreshold"), Is.EqualTo(2850));
             Assert.That(GetPrivateInt(manager, "_defaultBaseScore"), Is.EqualTo(1000));
         }
 

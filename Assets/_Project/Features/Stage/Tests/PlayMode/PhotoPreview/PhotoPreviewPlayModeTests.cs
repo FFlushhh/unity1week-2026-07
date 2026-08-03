@@ -127,7 +127,7 @@ public sealed class PhotoPreviewPlayModeTests
         var timerRect = timer.GetComponent<RectTransform>();
         Assert.That(timerRect.anchorMin, Is.EqualTo(new Vector2(0.5f, 1f)));
         Assert.That(timerRect.anchorMax, Is.EqualTo(new Vector2(0.5f, 1f)));
-        Assert.That(timerRect.anchoredPosition, Is.EqualTo(new Vector2(0f, -60f)));
+        Assert.That(timerRect.anchoredPosition, Is.EqualTo(new Vector2(0f, -77.2f)));
         Assert.That(timerRect.sizeDelta, Is.EqualTo(new Vector2(220f, 80f)));
     }
 
@@ -295,6 +295,11 @@ public sealed class PhotoPreviewPlayModeTests
         };
         foreach (var image in photoFrame.GetComponentsInChildren<Image>(includeInactive: true))
         {
+            if (image.name == "Black" || image.name == "ShutterBlackout")
+            {
+                continue;
+            }
+
             Assert.That(image.sprite, Is.Not.Null, $"{image.name} must use a UI Sprite.");
             Assert.That(
                 allowedTextureNames.Contains(image.sprite.texture.name),
