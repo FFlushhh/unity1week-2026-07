@@ -1484,14 +1484,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bfc0cfb1369bb04880f2cf3d23996d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResultScene.ResultSceneManager
-  _useTestData: 0
+  _useTestData: 1
   _testData:
     PlayerName: "\u3042\u3042"
     LocationName: "\u30B9\u30C6\u30FC\u30B8"
     CapturedImage: {fileID: 2800000, guid: 26153363ce3a8874d8bdbc4e4c8c5e9d, type: 3}
     Bonuses:
     - BonusName: "\u72AC"
-      Count: 1
+      Count: 0
     - BonusName: "\u72C2\u72AC"
       Count: 1
     - BonusName: "\u6C5A\u308C\u305F\u670D\u306E\u4EBA"
@@ -1499,7 +1499,7 @@ MonoBehaviour:
     - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
       Count: 1
     - BonusName: "\u9CE5"
-      Count: 1
+      Count: 0
     - BonusName: "\u30B9\u30BA\u30E1"
       Count: 1
   _bonusMaster:
@@ -1563,6 +1563,20 @@ MonoBehaviour:
   _holdKeyText: {fileID: 1461348441}
   _holdTextStartColor: {r: 1, g: 1, b: 1, a: 0.4}
   _holdTextEndColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  _waitBeforeBaseScore: 0.5
+  _waitBeforeTotalScore: 0.5
+  _waitBetweenScoreItems: 0.2
+  _totalScoreSlideDuration: 0.3
+  _scoreCountUpDuration: 0.8
+  _waitBeforeStamp: 0.2
+  _stampAnimationDuration: 0.2
+  _stampStartScale: 1.5
+  _shakeDuration: 0.2
+  _shakeMagnitude: 15
+  _waitAfterResult: 0.5
+  _holdToSkipRequiredTime: 0.5
+  _holdToSkipMaxScale: 1.15
+  _keyboardScrollSpeed: 1.5
   _transitionAnimator: {fileID: 1250904347}
   _transitionTriggerName: Change
   _fadeDuration: 0.6
@@ -2667,48 +2681,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db67b06efbecc6b4faa2b962dd41142d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Result::ResultScene.BuzzReaction.BuzzReactionManager
-  _postPanel: {fileID: 44390061}
-  _heartSpawnPoint: {fileID: 44390061}
-  _danmakuContainer: {fileID: 44390061}
-  _seVolumeScale: 0.3
-  _countUpSeIndex: 8
-  _panelBounceCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.5
-      value: 1.1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  _bounceDuration: 0.3
-  _countUpDuration: 2
-  _heartParticlePrefab: {fileID: 1271201893320645652, guid: 0e7b3e6c9b2b80943b84d4bfd6ef1838, type: 3}
-  _danmakuCommentPrefab: {fileID: 4678314580746777283, guid: 5373b651bee3a6d4cb523a46ce0e3cef, type: 3}
+  _rankSHeartMultiplier: 2
+  _rankSDanmakuMultiplier: 2
+  _rankSAudioMultiplier: 2
+  _rankAHeartMultiplier: 0.7
+  _rankADanmakuMultiplier: 1
+  _rankAAudioMultiplier: 0.7
+  _rankBHeartMultiplier: 0.3
+  _rankBDanmakuMultiplier: 0.5
+  _rankBAudioMultiplier: 0.3
+  _heartSpawnInterval: 0.05
+  _heartMinVelocity: {x: -200, y: 400}
+  _heartMaxVelocity: {x: 400, y: 900}
+  _heartGravity: 1500
+  _heartDuration: 2
+  _danmakuSpawnInterval: 0.1
+  _danmakuStartXMargin: 200
+  _danmakuEndXMargin: 400
+  _danmakuMinY: -300
+  _danmakuMaxY: 300
+  _danmakuSpeed: 800
   _danmakuTextsRankS:
   - "\u795E\uFF01"
   - "\u4F1D\u8AAC\u306E\u59CB\u307E\u308A"
@@ -2733,15 +2725,51 @@ MonoBehaviour:
   - "\u3044\u3044\u306D"
   - "\u307E\u3042\u307E\u3042"
   - "\u304A\u3064"
-  _heartDuration: 2
-  _heartGravity: 1500
-  _heartMinVelocity: {x: -200, y: 400}
-  _heartMaxVelocity: {x: 400, y: 900}
-  _heartSpawnInterval: 0.05
-  _danmakuSpeed: 800
-  _danmakuMinY: -300
-  _danmakuMaxY: 300
-  _danmakuSpawnInterval: 0.1
+  _seVolumeScale: 0.3
+  _baseAudioInterval: 0.08
+  _countUpInitialPitch: 1
+  _countUpTargetPitch: 2
+  _countUpDuration: 2
+  _bounceDuration: 0.3
+  _panelBounceCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.49583435
+      value: 1.0478569
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _postPanel: {fileID: 44390061}
+  _heartSpawnPoint: {fileID: 44390061}
+  _danmakuContainer: {fileID: 44390061}
+  _heartParticlePrefab: {fileID: 1271201893320645652, guid: 0e7b3e6c9b2b80943b84d4bfd6ef1838, type: 3}
+  _danmakuCommentPrefab: {fileID: 4678314580746777283, guid: 5373b651bee3a6d4cb523a46ce0e3cef, type: 3}
+  _countUpSeIndex: 8
 --- !u!4 &1875841041
 Transform:
   m_ObjectHideFlags: 0
