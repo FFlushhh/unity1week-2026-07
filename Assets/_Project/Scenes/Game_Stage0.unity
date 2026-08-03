@@ -667,7 +667,7 @@ MonoBehaviour:
   photoPreview: {fileID: 210002}
   blurMaterialSource: {fileID: 2100000, guid: f780ddc292e34acba3152c6ab8136a7a, type: 2}
   initialBlurStrength: 1
-  maxBlurRadiusPixels: 8
+  maxBlurRadiusPixels: 16
   blurLodScale: 0.5
   blurClearDuration: 1.6
   postBlurWaitDuration: 0.4

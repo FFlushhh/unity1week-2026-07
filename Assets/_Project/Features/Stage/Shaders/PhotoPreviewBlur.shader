@@ -9,7 +9,7 @@ Shader "Stage/PhotoPreviewBlur"
         _Color ("Tint", Color) = (1,1,1,1)
 
         _BlurStrength ("Blur Strength", Range(0,1)) = 0
-        _MaxBlurRadiusPixels ("Max Blur Radius (source texels)", Float) = 8
+        _MaxBlurRadiusPixels ("Max Blur Radius (source texels)", Float) = 16
         _SourceTexelSize ("Source Texel Size (1/w,1/h,w,h)", Vector) = (0.0006944444, 0.0009259259, 1440, 1080)
         _BlurLodScale ("Blur Mip Scale", Float) = 0.5
 
