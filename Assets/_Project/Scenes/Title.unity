@@ -1025,7 +1025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleNameInput
   _nameInputField: {fileID: 746290891}
-  _defaultName: "\u30D7\u30EC\u30A4\u30E4\u30FC"
+  _defaultName: "\u3057\u308D\u3055\u304D"
 --- !u!114 &746290891
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1543,8 +1543,8 @@ MonoBehaviour:
   _rankSThreshold: 10000
   _rankAThreshold: 8000
   _postTextRankS: "\u5947\u8DE1\u306E\u4E00\u679A\u304C\u64AE\u308C\u305F\uFF01\u6700\u9AD8\uFF01\uFF01"
-  _postTextRankA: "\u304B\u306A\u308A\u826F\u3044\u5199\u771F\u304B\u3082\uFF01"
-  _postTextRankB: "\u307E\u3042\u307E\u3042\u304B\u306A\u3002\u6B21\u306F\u3082\u3063\u3068\u9811\u5F35\u308B"
+  _postTextRankA: "\u304B\u306A\u308A\u826F\u3044\u611F\u3058\u306E\u5199\u771F\uFF01"
+  _postTextRankB: "\u57CE\u9580\u3067\u4E00\u679A\uFF01\u8FEB\u529B\u3042\u308B\uFF5E\uFF01"
   _rankSSprite: {fileID: -3119695900687162802, guid: 48d8850eda313f2408ff26a34660c8b9, type: 3}
   _rankASprite: {fileID: -8680797543115379092, guid: ede46fea7b734a3449b040d24023afbc, type: 3}
   _rankBSprite: {fileID: 7425438597007568885, guid: 1779fec701167ad4e9133b85cdb666da, type: 3}
@@ -1565,7 +1565,7 @@ MonoBehaviour:
   _holdTextEndColor: {r: 1, g: 0.9, b: 0.2, a: 1}
   _transitionAnimator: {fileID: 1250904347}
   _transitionTriggerName: Change
-  _transitionWaitDuration: 0.4
+  _fadeDuration: 0.6
 --- !u!1 &1409302742
 GameObject:
   m_ObjectHideFlags: 0
@@ -2490,10 +2490,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Post Text...
+  m_text: "\u57CE\u9580"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 1e4ed26ed8f52f948afa1dc229ab0267, type: 2}
-  m_sharedMaterial: {fileID: 6234104599505753585, guid: 1e4ed26ed8f52f948afa1dc229ab0267, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 0a68c0984bb0a844588d1288eaf5f39a, type: 2}
+  m_sharedMaterial: {fileID: -7102360262645852649, guid: 0a68c0984bb0a844588d1288eaf5f39a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
