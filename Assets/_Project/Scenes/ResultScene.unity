@@ -1512,7 +1512,7 @@ MonoBehaviour:
   - BonusName: "\u30D3\u30CB\u30FC\u30EB\u888B"
     ScorePerItem: -100
   - BonusName: "\u30CF\u30C8"
-    ScorePerItem: 800
+    ScorePerItem: 300
   - BonusName: "\u9752\u9CE5"
     ScorePerItem: 5
   - BonusName: "\u81EA\u64AE\u308A"
@@ -1541,7 +1541,7 @@ MonoBehaviour:
   _rankStampImage: {fileID: 612857080}
   _rankLabel: {fileID: 2087848469}
   _rankSThreshold: 3200
-  _rankAThreshold: 2300
+  _rankAThreshold: 2850
   _postTextRankS: "\u5947\u8DE1\u306E\u4E00\u679A\u304C\u64AE\u308C\u305F\uFF01\u6700\u9AD8\uFF01\uFF01"
   _postTextRankA: "\u304B\u306A\u308A\u826F\u3044\u611F\u3058\u306E\u5199\u771F\uFF01"
   _postTextRankB: "\u57CE\u9580\u3067\u4E00\u679A\uFF01\u8FEB\u529B\u3042\u308B\uFF5E\uFF01"
