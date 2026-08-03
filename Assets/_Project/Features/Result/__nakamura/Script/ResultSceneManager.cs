@@ -288,7 +288,7 @@ namespace ResultScene
                         );
                     }
 
-                    if (_transitionKeyHoldTime >= 2.0f && !_isTransitioning)
+                    if (_transitionKeyHoldTime >= 0.5f && !_isTransitioning)
                     {
                         _isTransitioning = true;
                         StartCoroutine(TransitionWithAnimationCoroutine());
