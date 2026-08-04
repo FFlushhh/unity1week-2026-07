@@ -7,6 +7,15 @@
       "dependencies": {},
       "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
     },
+    "com.github.kou-yeung.webglinput": {
+      "version": "https://github.com/kou-yeung/WebGLInput.git?path=Assets/WebGLSupport",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0~"
+      },
+      "hash": "466b0834014ff0bb0bbabf862bd5f2dc3fd17dc8"
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,

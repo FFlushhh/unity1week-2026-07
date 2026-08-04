@@ -16,6 +16,12 @@ public class TitleNameInput : MonoBehaviour
         // 前回入力した名前があれば読み込み、無ければデフォルト名をセット
         if (_nameInputField != null)
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (_nameInputField.gameObject.GetComponent<WebGLSupport.WebGLInput>() == null)
+            {
+                _nameInputField.gameObject.AddComponent<WebGLSupport.WebGLInput>();
+            }
+#endif
             _nameInputField.text = PlayerPrefs.GetString(PlayerNameKey, _defaultName);
             _nameInputField.onValueChanged.AddListener(SavePlayerName);
         }

@@ -10,3 +10,4 @@
 | ADR-0006 | asmdef運用 |
 | ADR-0007 | Unityバージョン固定 |
 | ADR-0008 | UnityYAMLMerge採用 |
+| ADR-0016 | WebGLでのIME（日本語入力）対応にWebGLSupportパッケージを採用 |
