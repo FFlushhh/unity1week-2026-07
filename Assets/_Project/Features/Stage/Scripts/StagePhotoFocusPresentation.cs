@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Game_Stage0開始直後のピント合わせ演出を管理します。
+/// Game_Stage1開始直後のピント合わせ演出を管理します。
 /// PhotoPreviewのRawImageにぼかしシェーダのマテリアルを実行時だけ割り当て、
 /// 強度を徐々に0へ下げてから短い待機を挟みます。
 /// PlayAsyncの完了 = 撮影タイムを開始してよいタイミングです。

@@ -51,7 +51,7 @@ namespace ResultScene.Tests
             var resultData = new ResultData
             {
                 PlayerName = "TestPlayer",
-                LocationName = "Stage 0",
+                LocationName = "Stage 1",
                 Bonuses = new List<BonusInputData>(),
             };
             ResultDataTransporter.CurrentData = resultData;
@@ -591,7 +591,7 @@ namespace ResultScene.Tests
             return new ResultData
             {
                 PlayerName = "TestPlayer",
-                LocationName = "Stage 0",
+                LocationName = "Stage 1",
                 Bonuses = new List<BonusInputData>(bonuses),
             };
         }

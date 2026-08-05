@@ -10,7 +10,7 @@ public sealed class GameOverPresentationPlayModeTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var stageScene = SceneManager.GetSceneByName("Game_Stage0");
+        var stageScene = SceneManager.GetSceneByName("Game_Stage1");
         if (stageScene.IsValid() && stageScene.isLoaded)
         {
             var emptyScene = SceneManager.CreateScene(
@@ -31,7 +31,7 @@ public sealed class GameOverPresentationPlayModeTests
     [UnityTest]
     public IEnumerator GameOverPanelUsesAnOpaqueBlackFadeAndSeparateContent()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var photoPreviewCanvas = GameObject.Find("PhotoPreviewCanvas");
         var gameOverPanel = photoPreviewCanvas.transform.Find("GameOverPanel");

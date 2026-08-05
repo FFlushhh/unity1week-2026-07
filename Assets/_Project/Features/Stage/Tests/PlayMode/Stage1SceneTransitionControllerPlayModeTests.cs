@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
-public sealed class Stage0SceneTransitionControllerPlayModeTests
+public sealed class Stage1SceneTransitionControllerPlayModeTests
 {
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -79,7 +79,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         );
         LogAssert.Expect(
             LogType.Error,
-            "[Stage0SceneTransitionController] Result scene 'MissingResultScene' cannot be loaded."
+            "[Stage1SceneTransitionController] Result scene 'MissingResultScene' cannot be loaded."
         );
 
         var didTransfer = InvokeTryTransferCapturedPhoto(transitionController, out var resultData);
@@ -103,7 +103,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         var transitionController = CreateTransitionController(null, "ResultScene");
         LogAssert.Expect(
             LogType.Error,
-            "[Stage0SceneTransitionController] Photo capture controller is not assigned."
+            "[Stage1SceneTransitionController] Photo capture controller is not assigned."
         );
 
         var didTransfer = InvokeTryTransferCapturedPhoto(transitionController, out var resultData);
@@ -123,7 +123,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         );
         LogAssert.Expect(
             LogType.Error,
-            "[Stage0SceneTransitionController] Title scene 'MissingTitleScene' cannot be loaded."
+            "[Stage1SceneTransitionController] Title scene 'MissingTitleScene' cannot be loaded."
         );
 
         transitionController.ReturnToTitle();
@@ -144,18 +144,18 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         var transitionController = CreateTransitionController(captureController, "ResultScene");
         LogAssert.Expect(
             LogType.Error,
-            "[Stage0SceneTransitionController] No captured photo is available for the Result scene."
+            "[Stage1SceneTransitionController] No captured photo is available for the Result scene."
         );
 
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         yield return null;
         yield return null;
@@ -186,7 +186,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         yield return null;
         yield return null;
@@ -223,7 +223,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         yield return null;
         yield return null;
@@ -266,7 +266,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         yield return null;
 
@@ -303,7 +303,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         InvokePrivateMethod(
             transitionController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
         yield return null;
         yield return null;
@@ -313,14 +313,14 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
         Assert.That(capturedImage == null, Is.True);
     }
 
-    private Stage0SceneTransitionController CreateTransitionController(
+    private Stage1SceneTransitionController CreateTransitionController(
         StagePhotoCaptureController captureController,
         string resultSceneName,
         string titleSceneName = "Title"
     )
     {
-        var transitionObject = CreateGameObject("Stage0SceneTransitionController", active: false);
-        var transitionController = transitionObject.AddComponent<Stage0SceneTransitionController>();
+        var transitionObject = CreateGameObject("Stage1SceneTransitionController", active: false);
+        var transitionController = transitionObject.AddComponent<Stage1SceneTransitionController>();
         SetPrivateField(transitionController, "stagePhotoCaptureController", captureController);
         SetPrivateField(transitionController, "resultSceneName", resultSceneName);
         SetPrivateField(transitionController, "titleSceneName", titleSceneName);
@@ -384,7 +384,7 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
     }
 
     private static void DestroyTransitionController(
-        Stage0SceneTransitionController transitionController
+        Stage1SceneTransitionController transitionController
     )
     {
         InvokePrivateMethod(transitionController, "OnDestroy");
@@ -422,11 +422,11 @@ public sealed class Stage0SceneTransitionControllerPlayModeTests
     }
 
     private static bool InvokeTryTransferCapturedPhoto(
-        Stage0SceneTransitionController transitionController,
+        Stage1SceneTransitionController transitionController,
         out ResultData resultData
     )
     {
-        var method = typeof(Stage0SceneTransitionController).GetMethod(
+        var method = typeof(Stage1SceneTransitionController).GetMethod(
             "TryTransferCapturedPhoto",
             PrivateInstance
         );

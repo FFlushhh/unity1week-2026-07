@@ -35,14 +35,14 @@ MVPのゲームフローが決まり、Title、Game、SNS、Resultを担当者�
 
 ```text
 Title
-→ Game_Stage0
+→ Game_Stage1
 → ResultScene内のSNS風投稿・リザルト演出
 → Title
 ```
 
-未撮影で時間切れになった場合は、`Game_Stage0`内のGameOver UIを表示し、Titleへ戻ります。
+未撮影で時間切れになった場合は、`Game_Stage1`内のGameOver UIを表示し、Titleへ戻ります。
 
-`Game_Stage0`は、撮影画像と隠れ判定済みの被写体IDごとの個数だけを`ResultData`へ渡します。
+`Game_Stage1`は、撮影画像と隠れ判定済みの被写体IDごとの個数だけを`ResultData`へ渡します。
 基本点、対象ごとの加減点、合計、0への丸めはResult Featureの責務とし、
 `ResultSceneManager`と`ResultScoreCalculator`が計算します。
 

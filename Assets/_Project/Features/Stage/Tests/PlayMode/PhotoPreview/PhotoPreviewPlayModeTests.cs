@@ -16,7 +16,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var stageScene = SceneManager.GetSceneByName("Game_Stage0");
+        var stageScene = SceneManager.GetSceneByName("Game_Stage1");
         if (stageScene.IsValid() && stageScene.isLoaded)
         {
             var emptyScene = SceneManager.CreateScene($"{nameof(PhotoPreviewPlayModeTests)}.Empty");
@@ -35,7 +35,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator PhotoPreviewKeepsRenderTextureAspectRatio()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var photoPreview = GameObject.Find("PhotoPreview");
         var canvas = GameObject.Find("PhotoPreviewCanvas");
@@ -73,7 +73,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator PhotoPreviewAndPhotoFrameUseTheCenteredFourByThreeCameraArea()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var viewport = GameObject.Find("PhotoPreviewViewport");
         var canvas = GameObject.Find("PhotoPreviewCanvas");
@@ -119,7 +119,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator TimerIsPositionedAtTheTopCenterWithoutOverlappingSideControls()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var timer = GameObject.Find("TimerText");
         Assert.That(timer, Is.Not.Null);
@@ -134,7 +134,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator CameraUiUsesTheConfiguredDecorationsAndOnlyTheShutterIsInteractive()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var canvas = GameObject.Find("PhotoPreviewCanvas").transform;
         var photoFrame = canvas.Find("PhotoFrame");
@@ -253,7 +253,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator CameraUiUsesOnlyRuntimeSpritesAndTheShutterIsTheOnlyButton()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var photoFrame = GameObject.Find("PhotoFrame").transform;
         Assert.That(photoFrame.Find("CameraUiFrame"), Is.Null);
@@ -318,7 +318,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator ShutterBlackoutIsClippedInsideTheViewportAndKeepsThePreviewLayout()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var canvas = GameObject.Find("PhotoPreviewCanvas").transform;
         var viewport = canvas.Find("PhotoPreviewViewport");
@@ -367,7 +367,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SubjectsAreRenderedOnlyByThePhotoCameraAndSpawnNearItsFrame()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var photoSubjectLayer = LayerMask.NameToLayer("PhotoSubject");
         Assert.That(photoSubjectLayer, Is.GreaterThanOrEqualTo(0));
@@ -404,7 +404,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SubjectsHaveMeaningfulJudgementPointsAndTheSceneJudgeUsesThePhotoFrame()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var judgeObject = GameObject.Find("PhotoFrameSubjectJudge");
         Assert.That(judgeObject, Is.Not.Null);
@@ -519,7 +519,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SceneJudgeClassifiesThePhotoCameraViewportAndItsBorders()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var judge = GameObject
             .Find("PhotoFrameSubjectJudge")
@@ -553,7 +553,7 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SceneProvidesEventSystemAndCaptureControllerForTheShutterButton()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var eventSystemObject = GameObject.Find("EventSystem");
         Assert.That(eventSystemObject, Is.Not.Null);
@@ -615,10 +615,10 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SceneCaptureDefersPreviewWhileThePresentationRunsAndKeepsTheTimerUpdating()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var captureController = GameObject
             .Find("StagePhotoCaptureController")
             .GetComponent<StagePhotoCaptureController>();
@@ -628,14 +628,14 @@ public sealed class PhotoPreviewPlayModeTests
         );
         var capturedPreview = GetPrivateField<RawImage>(captureController, "capturedPhotoPreview");
         var blackout = GetPrivateField<CanvasGroup>(presentation, "shutterBlackout");
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         SetPrivateField(stageController, "remainingTime", 10f);
         SetPresentationDurations(presentation, 0.02f, 0.02f, 0.02f, 0.02f);
 
         Assert.That(captureController.TryCapture(), Is.True);
         Assert.That(
             stageController.CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+            Is.EqualTo(Stage1Controller.Stage1State.CapturedWaitingForTimeout)
         );
         Assert.That(presentation.IsPlaying, Is.True);
         Assert.That(blackout.gameObject.activeSelf, Is.True);
@@ -659,18 +659,18 @@ public sealed class PhotoPreviewPlayModeTests
     [UnityTest]
     public IEnumerator SceneConnectsResultAndTitleTransitionsWithoutVisibilityCamera()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var gameController = GameObject.Find("GameController");
-        var transitionController = gameController.GetComponent<Stage0SceneTransitionController>();
-        var stageController = gameController.GetComponent<Stage0Controller>();
+        var transitionController = gameController.GetComponent<Stage1SceneTransitionController>();
+        var stageController = gameController.GetComponent<Stage1Controller>();
         var captureController = GameObject
             .Find("StagePhotoCaptureController")
             .GetComponent<StagePhotoCaptureController>();
 
         Assert.That(transitionController, Is.Not.Null);
         Assert.That(
-            GetPrivateField<Stage0Controller>(transitionController, "stageController"),
+            GetPrivateField<Stage1Controller>(transitionController, "stageController"),
             Is.EqualTo(stageController)
         );
         Assert.That(

@@ -6,12 +6,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Game_Stage0の成功・失敗時に、撮影結果の引き渡しとシーン遷移を担当します。
+/// Game_Stage1の成功・失敗時に、撮影結果の引き渡しとシーン遷移を担当します。
 /// </summary>
-public sealed class Stage0SceneTransitionController : MonoBehaviour
+public sealed class Stage1SceneTransitionController : MonoBehaviour
 {
     [SerializeField]
-    private Stage0Controller stageController;
+    private Stage1Controller stageController;
 
     [SerializeField]
     private StagePhotoCaptureController stagePhotoCaptureController;
@@ -20,7 +20,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
     private string playerName = "プレイヤー";
 
     [SerializeField]
-    private string locationName = "Stage 0";
+    private string locationName = "Stage 1";
 
     [SerializeField]
     private string resultSceneName = "ResultScene";
@@ -71,7 +71,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         if (stageController == null)
         {
             Debug.LogError(
-                "[Stage0SceneTransitionController] Stage controller is not assigned.",
+                "[Stage1SceneTransitionController] Stage controller is not assigned.",
                 this
             );
             return;
@@ -102,9 +102,9 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         ReturnToTitleAsync(GetLifetimeCancellationToken()).Forget();
     }
 
-    private void HandleStageStateChanged(Stage0Controller.Stage0State state)
+    private void HandleStageStateChanged(Stage1Controller.Stage1State state)
     {
-        if (state != Stage0Controller.Stage0State.Completed || hasStartedResultTransition)
+        if (state != Stage1Controller.Stage1State.Completed || hasStartedResultTransition)
         {
             return;
         }
@@ -205,7 +205,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         if (!Application.CanStreamedLevelBeLoaded(titleSceneName))
         {
             Debug.LogError(
-                $"[Stage0SceneTransitionController] Title scene '{titleSceneName}' cannot be loaded.",
+                $"[Stage1SceneTransitionController] Title scene '{titleSceneName}' cannot be loaded.",
                 this
             );
             return;
@@ -240,7 +240,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         if (!Application.CanStreamedLevelBeLoaded(resultSceneName))
         {
             Debug.LogError(
-                $"[Stage0SceneTransitionController] Result scene '{resultSceneName}' cannot be loaded.",
+                $"[Stage1SceneTransitionController] Result scene '{resultSceneName}' cannot be loaded.",
                 this
             );
             return false;
@@ -249,7 +249,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         if (stagePhotoCaptureController == null)
         {
             Debug.LogError(
-                "[Stage0SceneTransitionController] Photo capture controller is not assigned.",
+                "[Stage1SceneTransitionController] Photo capture controller is not assigned.",
                 this
             );
             return false;
@@ -259,7 +259,7 @@ public sealed class Stage0SceneTransitionController : MonoBehaviour
         if (capturedPhoto == null)
         {
             Debug.LogError(
-                "[Stage0SceneTransitionController] No captured photo is available for the Result scene.",
+                "[Stage1SceneTransitionController] No captured photo is available for the Result scene.",
                 this
             );
             return false;

@@ -1578,7 +1578,7 @@ MonoBehaviour:
     Score: 1500
   - ImageName: "\u4EEE_\u80CC\u666F"
     Score: 2000
-  - ImageName: Game_Stage0
+  - ImageName: Game_Stage1
     Score: 3000
   - ImageName: screen_sns
     Score: 2900

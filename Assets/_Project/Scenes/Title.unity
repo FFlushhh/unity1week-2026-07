@@ -4340,7 +4340,7 @@ MonoBehaviour:
   _transitionAnimator: {fileID: 1646906702032130238}
   _transitionTriggerName: Change
   _fadeDuration: 0.6
-  _nextSceneName: Game_Stage0
+  _nextSceneName: Game_Stage1
 --- !u!1 &346600697952873629
 GameObject:
   m_ObjectHideFlags: 0

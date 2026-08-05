@@ -15,7 +15,7 @@ public sealed class PhotoPreviewFocusPlayModeTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var stageScene = SceneManager.GetSceneByName("Game_Stage0");
+        var stageScene = SceneManager.GetSceneByName("Game_Stage1");
         if (stageScene.IsValid() && stageScene.isLoaded)
         {
             var emptyScene = SceneManager.CreateScene(
@@ -36,11 +36,11 @@ public sealed class PhotoPreviewFocusPlayModeTests
     [UnityTest]
     public IEnumerator SceneWiresTheFocusPresentationToTheStageControllerAndThePhotoPreview()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var gameController = GameObject.Find("GameController");
-        var stageController = gameController.GetComponent<Stage0Controller>();
+        var stageController = gameController.GetComponent<Stage1Controller>();
         var focusPresentation = gameController.GetComponent<StagePhotoFocusPresentation>();
 
         Assert.That(focusPresentation, Is.Not.Null);
@@ -65,7 +65,7 @@ public sealed class PhotoPreviewFocusPlayModeTests
     [UnityTest]
     public IEnumerator PhotoPreviewIsBlurredRightAfterTheSceneLoads()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var photoPreview = GameObject.Find("PhotoPreview").GetComponent<RawImage>();
@@ -77,10 +77,10 @@ public sealed class PhotoPreviewFocusPlayModeTests
     [UnityTest]
     public IEnumerator PhotoPreviewReturnsToTheDefaultMaterialOncePlayingStarts()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var focusPresentation = GameObject
             .Find("GameController")
             .GetComponent<StagePhotoFocusPresentation>();
@@ -90,7 +90,7 @@ public sealed class PhotoPreviewFocusPlayModeTests
         SetPrivateField(focusPresentation, "postBlurWaitDuration", 0.02f);
 
         yield return WaitUntilOrTimeout(
-            () => stageController.CurrentState == Stage0Controller.Stage0State.Playing,
+            () => stageController.CurrentState == Stage1Controller.Stage1State.Playing,
             "Stage did not reach Playing."
         );
 
@@ -104,7 +104,7 @@ public sealed class PhotoPreviewFocusPlayModeTests
             Application.dataPath,
             "_Project",
             "Scenes",
-            "Game_Stage0.unity"
+            "Game_Stage1.unity"
         );
         var sceneText = File.ReadAllText(scenePath);
 

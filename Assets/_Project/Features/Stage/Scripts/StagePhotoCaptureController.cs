@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public sealed class StagePhotoCaptureController : MonoBehaviour
 {
     [SerializeField]
-    private Stage0Controller stageController;
+    private Stage1Controller stageController;
 
     [SerializeField]
     private PhotoFrameSubjectJudge photoFrameSubjectJudge;
@@ -85,7 +85,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         if (stageController != null)
         {
             stageController.StateChanged += HandleStageStateChanged;
-            if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
+            if (stageController.CurrentState == Stage1Controller.Stage1State.Playing)
             {
                 ResetCapture();
             }
@@ -135,7 +135,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
             return false;
         }
 
-        if (stageController.CurrentState != Stage0Controller.Stage0State.Playing)
+        if (stageController.CurrentState != Stage1Controller.Stage1State.Playing)
         {
             return false;
         }
@@ -188,9 +188,9 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         TryCapture();
     }
 
-    private void HandleStageStateChanged(Stage0Controller.Stage0State state)
+    private void HandleStageStateChanged(Stage1Controller.Stage1State state)
     {
-        if (state == Stage0Controller.Stage0State.Playing)
+        if (state == Stage1Controller.Stage1State.Playing)
         {
             ResetCapture();
         }
