@@ -82,6 +82,9 @@ mono_crash.*
 *.unitypackage.meta
 *.app
 
+# WebGLビルド時にプロジェクトルートへ生成されるBurstコンパイラの中間生成物
+/Data/
+
 # Crashlytics generated file
 crashlytics-build.properties
 

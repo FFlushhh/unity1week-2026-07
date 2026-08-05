@@ -214,6 +214,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unityroom.client": {
+      "version": "https://github.com/unityroom/unityroom-sdk.git?path=src/Unityroom.Client/Assets/Unityroom.Client#v0.1.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d4e95d927d42c41d76317364cbb521333b6999e6"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,

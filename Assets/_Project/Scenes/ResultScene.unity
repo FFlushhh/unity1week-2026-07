@@ -1126,6 +1126,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 668481076}
   m_CullTransparentMesh: 1
+--- !u!1 &699496493
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 699496495}
+  - component: {fileID: 699496494}
+  m_Layer: 0
+  m_Name: UnityroomScoreSubmitter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &699496494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 699496493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1d592d909d65204490e8d1ce3f44e7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Result::ResultScene.UnityroomScoreSubmitter
+  hmacKey: QI5bBxeKY9pmeM9KWoq/+A7XFbiMazdS+EGhZdEqo0aWKLfiEHUXG1Dk8FRcjoQfeXqIcQZQbBZxyTq65wwETQ==
+  scoreboardId: 1
+--- !u!4 &699496495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 699496493}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.6231, y: -2.10522, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &780866538
 GameObject:
   m_ObjectHideFlags: 0
@@ -1560,6 +1606,7 @@ MonoBehaviour:
   _shakeTarget: {fileID: 235239936}
   _nextSceneName: Title
   _buzzReactionManager: {fileID: 1875841040}
+  _scoreSubmitter: {fileID: 699496494}
   _holdKeyText: {fileID: 1461348441}
   _holdTextStartColor: {r: 1, g: 1, b: 1, a: 0.4}
   _holdTextEndColor: {r: 1, g: 0.9, b: 0.2, a: 1}
@@ -3549,3 +3596,4 @@ SceneRoots:
   - {fileID: 1875841041}
   - {fileID: 5818474880858049138}
   - {fileID: 2026409934}
+  - {fileID: 699496495}
