@@ -4,7 +4,9 @@
     "references": [
         "Unity.TextMeshPro",
         "Unity.InputSystem",
-        "Project.SoundSetting"
+        "Project.SoundSetting",
+        "UniTask",
+        "Unityroom.Client"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

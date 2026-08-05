@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -163,6 +164,13 @@ namespace ResultScene
         [Header("Buzz Reaction")]
         [SerializeField, Tooltip("バズリアクション（いいね演出）を管理するコンポーネント")]
         private BuzzReaction.BuzzReactionManager _buzzReactionManager;
+
+        [Header("Unityroom Scoreboard")]
+        [
+            SerializeField,
+            Tooltip("unityroomへのスコア送信を担当するコンポーネント。未設定なら送信しない")
+        ]
+        private UnityroomScoreSubmitter _scoreSubmitter;
 
         [Header("Hold to Skip UI")]
         [SerializeField, Tooltip("長押しスキップ案内のテキストUI")]
@@ -900,6 +908,13 @@ namespace ResultScene
                 _holdKeyText.gameObject.SetActive(true);
                 _holdKeyText.color = _holdTextStartColor;
                 _holdKeyText.transform.localScale = Vector3.one;
+            }
+
+            // 通常フロー・スキップフローのどちらでもここを通るため、送信箇所はここ1箇所のみでよい。
+            // 送信の成否はゲーム進行に影響させないためFire-and-forgetで呼ぶ。
+            if (_scoreSubmitter != null)
+            {
+                _scoreSubmitter.SendScoreAsync(_totalScore, destroyCancellationToken).Forget();
             }
         }
 
