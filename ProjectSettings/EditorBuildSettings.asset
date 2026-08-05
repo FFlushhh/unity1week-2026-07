@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Title.unity
     guid: 1a35482b851a39a42878506bd4f77be4
   - enabled: 1
-    path: Assets/_Project/Scenes/Game_Stage0.unity
+    path: Assets/_Project/Scenes/Game_Stage1.unity
     guid: ecb23e360cc7497d9ce0bbd3a05f33ff
   - enabled: 0
     path: Assets/_Project/Scenes/MockGameScene.unity

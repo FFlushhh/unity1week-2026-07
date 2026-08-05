@@ -51,10 +51,10 @@ public sealed class GameFlowSceneTransitionPlayModeTests
     [UnityTest]
     public IEnumerator SuccessfulCaptureFlowLoadsResultReturnsToTitleAndStartsFreshGame()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
-        var stageController = UnityEngine.Object.FindAnyObjectByType<Stage0Controller>();
+        var stageController = UnityEngine.Object.FindAnyObjectByType<Stage1Controller>();
         var captureController =
             UnityEngine.Object.FindAnyObjectByType<StagePhotoCaptureController>();
         Assert.That(stageController, Is.Not.Null);
@@ -68,7 +68,7 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         InvokePrivateMethod(
             stageController,
             "TransitionTo",
-            Stage0Controller.Stage0State.Completed
+            Stage1Controller.Stage1State.Completed
         );
 
         yield return WaitForActiveScene("ResultScene");
@@ -92,7 +92,7 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         SetPrivateField(titleManager, "_fadeDuration", 0f);
 
         startButton.onClick.Invoke();
-        yield return WaitForActiveScene("Game_Stage0");
+        yield return WaitForActiveScene("Game_Stage1");
         yield return null;
 
         var freshCaptureController =
@@ -106,11 +106,11 @@ public sealed class GameFlowSceneTransitionPlayModeTests
     [UnityTest]
     public IEnumerator RepeatedGameOverReturnInputLoadsTitleOnce()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var transitionController =
-            UnityEngine.Object.FindAnyObjectByType<Stage0SceneTransitionController>();
+            UnityEngine.Object.FindAnyObjectByType<Stage1SceneTransitionController>();
         Assert.That(transitionController, Is.Not.Null);
 
         transitionController.ReturnToTitle();

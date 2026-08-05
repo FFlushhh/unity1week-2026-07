@@ -56,7 +56,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [UnityTest]
     public IEnumerator ShutterInputCallbackAndButtonCaptureOnlyOnce()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
         var shutterButton = GetPrivateField<Button>(captureController, "shutterButton");
 
         yield return null;
@@ -69,8 +69,8 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
 
         Assert.That(captureController.HasCaptured, Is.True);
         Assert.That(
-            GetPrivateField<Stage0Controller>(captureController, "stageController").CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+            GetPrivateField<Stage1Controller>(captureController, "stageController").CurrentState,
+            Is.EqualTo(Stage1Controller.Stage1State.CapturedWaitingForTimeout)
         );
         Assert.That(captureController.CapturedSubjects, Has.Count.EqualTo(1));
         Assert.That(captureController.CapturedPhoto, Is.Not.Null);
@@ -94,7 +94,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [UnityTest]
     public IEnumerator ShutterInputCallbackIgnoresAdditionalInput()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
 
         yield return null;
 
@@ -118,7 +118,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [Test]
     public void CaptureIsIgnoredOutsidePlayingState()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.StartMessage);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.StartMessage);
 
         Assert.That(captureController.TryCapture(), Is.False);
         Assert.That(captureController.HasCaptured, Is.False);
@@ -135,13 +135,13 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [Test]
     public void EnteringPlayingStateResetsTheCapture()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
 
         Assert.That(captureController.TryCapture(), Is.True);
         InvokePrivateMethod(
             captureController,
             "HandleStageStateChanged",
-            Stage0Controller.Stage0State.Playing
+            Stage1Controller.Stage1State.Playing
         );
 
         Assert.That(captureController.HasCaptured, Is.False);
@@ -151,7 +151,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [Test]
     public void TakeCapturedPhotoTransfersOwnershipOnlyOnceAndClearsPreview()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
         Assert.That(captureController.TryCapture(), Is.True);
 
         var capturedPhoto = captureController.CapturedPhoto;
@@ -173,7 +173,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [UnityTest]
     public IEnumerator UntransferredCapturedImageIsDestroyedWithCaptureController()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
         Assert.That(captureController.TryCapture(), Is.True);
         var capturedImage = captureController.CapturedPhoto.Image;
 
@@ -186,7 +186,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [UnityTest]
     public IEnumerator TransferredCapturedImageSurvivesCaptureControllerDestruction()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
         Assert.That(captureController.TryCapture(), Is.True);
         var transferredPhoto = captureController.TakeCapturedPhoto();
         var capturedImage = transferredPhoto.Image;
@@ -221,7 +221,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     public IEnumerator CaptureWithPresentationAssignsTextureBeforeShowingThePreview()
     {
         var captureController = CreateCaptureController(
-            Stage0Controller.Stage0State.Playing,
+            Stage1Controller.Stage1State.Playing,
             withPresentation: true
         );
         var presentation = GetPrivateField<StagePhotoCapturePresentation>(
@@ -249,8 +249,8 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         Assert.That(capturedBackgroundPixel.r, Is.LessThan(0.1f));
         Assert.That(capturedBackgroundPixel.b, Is.LessThan(0.1f));
         Assert.That(
-            GetPrivateField<Stage0Controller>(captureController, "stageController").CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+            GetPrivateField<Stage1Controller>(captureController, "stageController").CurrentState,
+            Is.EqualTo(Stage1Controller.Stage1State.CapturedWaitingForTimeout)
         );
 
         yield return WaitUntilOrTimeout(
@@ -269,7 +269,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     public IEnumerator TakingCapturedPhotoCancelsPresentationAndKeepsThePreviewHidden()
     {
         var captureController = CreateCaptureController(
-            Stage0Controller.Stage0State.Playing,
+            Stage1Controller.Stage1State.Playing,
             withPresentation: true
         );
         var presentation = GetPrivateField<StagePhotoCapturePresentation>(
@@ -297,7 +297,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     [UnityTest]
     public IEnumerator CaptureExcludesOccludedSubjectWithoutRemovingItFromPhotoCameraOutput()
     {
-        var captureController = CreateCaptureController(Stage0Controller.Stage0State.Playing);
+        var captureController = CreateCaptureController(Stage1Controller.Stage1State.Playing);
         var photoCamera = GetPrivateField<Camera>(captureController, "photoCamera");
         var candidate = captureSubject;
         var candidateRenderer = candidate.GetComponent<SpriteRenderer>();
@@ -324,7 +324,7 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
         var resultData = StageResultDataFactory.Create(
             captureController.CapturedPhoto,
             "プレイヤー",
-            "Stage 0"
+            "Stage 1"
         );
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("ハト"));
@@ -346,12 +346,12 @@ public sealed class StagePhotoCaptureControllerPlayModeTests
     }
 
     private StagePhotoCaptureController CreateCaptureController(
-        Stage0Controller.Stage0State state,
+        Stage1Controller.Stage1State state,
         bool withPresentation = false
     )
     {
-        var stageControllerObject = CreateGameObject("Stage0Controller", active: false);
-        var stageController = stageControllerObject.AddComponent<Stage0Controller>();
+        var stageControllerObject = CreateGameObject("Stage1Controller", active: false);
+        var stageController = stageControllerObject.AddComponent<Stage1Controller>();
         SetPrivateField(stageController, "currentState", state);
         SetPrivateField(stageController, "remainingTime", 10f);
 

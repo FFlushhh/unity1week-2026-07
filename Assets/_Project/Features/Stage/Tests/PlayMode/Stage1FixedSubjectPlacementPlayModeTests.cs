@@ -7,9 +7,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 /// <summary>
-/// Game_Stage0へ固定配置した自撮り被写体の構成と、PhotoCamera内での見え方を検証します。
+/// Game_Stage1へ固定配置した自撮り被写体の構成と、PhotoCamera内での見え方を検証します。
 /// </summary>
-public sealed class Stage0FixedSubjectPlacementPlayModeTests
+public sealed class Stage1FixedSubjectPlacementPlayModeTests
 {
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
     private const int PhotoSubjectLayer = 6;
@@ -19,11 +19,11 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var stageScene = SceneManager.GetSceneByName("Game_Stage0");
+        var stageScene = SceneManager.GetSceneByName("Game_Stage1");
         if (stageScene.IsValid() && stageScene.isLoaded)
         {
             var emptyScene = SceneManager.CreateScene(
-                $"{nameof(Stage0FixedSubjectPlacementPlayModeTests)}.Empty"
+                $"{nameof(Stage1FixedSubjectPlacementPlayModeTests)}.Empty"
             );
             SceneManager.SetActiveScene(emptyScene);
 
@@ -40,7 +40,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlExistsOnceUnderFixedSubjectRoot()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
 
@@ -54,7 +54,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlKeepsPrefabScoreAndReferences()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
 
@@ -68,7 +68,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlColliderMatchesTheRenderedSpriteGeometry()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         var sprite = selfieGirl.SubjectRenderer.sprite;
@@ -107,7 +107,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlDoesNotMoveAndIsNotScheduledBySubjectTimeline()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         Assert.That(selfieGirl.GetComponent<SubjectMover>(), Is.Null);
@@ -134,7 +134,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlRendersInFrontOfEveryMovingSubject()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         Assert.That(selfieGirl.SubjectRenderer.sortingOrder, Is.EqualTo(SelfieGirlSortingOrder));
@@ -165,7 +165,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlIsVisibleOnlyThroughPhotoCamera()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
         var mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
@@ -180,7 +180,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlJudgementPointStaysStrictlyInsidePhotoCamera()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
@@ -195,7 +195,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlJudgementPointIsCoveredByItsOwnCollider()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         var collider = selfieGirl.GetComponent<PolygonCollider2D>();
@@ -211,7 +211,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlOpaqueAreaFillsTheLowerLeftOfPhotoCamera()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
         var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
@@ -257,13 +257,13 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     [UnityTest]
     public IEnumerator SelfieGirlSurvivesUntilPlayingStarts()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var selfieGirl = FindSelfieGirl();
-        var stageController = Object.FindAnyObjectByType<Stage0Controller>();
+        var stageController = Object.FindAnyObjectByType<Stage1Controller>();
         Assert.That(stageController, Is.Not.Null);
 
-        yield return WaitForStageState(stageController, Stage0Controller.Stage0State.Playing);
+        yield return WaitForStageState(stageController, Stage1Controller.Stage1State.Playing);
 
         Assert.That(
             selfieGirl == null,
@@ -275,8 +275,8 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
     }
 
     private static IEnumerator WaitForStageState(
-        Stage0Controller stageController,
-        Stage0Controller.Stage0State expectedState
+        Stage1Controller stageController,
+        Stage1Controller.Stage1State expectedState
     )
     {
         const float timeoutSeconds = 10f;
@@ -310,7 +310,7 @@ public sealed class Stage0FixedSubjectPlacementPlayModeTests
         Assert.That(
             selfieGirls,
             Has.Count.EqualTo(1),
-            "Game_Stage0 must contain exactly one SelfieGirl subject."
+            "Game_Stage1 must contain exactly one SelfieGirl subject."
         );
         return selfieGirls[0];
     }

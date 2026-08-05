@@ -5,11 +5,11 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// Game_Stage0の進行状態と、状態ごとのUI表示を管理します。
+/// Game_Stage1の進行状態と、状態ごとのUI表示を管理します。
 /// </summary>
-public sealed class Stage0Controller : MonoBehaviour
+public sealed class Stage1Controller : MonoBehaviour
 {
-    public enum Stage0State
+    public enum Stage1State
     {
         StartMessage,
         Playing,
@@ -64,15 +64,15 @@ public sealed class Stage0Controller : MonoBehaviour
     [SerializeField]
     private float _gameOverSeVolume = 1.0f; // SEの音量
 
-    private Stage0State currentState;
+    private Stage1State currentState;
     private float remainingTime;
     private bool hasInitialized;
 
-    public Stage0State CurrentState => currentState;
+    public Stage1State CurrentState => currentState;
 
     public float RemainingTime => remainingTime;
 
-    public event Action<Stage0State> StateChanged;
+    public event Action<Stage1State> StateChanged;
 
     private void Start()
     {
@@ -81,11 +81,11 @@ public sealed class Stage0Controller : MonoBehaviour
 
     private async UniTask RunStartMessageAsync(CancellationToken cancellationToken)
     {
-        TransitionTo(Stage0State.StartMessage);
+        TransitionTo(Stage1State.StartMessage);
 
         if (photoFocusPresentation == null)
         {
-            Debug.LogError("[Stage0Controller] Photo focus presentation is not assigned.", this);
+            Debug.LogError("[Stage1Controller] Photo focus presentation is not assigned.", this);
         }
         else
         {
@@ -99,17 +99,17 @@ public sealed class Stage0Controller : MonoBehaviour
             }
         }
 
-        if (currentState == Stage0State.StartMessage)
+        if (currentState == Stage1State.StartMessage)
         {
-            TransitionTo(Stage0State.Playing);
+            TransitionTo(Stage1State.Playing);
         }
     }
 
     private void Update()
     {
         if (
-            currentState == Stage0State.Playing
-            || currentState == Stage0State.CapturedWaitingForTimeout
+            currentState == Stage1State.Playing
+            || currentState == Stage1State.CapturedWaitingForTimeout
         )
         {
             UpdateTimer();
@@ -118,29 +118,29 @@ public sealed class Stage0Controller : MonoBehaviour
 
     public void BeginCapturedWaitingForTimeout()
     {
-        if (currentState != Stage0State.Playing)
+        if (currentState != Stage1State.Playing)
         {
             Debug.LogWarning(
-                $"[Stage0Controller] Capture request was ignored in {currentState}.",
+                $"[Stage1Controller] Capture request was ignored in {currentState}.",
                 this
             );
             return;
         }
 
-        TransitionTo(Stage0State.CapturedWaitingForTimeout);
+        TransitionTo(Stage1State.CapturedWaitingForTimeout);
     }
 
     public void EnterGameOver()
     {
-        if (currentState == Stage0State.GameOver || currentState == Stage0State.Completed)
+        if (currentState == Stage1State.GameOver || currentState == Stage1State.Completed)
         {
             return;
         }
 
-        TransitionTo(Stage0State.GameOver);
+        TransitionTo(Stage1State.GameOver);
     }
 
-    private void TransitionTo(Stage0State nextState)
+    private void TransitionTo(Stage1State nextState)
     {
         if (hasInitialized && currentState == nextState)
         {
@@ -151,7 +151,7 @@ public sealed class Stage0Controller : MonoBehaviour
         currentState = nextState;
         StateChanged?.Invoke(currentState);
 
-        if (nextState == Stage0State.Playing)
+        if (nextState == Stage1State.Playing)
         {
             remainingTime = playingDuration;
             UpdateTimerText();
@@ -160,33 +160,33 @@ public sealed class Stage0Controller : MonoBehaviour
         ApplyUiFor(nextState);
         if (hasInitialized)
         {
-            Debug.Log($"[Stage0Controller] {previousState} -> {nextState}", this);
+            Debug.Log($"[Stage1Controller] {previousState} -> {nextState}", this);
         }
         else
         {
-            Debug.Log($"[Stage0Controller] Initial state: {nextState}", this);
+            Debug.Log($"[Stage1Controller] Initial state: {nextState}", this);
             hasInitialized = true;
         }
     }
 
-    private void ApplyUiFor(Stage0State state)
+    private void ApplyUiFor(Stage1State state)
     {
-        SetActive(startMessage, state == Stage0State.StartMessage);
+        SetActive(startMessage, state == Stage1State.StartMessage);
 
-        if (state != Stage0State.StartMessage && photoFocusPresentation != null)
+        if (state != Stage1State.StartMessage && photoFocusPresentation != null)
         {
             photoFocusPresentation.ResetPresentation();
         }
 
-        if (state == Stage0State.GameOver)
+        if (state == Stage1State.GameOver)
         {
             BeginGameOverPresentation();
             return;
         }
 
-        SetActive(timer, state != Stage0State.StartMessage);
+        SetActive(timer, state != Stage1State.StartMessage);
         SetActive(photoFrame, true);
-        SetActive(shutterButton, state == Stage0State.Playing);
+        SetActive(shutterButton, state == Stage1State.Playing);
         ResetGameOverPresentation();
     }
 
@@ -194,7 +194,7 @@ public sealed class Stage0Controller : MonoBehaviour
     {
         if (gameOverPanel == null || gameOverFade == null || gameOverContent == null)
         {
-            Debug.LogError("[Stage0Controller] Game over UI is not assigned.", this);
+            Debug.LogError("[Stage1Controller] Game over UI is not assigned.", this);
             SetActive(gameOverPanel, true);
             PlayGameOverSE(); // UI未設定時のフォールバック再生
             return;
@@ -254,15 +254,15 @@ public sealed class Stage0Controller : MonoBehaviour
             return;
         }
 
-        if (currentState == Stage0State.Playing)
+        if (currentState == Stage1State.Playing)
         {
             EnterGameOver();
             return;
         }
 
-        if (currentState == Stage0State.CapturedWaitingForTimeout)
+        if (currentState == Stage1State.CapturedWaitingForTimeout)
         {
-            TransitionTo(Stage0State.Completed);
+            TransitionTo(Stage1State.Completed);
         }
     }
 

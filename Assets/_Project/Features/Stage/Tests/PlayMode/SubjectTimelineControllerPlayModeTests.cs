@@ -30,7 +30,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingSpawnsDogUnderConfiguredRootWithConfiguredScale()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -47,7 +47,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingMovesSpawnedDogToTheRight()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -66,7 +66,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingConfiguresVerticalSwayForSpawnedSubject()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         CreateTimeline(
@@ -88,7 +88,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingPlacesConfiguredPathAnchorAtSpawnPosition()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreatePathAnchoredDogPrefab();
         CreateTimeline(
@@ -108,7 +108,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingMirrorsFixedSpawnPositionDirectionAndSpriteWhenOppositeSideIsSelected()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateFacingDogPrefab();
         var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 5f);
@@ -134,7 +134,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingMirrorsJudgementPointAndColliderWhenOppositeSideIsSelected()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var judgementPointLocalPosition = new Vector3(0.6f, 0.4f, 0f);
         var colliderPoints = new[]
@@ -183,7 +183,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingDoesNotMirrorJudgementPointOrColliderWhenSameSideIsSelected()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var judgementPointLocalPosition = new Vector3(0.6f, 0.4f, 0f);
         var colliderPoints = new[]
@@ -224,7 +224,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator RandomSpawnKeepsItsOppositeSideSelectionInTheGeneratedSchedule()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateFacingDogPrefab();
         var timeline = CreateRandomTimeline(
@@ -246,7 +246,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingAssignsUniqueSortingOrdersToGeneratedSubjects()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateFacingDogPrefab();
         dogPrefab.GetComponent<StageSubject>().SubjectRenderer.sortingOrder = 10;
@@ -281,7 +281,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator StartMessageSpawnsUniqueInitialSubjectsInsideTheConfiguredHorizontalRange()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.StartMessage);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateSubjectPrefab("Dog", SubjectId.Dog);
         var dirtyClothesPersonPrefab = CreateSubjectPrefab(
@@ -317,7 +317,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator FirstPlayingEntryKeepsTheInitialSubjectsMoving()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.StartMessage);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateSubjectPrefab("Dog", SubjectId.Dog);
         var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 10f);
@@ -329,7 +329,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
         var initialDog = spawnRoot.GetChild(0).gameObject;
         var positionBeforePlaying = initialDog.transform.position.x;
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
 
         Assert.That(initialDog, Is.Not.Null);
@@ -340,7 +340,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator StartMessageSpawnsScheduledSubjectsAndKeepsThemWhenPlayingStarts()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.StartMessage);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.StartMessage);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         var timeline = CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -352,7 +352,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
         Assert.That(spawnRoot.childCount, Is.EqualTo(1));
         var scheduledDog = spawnRoot.GetChild(0).gameObject;
 
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
 
         Assert.That(spawnRoot.childCount, Is.EqualTo(1));
@@ -361,18 +361,18 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
     [UnityTest]
     [Ignore("Inspectorの調整を許可するため無効化")]
-    public IEnumerator GameStage0StartsWithUniqueInitialSubjectsThatContinueMovingIntoPlaying()
+    public IEnumerator GameStage1StartsWithUniqueInitialSubjectsThatContinueMovingIntoPlaying()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
 
         Assert.That(
             stageController.CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.StartMessage)
+            Is.EqualTo(Stage1Controller.Stage1State.StartMessage)
         );
         Assert.That(spawnRoot.childCount, Is.InRange(2, 3));
 
@@ -401,7 +401,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
         Assert.That(hasMovedInitialSubject, Is.True);
 
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
 
         Assert.That(spawnRoot.childCount, Is.EqualTo(initialPositions.Count));
@@ -414,7 +414,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator PlayingStartsAnotherRandomBatchAfterCurrentBatchIsExhausted()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         var timeline = CreateRandomTimeline(
@@ -442,7 +442,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator ReenteringPlayingBuildsANewRandomSchedule()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         var timeline = CreateRandomTimeline(
@@ -459,9 +459,9 @@ public sealed class SubjectTimelineControllerPlayModeTests
         yield return null;
 
         var firstSpawnTimeSeconds = GetFirstScheduledSpawnTime(timeline);
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.StartMessage);
         yield return null;
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
 
         var secondSpawnTimeSeconds = GetFirstScheduledSpawnTime(timeline);
@@ -472,13 +472,13 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
     [UnityTest]
     [Ignore("Inspectorの調整を許可するため無効化")]
-    public IEnumerator GameStage0InspectorSettingsMatchThePublishedRandomSpawnSpecification()
+    public IEnumerator GameStage1InspectorSettingsMatchThePublishedRandomSpawnSpecification()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
 
         var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
         var photoCamera = GameObject.Find("PhotoCamera").GetComponent<Camera>();
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var spawnSettings = GetPrivateField<Array>(timeline, "spawnSettings");
 
         Assert.That(timeline, Is.Not.Null);
@@ -652,13 +652,13 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator GroundSubjectsPlaceFootPointsOnTheGroundLane()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
 
         SetPrivateField(timeline, "elapsedTimeSeconds", 10f);
@@ -692,16 +692,16 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
     [UnityTest]
     [Ignore("Inspectorの調整を許可するため無効化")]
-    public IEnumerator GameStage0ReenteringPlayingRebuildsAndResetsTheRandomSpawnSchedule()
+    public IEnumerator GameStage1ReenteringPlayingRebuildsAndResetsTheRandomSpawnSchedule()
     {
-        yield return SceneManager.LoadSceneAsync("Game_Stage0", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
         var timeline = GameObject.Find("SubjectTimeline").GetComponent<SubjectTimelineController>();
-        var stageController = GameObject.Find("GameController").GetComponent<Stage0Controller>();
+        var stageController = GameObject.Find("GameController").GetComponent<Stage1Controller>();
         var spawnRoot = GetPrivateField<Transform>(timeline, "subjectSpawnRoot");
         SetPrivateField(timeline, "spawnRandom", new System.Random(0));
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
 
         yield return null;
 
@@ -712,9 +712,9 @@ public sealed class SubjectTimelineControllerPlayModeTests
         var initialSubjectCount = spawnRoot.childCount - firstSchedule.Count;
         Assert.That(initialSubjectCount, Is.InRange(2, 3));
 
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.StartMessage);
         yield return null;
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
         yield return null;
 
@@ -726,7 +726,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator ReenteringPlayingResetsTimelineAndReplacesPreviousDog()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -734,9 +734,9 @@ public sealed class SubjectTimelineControllerPlayModeTests
         yield return null;
 
         var firstDog = spawnRoot.GetChild(0).gameObject;
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.StartMessage);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.StartMessage);
         yield return null;
-        SetPrivateField(stageController, "currentState", Stage0Controller.Stage0State.Playing);
+        SetPrivateField(stageController, "currentState", Stage1Controller.Stage1State.Playing);
         yield return null;
         yield return null;
 
@@ -747,7 +747,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator GameOverStopsSpawnedDog()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -767,7 +767,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator GameOverPreventsNewRandomSpawnBatches()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         var timeline = CreateRandomTimeline(
@@ -796,7 +796,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     [UnityTest]
     public IEnumerator CapturedWaitingForTimeoutKeepsDogMovingAfterCompletedUntilSceneExit()
     {
-        var stageController = CreateStageController(Stage0Controller.Stage0State.Playing);
+        var stageController = CreateStageController(Stage1Controller.Stage1State.Playing);
         var spawnRoot = CreateGameObject("SubjectSpawnRoot").transform;
         var dogPrefab = CreateDogPrefab();
         CreateTimeline(stageController, spawnRoot, dogPrefab, 0f);
@@ -819,7 +819,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
 
         Assert.That(
             stageController.CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.Completed)
+            Is.EqualTo(Stage1Controller.Stage1State.Completed)
         );
         Assert.That(dog.position.x, Is.GreaterThan(completedPositionX));
     }
@@ -964,9 +964,9 @@ public sealed class SubjectTimelineControllerPlayModeTests
         return method.Invoke(target, null);
     }
 
-    private Stage0Controller CreateStageController(Stage0Controller.Stage0State state)
+    private Stage1Controller CreateStageController(Stage1Controller.Stage1State state)
     {
-        var stageController = CreateGameObject("Stage0Controller").AddComponent<Stage0Controller>();
+        var stageController = CreateGameObject("Stage1Controller").AddComponent<Stage1Controller>();
         stageController.enabled = false;
 
         var gameOverPanel = CreateGameObject("GameOverPanel");
@@ -987,7 +987,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     private SubjectTimelineController CreateTimeline(
-        Stage0Controller stageController,
+        Stage1Controller stageController,
         Transform spawnRoot,
         GameObject dogPrefab,
         float spawnTimeSeconds,
@@ -1016,7 +1016,7 @@ public sealed class SubjectTimelineControllerPlayModeTests
     }
 
     private SubjectTimelineController CreateRandomTimeline(
-        Stage0Controller stageController,
+        Stage1Controller stageController,
         Transform spawnRoot,
         GameObject subjectPrefab,
         int minimumSpawnCount,

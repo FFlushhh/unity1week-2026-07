@@ -282,7 +282,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
     }
 
     [SerializeField]
-    private Stage0Controller stageController;
+    private Stage1Controller stageController;
 
     [SerializeField]
     private Transform subjectSpawnRoot;
@@ -330,12 +330,12 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
 
         stageController.StateChanged += HandleStageStateChanged;
-        if (stageController.CurrentState == Stage0Controller.Stage0State.StartMessage)
+        if (stageController.CurrentState == Stage1Controller.Stage1State.StartMessage)
         {
             BuildSpawnSchedule();
             SpawnInitialSubjects();
         }
-        else if (stageController.CurrentState == Stage0Controller.Stage0State.Playing)
+        else if (stageController.CurrentState == Stage1Controller.Stage1State.Playing)
         {
             BuildSpawnSchedule();
             hasEnteredPlaying = true;
@@ -362,8 +362,8 @@ public sealed class SubjectTimelineController : MonoBehaviour
             {
                 var currentState = stageController.CurrentState;
                 if (
-                    currentState == Stage0Controller.Stage0State.Playing
-                    && previousState != Stage0Controller.Stage0State.Playing
+                    currentState == Stage1Controller.Stage1State.Playing
+                    && previousState != Stage1Controller.Stage1State.Playing
                 )
                 {
                     if (hasEnteredPlaying)
@@ -397,7 +397,7 @@ public sealed class SubjectTimelineController : MonoBehaviour
         }
     }
 
-    private void HandleStageStateChanged(Stage0Controller.Stage0State state)
+    private void HandleStageStateChanged(Stage1Controller.Stage1State state)
     {
         if (!IsGameOverState(state) || hasStoppedForGameOver)
         {
@@ -408,14 +408,14 @@ public sealed class SubjectTimelineController : MonoBehaviour
         hasStoppedForGameOver = true;
     }
 
-    private static bool IsTimelineRunning(Stage0Controller.Stage0State state)
+    private static bool IsTimelineRunning(Stage1Controller.Stage1State state)
     {
-        return state != Stage0Controller.Stage0State.GameOver;
+        return state != Stage1Controller.Stage1State.GameOver;
     }
 
-    private static bool IsGameOverState(Stage0Controller.Stage0State state)
+    private static bool IsGameOverState(Stage1Controller.Stage1State state)
     {
-        return state == Stage0Controller.Stage0State.GameOver;
+        return state == Stage1Controller.Stage1State.GameOver;
     }
 
     private void ResetTimeline(bool destroySpawnedSubjects = true)

@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
-public sealed class Stage0ControllerPlayModeTests
+public sealed class Stage1ControllerPlayModeTests
 {
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -46,7 +46,7 @@ public sealed class Stage0ControllerPlayModeTests
 
         yield return null;
 
-        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.StartMessage));
         Assert.That(GetPrivateField<GameObject>(controller, "startMessage").activeSelf, Is.True);
         Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
         Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.False);
@@ -58,7 +58,7 @@ public sealed class Stage0ControllerPlayModeTests
     {
         var controller = CreateController(startFocusDuration: 0f, playingDuration: 0f);
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.GameOver);
 
         Assert.That(controller.RemainingTime, Is.Zero);
         Assert.That(GetPrivateField<GameObject>(controller, "gameOverPanel").activeSelf, Is.True);
@@ -76,7 +76,7 @@ public sealed class Stage0ControllerPlayModeTests
         var controller = CreateController(startFocusDuration: 0f, playingDuration: 0f);
         SetPrivateField(controller, "gameOverFadeDuration", 0.1f);
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.GameOver);
 
         Assert.That(
             GetPrivateField<GameObject>(controller, "gameOverContent").activeSelf,
@@ -100,13 +100,13 @@ public sealed class Stage0ControllerPlayModeTests
     {
         var controller = CreateController(startFocusDuration: 0f, playingDuration: 0.2f);
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
 
         Assert.That(controller.RemainingTime, Is.GreaterThan(0f));
         Assert.That(GetPrivateField<GameObject>(controller, "startMessage").activeSelf, Is.False);
         Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.True);
         Assert.That(GetPrivateField<GameObject>(controller, "shutterButton").activeSelf, Is.True);
-        yield return WaitForState(controller, Stage0Controller.Stage0State.GameOver);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.GameOver);
 
         var remainingTimeAtGameOver = controller.RemainingTime;
         yield return null;
@@ -121,13 +121,13 @@ public sealed class Stage0ControllerPlayModeTests
     {
         var controller = CreateController(startFocusDuration: 0f, playingDuration: 10f);
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
 
         controller.BeginCapturedWaitingForTimeout();
 
         Assert.That(
             controller.CurrentState,
-            Is.EqualTo(Stage0Controller.Stage0State.CapturedWaitingForTimeout)
+            Is.EqualTo(Stage1Controller.Stage1State.CapturedWaitingForTimeout)
         );
         Assert.That(controller.RemainingTime, Is.GreaterThan(0f));
         Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.True);
@@ -141,17 +141,17 @@ public sealed class Stage0ControllerPlayModeTests
         var completedNotificationCount = 0;
         controller.StateChanged += state =>
         {
-            if (state == Stage0Controller.Stage0State.Completed)
+            if (state == Stage1Controller.Stage1State.Completed)
             {
                 completedNotificationCount++;
             }
         };
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
 
         SetPrivateField(controller, "remainingTime", 0f);
         controller.BeginCapturedWaitingForTimeout();
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Completed);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Completed);
 
         var completedRemainingTime = controller.RemainingTime;
         yield return null;
@@ -177,9 +177,9 @@ public sealed class Stage0ControllerPlayModeTests
         yield return null;
 
         Assert.That(focus.IsPlaying, Is.True);
-        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.StartMessage));
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
 
         Assert.That(focus.IsPlaying, Is.False);
     }
@@ -199,7 +199,7 @@ public sealed class Stage0ControllerPlayModeTests
         {
             Assert.That(
                 controller.CurrentState,
-                Is.EqualTo(Stage0Controller.Stage0State.StartMessage)
+                Is.EqualTo(Stage1Controller.Stage1State.StartMessage)
             );
             Assert.That(GetPrivateField<GameObject>(controller, "timer").activeSelf, Is.False);
             Assert.That(
@@ -216,7 +216,7 @@ public sealed class Stage0ControllerPlayModeTests
             yield return null;
         }
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
     }
 
     [UnityTest]
@@ -227,10 +227,10 @@ public sealed class Stage0ControllerPlayModeTests
 
         LogAssert.Expect(
             LogType.Error,
-            "[Stage0Controller] Photo focus presentation is not assigned."
+            "[Stage1Controller] Photo focus presentation is not assigned."
         );
 
-        yield return WaitForState(controller, Stage0Controller.Stage0State.Playing);
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
     }
 
     [UnityTest]
@@ -244,23 +244,23 @@ public sealed class Stage0ControllerPlayModeTests
 
         yield return null;
 
-        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.StartMessage));
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.StartMessage));
         Assert.That(focus.IsPlaying, Is.True);
 
         controller.EnterGameOver();
         yield return null;
 
-        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.GameOver));
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.GameOver));
         Assert.That(focus.IsPlaying, Is.False);
 
         yield return new WaitForSeconds(1.2f);
 
-        Assert.That(controller.CurrentState, Is.EqualTo(Stage0Controller.Stage0State.GameOver));
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.GameOver));
     }
 
-    private Stage0Controller CreateController(float startFocusDuration, float playingDuration)
+    private Stage1Controller CreateController(float startFocusDuration, float playingDuration)
     {
-        var controllerObject = CreateGameObject("Stage0Controller");
+        var controllerObject = CreateGameObject("Stage1Controller");
         var startMessage = CreateGameObject("StartMessage");
         var timerObject = CreateGameObject("Timer");
         var photoFrame = CreateGameObject("PhotoFrame");
@@ -269,7 +269,7 @@ public sealed class Stage0ControllerPlayModeTests
         var gameOverContent = CreateGameObject("GameOverContent");
         var gameOverFade = gameOverPanel.AddComponent<CanvasGroup>();
         var timerText = timerObject.AddComponent<TextMeshProUGUI>();
-        var controller = controllerObject.AddComponent<Stage0Controller>();
+        var controller = controllerObject.AddComponent<Stage1Controller>();
 
         var previewObject = CreateGameObject("PhotoPreview");
         var preview = previewObject.AddComponent<RawImage>();
@@ -306,8 +306,8 @@ public sealed class Stage0ControllerPlayModeTests
     }
 
     private static IEnumerator WaitForState(
-        Stage0Controller controller,
-        Stage0Controller.Stage0State expectedState
+        Stage1Controller controller,
+        Stage1Controller.Stage1State expectedState
     )
     {
         const double timeoutSeconds = 1d;

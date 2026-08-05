@@ -41,7 +41,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     {
         var capturedPhoto = CreateCapturedPhoto(SubjectId.Dog, SubjectId.Dog, SubjectId.Bird);
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(2));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo("犬"));
@@ -61,7 +61,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     {
         var capturedPhoto = CreateCapturedPhoto(subjectId);
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].BonusName, Is.EqualTo(expectedBonusName));
@@ -81,7 +81,7 @@ public sealed class StageResultDataFactoryPlayModeTests
             SubjectId.SelfieGirl
         );
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         var expectedNamesInOrder = new[]
         {
@@ -106,7 +106,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     {
         var capturedPhoto = CreateCapturedPhoto(SubjectId.Dog);
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses.Exists(bonus => bonus.BonusName == "自撮り"), Is.False);
@@ -117,7 +117,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     {
         var capturedPhoto = CreateCapturedPhoto();
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         Assert.That(resultData.Bonuses, Is.Not.Null);
         Assert.That(resultData.Bonuses, Is.Empty);
@@ -128,10 +128,10 @@ public sealed class StageResultDataFactoryPlayModeTests
     {
         var capturedPhoto = CreateCapturedPhoto(SubjectId.PlasticBag);
 
-        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 0");
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
 
         Assert.That(resultData.PlayerName, Is.EqualTo("プレイヤー"));
-        Assert.That(resultData.LocationName, Is.EqualTo("Stage 0"));
+        Assert.That(resultData.LocationName, Is.EqualTo("Stage 1"));
         Assert.That(resultData.CapturedImage, Is.SameAs(capturedPhoto.Image));
         Assert.That(resultData.Bonuses, Has.Count.EqualTo(1));
         Assert.That(resultData.Bonuses[0].Count, Is.EqualTo(1));
@@ -141,7 +141,7 @@ public sealed class StageResultDataFactoryPlayModeTests
     public void ThrowsForMissingCapturedPhoto()
     {
         Assert.That(
-            () => StageResultDataFactory.Create(null, "プレイヤー", "Stage 0"),
+            () => StageResultDataFactory.Create(null, "プレイヤー", "Stage 1"),
             Throws.TypeOf<ArgumentNullException>()
         );
     }
