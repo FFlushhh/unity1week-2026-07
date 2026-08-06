@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using ResultScene;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -134,6 +135,108 @@ public sealed class Stage1SceneTransitionControllerPlayModeTests
         Assert.That(
             GetPrivateField<bool>(transitionController, "hasStartedTitleTransition"),
             Is.True
+        );
+    }
+
+    [Test]
+    public void ReturnToTitleActionBindsSpaceEnterAndNumpadEnter()
+    {
+        var returnToTitleAction = InvokePrivateStaticMethod<InputAction>(
+            "CreateReturnToTitleAction"
+        );
+
+        Assert.That(returnToTitleAction, Is.Not.Null);
+        var hasSpaceBinding = false;
+        var hasEnterBinding = false;
+        var hasNumpadEnterBinding = false;
+        foreach (var binding in returnToTitleAction.bindings)
+        {
+            hasSpaceBinding |= binding.path == "<Keyboard>/space";
+            hasEnterBinding |= binding.path == "<Keyboard>/enter";
+            hasNumpadEnterBinding |= binding.path == "<Keyboard>/numpadEnter";
+        }
+
+        Assert.That(hasSpaceBinding, Is.True);
+        Assert.That(hasEnterBinding, Is.True);
+        Assert.That(hasNumpadEnterBinding, Is.True);
+        returnToTitleAction.Dispose();
+    }
+
+    [UnityTest]
+    public IEnumerator ReturnToTitlePerformedTransitionsWhenGameOverContentIsVisible()
+    {
+        // タイトルシーンへの実際のロードを避けるため、意図的に存在しないシーン名を使う
+        // (InvalidTitleSceneReportsErrorOnlyOnceForRepeatedInputと同じ手法)。
+        var stageController = CreateStageController(
+            Stage1Controller.Stage1State.GameOver,
+            gameOverContentVisible: true
+        );
+        var transitionController = CreateTransitionController(
+            null,
+            "ResultScene",
+            "MissingTitleScene"
+        );
+        SetPrivateField(transitionController, "stageController", stageController);
+        LogAssert.Expect(
+            LogType.Error,
+            "[Stage1SceneTransitionController] Title scene 'MissingTitleScene' cannot be loaded."
+        );
+
+        InvokePrivateMethod(
+            transitionController,
+            "HandleReturnToTitlePerformed",
+            default(InputAction.CallbackContext)
+        );
+        yield return null;
+        yield return null;
+
+        Assert.That(
+            GetPrivateField<bool>(transitionController, "hasStartedTitleTransition"),
+            Is.True
+        );
+    }
+
+    [Test]
+    public void ReturnToTitlePerformedIsIgnoredOutsideGameOverState()
+    {
+        var stageController = CreateStageController(
+            Stage1Controller.Stage1State.Playing,
+            gameOverContentVisible: true
+        );
+        var transitionController = CreateTransitionController(null, "ResultScene");
+        SetPrivateField(transitionController, "stageController", stageController);
+
+        InvokePrivateMethod(
+            transitionController,
+            "HandleReturnToTitlePerformed",
+            default(InputAction.CallbackContext)
+        );
+
+        Assert.That(
+            GetPrivateField<bool>(transitionController, "hasStartedTitleTransition"),
+            Is.False
+        );
+    }
+
+    [Test]
+    public void ReturnToTitlePerformedIsIgnoredWhileGameOverContentIsStillFadingIn()
+    {
+        var stageController = CreateStageController(
+            Stage1Controller.Stage1State.GameOver,
+            gameOverContentVisible: false
+        );
+        var transitionController = CreateTransitionController(null, "ResultScene");
+        SetPrivateField(transitionController, "stageController", stageController);
+
+        InvokePrivateMethod(
+            transitionController,
+            "HandleReturnToTitlePerformed",
+            default(InputAction.CallbackContext)
+        );
+
+        Assert.That(
+            GetPrivateField<bool>(transitionController, "hasStartedTitleTransition"),
+            Is.False
         );
     }
 
@@ -383,6 +486,21 @@ public sealed class Stage1SceneTransitionControllerPlayModeTests
         return gameObject;
     }
 
+    private Stage1Controller CreateStageController(
+        Stage1Controller.Stage1State state,
+        bool gameOverContentVisible
+    )
+    {
+        var stageControllerObject = CreateGameObject("Stage1Controller", active: false);
+        var stageController = stageControllerObject.AddComponent<Stage1Controller>();
+        SetPrivateField(stageController, "currentState", state);
+
+        var gameOverContent = CreateGameObject("GameOverContent", active: gameOverContentVisible);
+        SetPrivateField(stageController, "gameOverContent", gameOverContent);
+
+        return stageController;
+    }
+
     private static void DestroyTransitionController(
         Stage1SceneTransitionController transitionController
     )
@@ -461,6 +579,16 @@ public sealed class Stage1SceneTransitionControllerPlayModeTests
         var method = target.GetType().GetMethod(methodName, PrivateInstance);
         Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
         method.Invoke(target, arguments);
+    }
+
+    private static T InvokePrivateStaticMethod<T>(string methodName)
+    {
+        var method = typeof(Stage1SceneTransitionController).GetMethod(
+            methodName,
+            BindingFlags.Static | BindingFlags.NonPublic
+        );
+        Assert.That(method, Is.Not.Null, $"Method '{methodName}' was not found.");
+        return (T)method.Invoke(null, null);
     }
 
     private sealed class ThrowingSceneManagerApi : SceneManagerAPI
