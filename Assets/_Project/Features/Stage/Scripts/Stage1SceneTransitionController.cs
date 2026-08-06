@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using ResultScene;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -31,6 +32,7 @@ public sealed class Stage1SceneTransitionController : MonoBehaviour
     private bool hasStartedResultTransition;
     private bool hasStartedTitleTransition;
     private CancellationTokenSource lifetimeCancellation;
+    private InputAction returnToTitleAction;
 
     [Header("Transition Presentation")]
     [SerializeField]
@@ -74,10 +76,15 @@ public sealed class Stage1SceneTransitionController : MonoBehaviour
                 "[Stage1SceneTransitionController] Stage controller is not assigned.",
                 this
             );
-            return;
+        }
+        else
+        {
+            stageController.StateChanged += HandleStageStateChanged;
         }
 
-        stageController.StateChanged += HandleStageStateChanged;
+        returnToTitleAction = CreateReturnToTitleAction();
+        returnToTitleAction.performed += HandleReturnToTitlePerformed;
+        returnToTitleAction.Enable();
     }
 
     private void OnDisable()
@@ -86,6 +93,37 @@ public sealed class Stage1SceneTransitionController : MonoBehaviour
         {
             stageController.StateChanged -= HandleStageStateChanged;
         }
+
+        if (returnToTitleAction != null)
+        {
+            returnToTitleAction.performed -= HandleReturnToTitlePerformed;
+            returnToTitleAction.Disable();
+            returnToTitleAction.Dispose();
+            returnToTitleAction = null;
+        }
+    }
+
+    private static InputAction CreateReturnToTitleAction()
+    {
+        var action = new InputAction("ReturnToTitle", InputActionType.Button);
+        action.AddBinding("<Keyboard>/space");
+        action.AddBinding("<Keyboard>/enter");
+        action.AddBinding("<Keyboard>/numpadEnter");
+        return action;
+    }
+
+    private void HandleReturnToTitlePerformed(InputAction.CallbackContext context)
+    {
+        if (
+            stageController == null
+            || stageController.CurrentState != Stage1Controller.Stage1State.GameOver
+            || !stageController.IsGameOverContentVisible
+        )
+        {
+            return;
+        }
+
+        ReturnToTitle();
     }
 
     /// <summary>
