@@ -586,6 +586,7 @@ GameObject:
   - component: {fileID: 206002}
   - component: {fileID: 206003}
   - component: {fileID: 206004}
+  - component: {fileID: 206005}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -674,6 +675,23 @@ MonoBehaviour:
   blurLodScale: 0.5
   blurClearDuration: 1.6
   postBlurWaitDuration: 0.4
+--- !u!114 &206005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb78360ad394110bb1b0fb1f12b509a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  stageController: {fileID: 206002}
+  photoFocusPresentation: {fileID: 206004}
+  focusReleaseSoundTrigger: {fileID: 2099680963}
+  gameOccurrenceProbability: 0.2
+  drawIntervalSeconds: 0.5
 --- !u!1 &207000
 GameObject:
   m_ObjectHideFlags: 0
@@ -2346,6 +2364,8 @@ MonoBehaviour:
   photoCamera: {fileID: 204002}
   capturedPhotoPreview: {fileID: 229002}
   capturePresentation: {fileID: 228003}
+  randomDefocusController: {fileID: 206005}
+  photoFocusPresentation: {fileID: 206004}
   capturedImageName: "\u57CE"
 --- !u!114 &228003
 MonoBehaviour:

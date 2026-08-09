@@ -30,6 +30,8 @@ namespace ResultScene
 
     public class ResultSceneManager : MonoBehaviour
     {
+        private const string RandomDefocusScoreItemName = "ピンボケ";
+
         [Header("Debug & Test")]
         [SerializeField, Tooltip("テスト用のデータを使用するかどうか")]
         private bool _useTestData = false;
@@ -519,7 +521,8 @@ namespace ResultScene
                 _totalScore = ResultScoreCalculator.CalculateTotalScore(
                     GetActualBaseScore(data),
                     data.Bonuses,
-                    _bonusMaster
+                    _bonusMaster,
+                    data.IsScoreForcedToZero
                 );
 
                 if (_totalScoreArea != null)
@@ -539,38 +542,51 @@ namespace ResultScene
         {
             InitializeUI(data);
 
-            yield return WaitOrSkipCoroutine(_waitBeforeBaseScore);
-
-            // 1. 基礎スコアの追加
-            string baseScoreName = GetBaseScoreName(data);
-            int actualBaseScore = GetActualBaseScore(data);
-
-            _totalScore = actualBaseScore;
-            yield return AddScoreItemSequenceCoroutine(
-                baseScoreName,
-                actualBaseScore,
-                _baseScoreContainer
-            );
-
-            if (data.Bonuses != null)
+            if (data.IsScoreForcedToZero)
             {
-                foreach (var bonus in data.Bonuses.Where(b => b.Count > 0))
-                {
-                    var master = _bonusMaster.FirstOrDefault(m => m.BonusName == bonus.BonusName);
-                    if (master == null)
-                    {
-                        Debug.LogError(
-                            $"[ResultSceneManager] Data/Configuration Error: Unknown bonus type '{bonus.BonusName}'."
-                        );
-                        continue;
-                    }
-                    int scorePerItem = master.ScorePerItem;
-                    string itemName =
-                        bonus.Count > 1 ? $"{bonus.BonusName} × {bonus.Count}" : bonus.BonusName;
-                    int calculatedScore = scorePerItem * bonus.Count;
+                _totalScore = 0;
+                yield return WaitOrSkipCoroutine(_waitBeforeBaseScore);
+                yield return AddScoreItemSequenceCoroutine(RandomDefocusScoreItemName, 0);
+            }
+            else
+            {
+                yield return WaitOrSkipCoroutine(_waitBeforeBaseScore);
 
-                    _totalScore += calculatedScore;
-                    yield return AddScoreItemSequenceCoroutine(itemName, calculatedScore);
+                // 1. 基礎スコアの追加
+                string baseScoreName = GetBaseScoreName(data);
+                int actualBaseScore = GetActualBaseScore(data);
+
+                _totalScore = actualBaseScore;
+                yield return AddScoreItemSequenceCoroutine(
+                    baseScoreName,
+                    actualBaseScore,
+                    _baseScoreContainer
+                );
+
+                if (data.Bonuses != null)
+                {
+                    foreach (var bonus in data.Bonuses.Where(b => b.Count > 0))
+                    {
+                        var master = _bonusMaster.FirstOrDefault(m =>
+                            m.BonusName == bonus.BonusName
+                        );
+                        if (master == null)
+                        {
+                            Debug.LogError(
+                                $"[ResultSceneManager] Data/Configuration Error: Unknown bonus type '{bonus.BonusName}'."
+                            );
+                            continue;
+                        }
+                        int scorePerItem = master.ScorePerItem;
+                        string itemName =
+                            bonus.Count > 1
+                                ? $"{bonus.BonusName} × {bonus.Count}"
+                                : bonus.BonusName;
+                        int calculatedScore = scorePerItem * bonus.Count;
+
+                        _totalScore += calculatedScore;
+                        yield return AddScoreItemSequenceCoroutine(itemName, calculatedScore);
+                    }
                 }
             }
 
@@ -634,6 +650,10 @@ namespace ResultScene
                 _illustrationImage.gameObject.SetActive(false);
             if (_holdKeyText != null)
                 _holdKeyText.gameObject.SetActive(false);
+            if (_baseScoreContainer != null)
+                _baseScoreContainer.gameObject.SetActive(!data.IsScoreForcedToZero);
+            if (_scoreListContent != null)
+                _scoreListContent.gameObject.SetActive(true);
 
             if (_scoreScrollRect != null)
             {

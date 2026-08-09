@@ -146,6 +146,18 @@ public sealed class StageResultDataFactoryPlayModeTests
         );
     }
 
+    [Test]
+    public void CopiesTheForcedZeroScoreFlag()
+    {
+        var image = new Texture2D(2, 2);
+        createdTextures.Add(image);
+        var capturedPhoto = new CapturedPhoto(image, null, true);
+
+        var resultData = StageResultDataFactory.Create(capturedPhoto, "プレイヤー", "Stage 1");
+
+        Assert.That(resultData.IsScoreForcedToZero, Is.True);
+    }
+
     private CapturedPhoto CreateCapturedPhoto(params SubjectId[] subjectIds)
     {
         var image = new Texture2D(2, 2);

@@ -44,8 +44,50 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
     private Material runtimeBlurMaterial;
     private CancellationTokenSource activePresentationCancellation;
     private bool isPlaying;
+    private float openingBlurStrength;
+    private float randomDefocusBlurStrength;
 
     public bool IsPlaying => isPlaying;
+
+    internal void SetRandomDefocusStrength(float strength)
+    {
+        randomDefocusBlurStrength = Mathf.Clamp01(strength);
+        RefreshBlurMaterial();
+    }
+
+    internal bool TryBlitWithBlurStrength(
+        RenderTexture source,
+        RenderTexture destination,
+        float blurStrength
+    )
+    {
+        if (source == null || destination == null || blurStrength <= 0f)
+        {
+            return false;
+        }
+
+        if (!TryAttachBlurMaterial())
+        {
+            return false;
+        }
+
+        runtimeBlurMaterial.SetVector(SourceTexelSizeId, ResolveSourceTexelSize(source));
+        runtimeBlurMaterial.SetFloat(BlurStrengthId, Mathf.Clamp01(blurStrength));
+        try
+        {
+            Graphics.Blit(source, destination, runtimeBlurMaterial);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception, this);
+            return false;
+        }
+        finally
+        {
+            RefreshBlurMaterial();
+        }
+    }
 
     public UniTask PlayAsync(CancellationToken cancellationToken)
     {
@@ -66,13 +108,16 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
         activePresentationCancellation?.Dispose();
         activePresentationCancellation = null;
         isPlaying = false;
-        DetachBlurMaterial();
+        openingBlurStrength = 0f;
+        RefreshBlurMaterial();
     }
 
     private void OnDisable()
     {
         // 再プレイ・シーン破棄でぼかしを残さないため、無効化時に必ずリセットする。
         ResetPresentation();
+        randomDefocusBlurStrength = 0f;
+        RefreshBlurMaterial();
     }
 
     private void OnDestroy()
@@ -101,7 +146,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
         {
             if (hasBlur)
             {
-                SetBlurStrength(initialBlurStrength);
+                SetOpeningBlurStrength(initialBlurStrength);
             }
 
             await ClearBlurAsync(hasBlur, presentationCancellation.Token);
@@ -113,7 +158,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
         }
         finally
         {
-            DetachBlurMaterial();
+            SetOpeningBlurStrength(0f);
 
             if (activePresentationCancellation == presentationCancellation)
             {
@@ -131,7 +176,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
         {
             if (hasBlur)
             {
-                SetBlurStrength(0f);
+                SetOpeningBlurStrength(0f, keepBlurMaterialAttached: true);
             }
             return;
         }
@@ -142,7 +187,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
             cancellationToken.ThrowIfCancellationRequested();
             if (hasBlur)
             {
-                SetBlurStrength(
+                SetOpeningBlurStrength(
                     Mathf.SmoothStep(initialBlurStrength, 0f, elapsed / blurClearDuration)
                 );
             }
@@ -152,7 +197,7 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
 
         if (hasBlur)
         {
-            SetBlurStrength(0f);
+            SetOpeningBlurStrength(0f, keepBlurMaterialAttached: true);
         }
     }
 
@@ -178,19 +223,33 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
 
         runtimeBlurMaterial.SetFloat(MaxBlurRadiusPixelsId, maxBlurRadiusPixels);
         runtimeBlurMaterial.SetFloat(BlurLodScaleId, blurLodScale);
-        runtimeBlurMaterial.SetVector(SourceTexelSizeId, ResolveSourceTexelSize());
+        runtimeBlurMaterial.SetVector(
+            SourceTexelSizeId,
+            ResolveSourceTexelSize(photoPreview.texture)
+        );
         photoPreview.material = runtimeBlurMaterial;
         return true;
     }
 
-    private Vector4 ResolveSourceTexelSize()
+    private static Vector4 ResolveSourceTexelSize(Texture texture)
     {
         // RawImageのテクスチャはCanvasRenderer経由でマテリアル外から差し込まれるため
         // _MainTex_TexelSizeは当てにできない。ここで明示的に解像度を渡す。
-        var texture = photoPreview.texture;
         var width = texture != null ? Mathf.Max(1, texture.width) : 1;
         var height = texture != null ? Mathf.Max(1, texture.height) : 1;
         return new Vector4(1f / width, 1f / height, width, height);
+    }
+
+    private void RefreshBlurMaterial(bool keepBlurMaterialAttached = false)
+    {
+        var effectiveBlurStrength = Mathf.Max(openingBlurStrength, randomDefocusBlurStrength);
+        if ((effectiveBlurStrength > 0f || keepBlurMaterialAttached) && TryAttachBlurMaterial())
+        {
+            runtimeBlurMaterial.SetFloat(BlurStrengthId, effectiveBlurStrength);
+            return;
+        }
+
+        DetachBlurMaterial();
     }
 
     private void DetachBlurMaterial()
@@ -207,14 +266,10 @@ public sealed class StagePhotoFocusPresentation : MonoBehaviour
         }
     }
 
-    private void SetBlurStrength(float strength)
+    private void SetOpeningBlurStrength(float strength, bool keepBlurMaterialAttached = false)
     {
-        // CanvasRendererは同じMaterialインスタンス参照を保持しているため、
-        // SetFloatのみでCanvasリビルド無しに反映される。
-        if (runtimeBlurMaterial != null)
-        {
-            runtimeBlurMaterial.SetFloat(BlurStrengthId, Mathf.Clamp01(strength));
-        }
+        openingBlurStrength = Mathf.Clamp01(strength);
+        RefreshBlurMaterial(keepBlurMaterialAttached);
     }
 
     private static UniTask DelayAsync(float duration, CancellationToken cancellationToken)

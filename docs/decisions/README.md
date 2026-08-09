@@ -12,3 +12,4 @@
 | ADR-0008 | UnityYAMLMerge採用 |
 | ADR-0016 | WebGLでのIME（日本語入力）対応にWebGLSupportパッケージを採用 |
 | ADR-0017 | unityroomスコアボードへのスコア送信にunityroom-sdkを採用 |
+| ADR-0018 | ランダムピンボケの発生・保存画像・強制0点の扱い |

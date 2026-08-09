@@ -24,6 +24,7 @@ public static class StageResultDataFactory
             LocationName = locationName,
             CapturedImage = capturedPhoto.Image,
             Bonuses = CreateBonuses(capturedPhoto),
+            IsScoreForcedToZero = capturedPhoto.IsScoreForcedToZero,
         };
     }
 

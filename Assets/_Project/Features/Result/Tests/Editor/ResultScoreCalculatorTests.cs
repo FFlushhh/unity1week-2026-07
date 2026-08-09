@@ -118,6 +118,19 @@ namespace ResultScene.Tests
             Assert.AreEqual(1700, total);
         }
 
+        [Test]
+        public void CalculateTotalScore_ForcedZeroIgnoresBaseScoreAndBonuses()
+        {
+            var bonuses = new List<BonusInputData>
+            {
+                new BonusInputData { BonusName = "PositiveBonus", Count = 100 },
+            };
+
+            int total = ResultScoreCalculator.CalculateTotalScore(1000, bonuses, _masterList, true);
+
+            Assert.AreEqual(0, total);
+        }
+
         private static List<BonusScoreMaster> CreateStageBonusMaster()
         {
             return new List<BonusScoreMaster>

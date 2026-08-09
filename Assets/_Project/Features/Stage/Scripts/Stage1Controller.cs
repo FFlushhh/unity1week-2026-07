@@ -72,6 +72,8 @@ public sealed class Stage1Controller : MonoBehaviour
 
     public float RemainingTime => remainingTime;
 
+    public float PlayingDuration => playingDuration;
+
     // activeInHierarchyで判定する。gameOverContent自体はResetGameOverPresentation()で
     // 非GameOver状態でもtrueにされるため、親(gameOverPanel)の非表示を見逃さないようにする。
     public bool IsGameOverContentVisible =>

@@ -20,6 +20,9 @@ namespace ResultScene
         [Header("スコア情報")]
         [Tooltip("獲得したボーナスのリスト")]
         public List<BonusInputData> Bonuses;
+
+        [Tooltip("ピンボケによってスコアを強制的に0にするか")]
+        public bool IsScoreForcedToZero;
     }
 
     [System.Serializable]

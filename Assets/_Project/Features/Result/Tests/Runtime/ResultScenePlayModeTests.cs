@@ -248,6 +248,27 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator ResultSequence_ForcedZeroShowsOnlyTheRandomDefocusScoreItem()
+        {
+            var resultData = CreateResultData(new BonusInputData { BonusName = "犬", Count = 1 });
+            resultData.IsScoreForcedToZero = true;
+
+            var manager = default(ResultSceneManager);
+            yield return LoadResultScene(resultData, loadedManager => manager = loadedManager);
+
+            var scoreListContent = GetPrivateField<Transform>(manager, "_scoreListContent");
+            var baseScoreContainer = GetPrivateField<Transform>(manager, "_baseScoreContainer");
+            Assert.That(scoreListContent, Is.Not.Null);
+            Assert.That(baseScoreContainer, Is.Not.Null);
+
+            yield return WaitForScoreItemName(scoreListContent, "ピンボケ");
+
+            Assert.That(CollectScoreItemNames(scoreListContent), Is.EqualTo(new[] { "ピンボケ" }));
+            Assert.That(baseScoreContainer.gameObject.activeSelf, Is.False);
+            Assert.That(GetTotalScore(manager), Is.Zero);
+        }
+
+        [UnityTest]
         public IEnumerator ResultSceneOwnsCapturedImageAfterClearingTransporter()
         {
             capturedImage = new Texture2D(2, 2);
