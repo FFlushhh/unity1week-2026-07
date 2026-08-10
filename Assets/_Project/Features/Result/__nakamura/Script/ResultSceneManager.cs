@@ -616,11 +616,11 @@ namespace ResultScene
 
             if (!_isSkipped)
             {
-                if (isZeroLikeResult)
-                    PlayZeroScoreGameOverSe();
-
                 if (_buzzReactionManager != null)
                     _buzzReactionManager.StartReactionSequence(rank, !isZeroLikeResult);
+
+                if (isZeroLikeResult)
+                    PlayZeroScoreGameOverSe();
             }
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
