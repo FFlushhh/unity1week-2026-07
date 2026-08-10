@@ -257,22 +257,7 @@ namespace ResultScene
             }
             else if (_useTestData) //デバッグ用
             {
-                ResultData testPassData = new ResultData
-                {
-                    PlayerName = _testData.PlayerName,
-                    LocationName = _testData.LocationName,
-                    Bonuses =
-                        _testData.Bonuses != null
-                            ? new List<BonusInputData>(_testData.Bonuses)
-                            : new List<BonusInputData>(),
-                };
-
-                if (_testData.CapturedImage != null)
-                {
-                    testPassData.CapturedImage = CreateTextureCopy(_testData.CapturedImage);
-                }
-
-                PlayResult(testPassData);
+                PlayResult(CreateTestPassData());
             }
             else
             {
@@ -281,6 +266,27 @@ namespace ResultScene
                 );
                 OnNextButtonClicked();
             }
+        }
+
+        private ResultData CreateTestPassData()
+        {
+            var testPassData = new ResultData
+            {
+                PlayerName = _testData.PlayerName,
+                LocationName = _testData.LocationName,
+                Bonuses =
+                    _testData.Bonuses != null
+                        ? new List<BonusInputData>(_testData.Bonuses)
+                        : new List<BonusInputData>(),
+                IsScoreForcedToZero = _testData.IsScoreForcedToZero,
+            };
+
+            if (_testData.CapturedImage != null)
+            {
+                testPassData.CapturedImage = CreateTextureCopy(_testData.CapturedImage);
+            }
+
+            return testPassData;
         }
 
         private Texture2D CreateTextureCopy(Texture2D original)

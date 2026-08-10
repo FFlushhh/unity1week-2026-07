@@ -248,6 +248,39 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator TestData_PreservesTheForcedZeroFlag()
+        {
+            var managerObject = new GameObject("ResultSceneManagerTest");
+            managerObject.SetActive(false);
+            var manager = managerObject.AddComponent<ResultSceneManager>();
+            SetPrivateField(
+                manager,
+                "_testData",
+                new ResultData
+                {
+                    PlayerName = "TestPlayer",
+                    LocationName = "Stage 1",
+                    Bonuses = new List<BonusInputData>(),
+                    IsScoreForcedToZero = true,
+                }
+            );
+
+            var createTestPassData = typeof(ResultSceneManager).GetMethod(
+                "CreateTestPassData",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            Assert.That(createTestPassData, Is.Not.Null);
+
+            var testPassData = createTestPassData.Invoke(manager, null) as ResultData;
+
+            Assert.That(testPassData, Is.Not.Null);
+            Assert.That(testPassData.IsScoreForcedToZero, Is.True);
+
+            Object.Destroy(managerObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator ResultSequence_ForcedZeroShowsOnlyTheRandomDefocusScoreItem()
         {
             var resultData = CreateResultData(new BonusInputData { BonusName = "犬", Count = 1 });
