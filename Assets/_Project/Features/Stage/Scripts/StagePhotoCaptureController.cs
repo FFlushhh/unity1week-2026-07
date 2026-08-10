@@ -28,6 +28,12 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
     [SerializeField]
     private StagePhotoCapturePresentation capturePresentation;
 
+    [SerializeField]
+    private StageRandomDefocusController randomDefocusController;
+
+    [SerializeField]
+    private StagePhotoFocusPresentation photoFocusPresentation;
+
     [Tooltip(
         "リザルト画面での基礎スコア名などに使われる、撮影した画像の名前。未設定ならステージ名で処理"
     )]
@@ -143,14 +149,27 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         // 被写体の移動直後でも、撮影画像と遮蔽判定で同じTransform位置を使う。
         Physics2D.SyncTransforms();
 
-        if (!TryCopyPhotoCameraOutput(out var capturedImage))
+        var randomDefocusState =
+            randomDefocusController != null
+                ? randomDefocusController.EvaluateCurrentState()
+                : default;
+        if (photoFocusPresentation != null)
+        {
+            photoFocusPresentation.SetRandomDefocusStrength(randomDefocusState.BlurStrength);
+        }
+
+        if (!TryCopyPhotoCameraOutput(randomDefocusState.BlurStrength, out var capturedImage))
         {
             return false;
         }
 
         // 同一フレームのボタン・キー入力が重なっても、2回目以降を無視するため先に確定する。
         CaptureSubjectsInsidePhotoFrame();
-        capturedPhoto = new CapturedPhoto(capturedImage, capturedSubjects);
+        capturedPhoto = new CapturedPhoto(
+            capturedImage,
+            capturedSubjects,
+            randomDefocusState.IsScoreForcedToZero
+        );
         ShowCapturedPhotoPreview(capturedImage, showImmediately: capturePresentation == null);
 
         // 演出中もカウントダウンを継続するため、演出開始より先に撮影済み状態へ遷移する。
@@ -227,7 +246,7 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         }
     }
 
-    private bool TryCopyPhotoCameraOutput(out Texture2D capturedImage)
+    private bool TryCopyPhotoCameraOutput(float blurStrength, out Texture2D capturedImage)
     {
         capturedImage = null;
 
@@ -244,17 +263,44 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         photoCamera.Render();
 
         var previousActive = RenderTexture.active;
+        RenderTexture blurredSource = null;
         try
         {
-            RenderTexture.active = source;
+            var readSource = source;
+            if (blurStrength > 0f && photoFocusPresentation != null)
+            {
+                var descriptor = source.descriptor;
+                descriptor.depthBufferBits = 0;
+                descriptor.msaaSamples = 1;
+                descriptor.useMipMap = false;
+                descriptor.autoGenerateMips = false;
+                blurredSource = RenderTexture.GetTemporary(descriptor);
+                if (
+                    photoFocusPresentation.TryBlitWithBlurStrength(
+                        source,
+                        blurredSource,
+                        blurStrength
+                    )
+                )
+                {
+                    readSource = blurredSource;
+                }
+                else
+                {
+                    RenderTexture.ReleaseTemporary(blurredSource);
+                    blurredSource = null;
+                }
+            }
+
+            RenderTexture.active = readSource;
             capturedImage = new Texture2D(
-                source.width,
-                source.height,
+                readSource.width,
+                readSource.height,
                 TextureFormat.RGBA32,
                 mipChain: false,
                 linear: false
             );
-            capturedImage.ReadPixels(new Rect(0f, 0f, source.width, source.height), 0, 0);
+            capturedImage.ReadPixels(new Rect(0f, 0f, readSource.width, readSource.height), 0, 0);
             capturedImage.Apply(updateMipmaps: false, makeNoLongerReadable: false);
 
             if (!string.IsNullOrEmpty(capturedImageName))
@@ -267,6 +313,10 @@ public sealed class StagePhotoCaptureController : MonoBehaviour
         finally
         {
             RenderTexture.active = previousActive;
+            if (blurredSource != null)
+            {
+                RenderTexture.ReleaseTemporary(blurredSource);
+            }
         }
     }
 

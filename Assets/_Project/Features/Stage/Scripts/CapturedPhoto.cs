@@ -8,9 +8,14 @@ public sealed class CapturedPhoto
 {
     private readonly Dictionary<SubjectId, int> subjectCounts = new();
 
-    public CapturedPhoto(Texture2D image, IEnumerable<StageSubject> subjects)
+    public CapturedPhoto(
+        Texture2D image,
+        IEnumerable<StageSubject> subjects,
+        bool isScoreForcedToZero = false
+    )
     {
         Image = image;
+        IsScoreForcedToZero = isScoreForcedToZero;
 
         if (subjects == null)
         {
@@ -30,6 +35,8 @@ public sealed class CapturedPhoto
     }
 
     public Texture2D Image { get; }
+
+    public bool IsScoreForcedToZero { get; }
 
     public IReadOnlyDictionary<SubjectId, int> SubjectCounts => subjectCounts;
 

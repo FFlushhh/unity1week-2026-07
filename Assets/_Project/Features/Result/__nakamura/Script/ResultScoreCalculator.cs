@@ -18,6 +18,21 @@ namespace ResultScene
             List<BonusScoreMaster> masterList
         )
         {
+            return CalculateTotalScore(baseScore, bonuses, masterList, false);
+        }
+
+        public static int CalculateTotalScore(
+            int baseScore,
+            List<BonusInputData> bonuses,
+            List<BonusScoreMaster> masterList,
+            bool isScoreForcedToZero
+        )
+        {
+            if (isScoreForcedToZero)
+            {
+                return 0;
+            }
+
             int totalScore = baseScore;
 
             if (bonuses != null && masterList != null)

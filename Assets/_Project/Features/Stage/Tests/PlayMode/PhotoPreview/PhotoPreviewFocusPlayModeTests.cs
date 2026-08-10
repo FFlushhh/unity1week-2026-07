@@ -42,8 +42,10 @@ public sealed class PhotoPreviewFocusPlayModeTests
         var gameController = GameObject.Find("GameController");
         var stageController = gameController.GetComponent<Stage1Controller>();
         var focusPresentation = gameController.GetComponent<StagePhotoFocusPresentation>();
+        var randomDefocusController = gameController.GetComponent<StageRandomDefocusController>();
 
         Assert.That(focusPresentation, Is.Not.Null);
+        Assert.That(randomDefocusController, Is.Not.Null);
         Assert.That(
             GetPrivateField<StagePhotoFocusPresentation>(stageController, "photoFocusPresentation"),
             Is.SameAs(focusPresentation)
@@ -60,6 +62,21 @@ public sealed class PhotoPreviewFocusPlayModeTests
         var blurMaterialSource = GetPrivateField<Material>(focusPresentation, "blurMaterialSource");
         Assert.That(blurMaterialSource, Is.Not.Null);
         Assert.That(blurMaterialSource.shader.name, Is.EqualTo("Stage/PhotoPreviewBlur"));
+        Assert.That(
+            GetPrivateField<Stage1Controller>(randomDefocusController, "stageController"),
+            Is.SameAs(stageController)
+        );
+        Assert.That(
+            GetPrivateField<StagePhotoFocusPresentation>(
+                randomDefocusController,
+                "photoFocusPresentation"
+            ),
+            Is.SameAs(focusPresentation)
+        );
+        Assert.That(
+            GetPrivateField<MonoBehaviour>(randomDefocusController, "focusReleaseSoundTrigger"),
+            Is.SameAs(GameObject.Find("Scene_SE_Manager").GetComponent<MonoBehaviour>())
+        );
     }
 
     [UnityTest]
@@ -84,10 +101,14 @@ public sealed class PhotoPreviewFocusPlayModeTests
         var focusPresentation = GameObject
             .Find("GameController")
             .GetComponent<StagePhotoFocusPresentation>();
+        var randomDefocusController = GameObject
+            .Find("GameController")
+            .GetComponent<StageRandomDefocusController>();
         var photoPreview = GameObject.Find("PhotoPreview").GetComponent<RawImage>();
 
         SetPrivateField(focusPresentation, "blurClearDuration", 0.02f);
         SetPrivateField(focusPresentation, "postBlurWaitDuration", 0.02f);
+        SetPrivateField(randomDefocusController, "gameOccurrenceProbability", 0f);
 
         yield return WaitUntilOrTimeout(
             () => stageController.CurrentState == Stage1Controller.Stage1State.Playing,

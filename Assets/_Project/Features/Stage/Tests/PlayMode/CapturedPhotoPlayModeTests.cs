@@ -52,6 +52,18 @@ public sealed class CapturedPhotoPlayModeTests
         Object.DestroyImmediate(image);
     }
 
+    [Test]
+    public void StoresTheForcedZeroScoreFlag()
+    {
+        var image = new Texture2D(2, 2);
+
+        var capturedPhoto = new CapturedPhoto(image, null, true);
+
+        Assert.That(capturedPhoto.IsScoreForcedToZero, Is.True);
+
+        Object.DestroyImmediate(image);
+    }
+
     private StageSubject CreateSubject(SubjectId subjectId)
     {
         var subjectObject = new GameObject($"{subjectId}Subject");
