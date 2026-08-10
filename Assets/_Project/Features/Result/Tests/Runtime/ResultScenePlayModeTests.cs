@@ -547,6 +547,52 @@ namespace ResultScene.Tests
         }
 
         [UnityTest]
+        public IEnumerator ResultSequence_ForcedZero_ShowsDanmakuWithoutLikeEffects()
+        {
+            var resultData = CreateResultData();
+            resultData.IsScoreForcedToZero = true;
+
+            yield return LoadResultScene(resultData, _ => { });
+
+            var buzzManager = Object.FindAnyObjectByType<BuzzReactionManager>();
+            Assert.That(buzzManager, Is.Not.Null);
+
+            var postPanel = GetPrivateField<RectTransform>(buzzManager, "_postPanel");
+            Assert.That(postPanel, Is.Not.Null);
+            Vector3 initialPanelScale = postPanel.localScale;
+
+            const float timeoutSeconds = 3f;
+            float timeoutAt = Time.realtimeSinceStartup + timeoutSeconds;
+            while (
+                CountActiveComponents<DanmakuComment>(postPanel) == 0
+                && Time.realtimeSinceStartup < timeoutAt
+            )
+            {
+                yield return null;
+            }
+
+            Assert.That(
+                CountActiveComponents<DanmakuComment>(postPanel),
+                Is.GreaterThan(0),
+                "Forced zero did not start the remaining danmaku presentation."
+            );
+            Assert.That(CountActiveComponents<HeartParticle>(postPanel), Is.EqualTo(0));
+            Assert.That(postPanel.localScale, Is.EqualTo(initialPanelScale));
+
+            var manager = Object.FindAnyObjectByType<ResultSceneManager>();
+            var skipPresentationMethod = typeof(ResultSceneManager).GetMethod(
+                "SkipPresentation",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            Assert.That(manager, Is.Not.Null);
+            Assert.That(skipPresentationMethod, Is.Not.Null);
+            skipPresentationMethod.Invoke(manager, null);
+            yield return null;
+
+            Assert.That(CountActiveComponents<DanmakuComment>(postPanel), Is.EqualTo(0));
+        }
+
+        [UnityTest]
         public IEnumerator ResultSequence_SkipAfterBuzzStarts_StopsAllBuzzPresentation()
         {
             GameObject dummySoundManagerObj = null;
@@ -579,6 +625,7 @@ namespace ResultScene.Tests
             yield return new WaitForSeconds(0.15f);
 
             Assert.Greater(CountActiveChildren(postPanel), initialActiveChildren);
+            Assert.That(CountActiveComponents<HeartParticle>(postPanel), Is.GreaterThan(0));
 
             var skipPresentationMethod = typeof(ResultSceneManager).GetMethod(
                 "SkipPresentation",
@@ -773,6 +820,19 @@ namespace ResultScene.Tests
             foreach (Transform child in parent)
             {
                 if (child.gameObject.activeSelf)
+                    count++;
+            }
+
+            return count;
+        }
+
+        private static int CountActiveComponents<T>(Component parent)
+            where T : Component
+        {
+            int count = 0;
+            foreach (var component in parent.GetComponentsInChildren<T>(true))
+            {
+                if (component.gameObject.activeInHierarchy)
                     count++;
             }
 

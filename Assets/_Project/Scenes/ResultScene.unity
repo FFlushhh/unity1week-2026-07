@@ -1603,6 +1603,9 @@ MonoBehaviour:
   _seSlideUpIndex: 16
   _seStampIndex: 16
   _seScoreCountIndex: 16
+  _zeroScoreSeIndex: 3
+  _zeroScoreSePitch: 1
+  _zeroScoreSeVolume: 1
   _shakeTarget: {fileID: 235239936}
   _nextSceneName: Title
   _buzzReactionManager: {fileID: 1875841040}

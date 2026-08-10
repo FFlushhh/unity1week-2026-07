@@ -157,6 +157,15 @@ namespace ResultScene
         [SerializeField, Tooltip("スコアカウントアップ中のSEインデックス")]
         private int _seScoreCountIndex = 16;
 
+        [SerializeField, Tooltip("0いいね時に再生するゲームオーバーSEのインデックス")]
+        private int _zeroScoreSeIndex = 3;
+
+        [SerializeField, Tooltip("0いいね時に再生するゲームオーバーSEのピッチ")]
+        private float _zeroScoreSePitch = 1f;
+
+        [SerializeField, Range(0f, 1f), Tooltip("0いいね時に再生するゲームオーバーSEの音量")]
+        private float _zeroScoreSeVolume = 1f;
+
         [SerializeField, Tooltip("画面揺れ演出の対象となるUI")]
         private RectTransform _shakeTarget;
 
@@ -603,10 +612,15 @@ namespace ResultScene
             yield return SlideUpTotalScoreAreaSequenceCoroutine();
 
             Rank rank = GenerateSnsContent(data);
+            bool isZeroLikeResult = IsZeroLikeResult(_totalScore);
 
-            if (_buzzReactionManager != null && !_isSkipped)
+            if (!_isSkipped)
             {
-                _buzzReactionManager.StartReactionSequence(rank);
+                if (isZeroLikeResult)
+                    PlayZeroScoreGameOverSe();
+
+                if (_buzzReactionManager != null)
+                    _buzzReactionManager.StartReactionSequence(rank, !isZeroLikeResult);
             }
 
             yield return CountUpScoreSequenceCoroutine(_totalScore);
@@ -822,7 +836,8 @@ namespace ResultScene
             float duration = _scoreCountUpDuration;
             float elapsed = 0f;
 
-            PlaySound(_seScoreCountIndex);
+            if (!IsZeroLikeResult(targetScore))
+                PlaySound(_seScoreCountIndex);
 
             while (elapsed < duration && !_isSkipped)
             {
@@ -847,6 +862,11 @@ namespace ResultScene
                 _totalScoreText.text = scoreStr;
             if (_likeCountText != null)
                 _likeCountText.text = scoreStr;
+        }
+
+        private static bool IsZeroLikeResult(int score)
+        {
+            return Mathf.Max(0, score) == 0;
         }
 
         private IEnumerator StampAnimationSequenceCoroutine()
@@ -1019,6 +1039,18 @@ namespace ResultScene
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PlaySE(seIndex, 1.0f, _seVolumeScale);
+            }
+        }
+
+        private void PlayZeroScoreGameOverSe()
+        {
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlaySE(
+                    _zeroScoreSeIndex,
+                    _zeroScoreSePitch,
+                    _zeroScoreSeVolume
+                );
             }
         }
 
