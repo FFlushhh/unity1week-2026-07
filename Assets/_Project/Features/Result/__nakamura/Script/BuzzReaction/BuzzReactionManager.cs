@@ -178,10 +178,10 @@ namespace ResultScene.BuzzReaction
             }
         }
 
-        public void StartReactionSequence(Rank rank = Rank.B)
+        public void StartReactionSequence(Rank rank = Rank.B, bool playLikeEffects = true)
         {
             StopReactionSequence();
-            StartCoroutine(ReactionSequenceRoutine(rank));
+            StartCoroutine(ReactionSequenceRoutine(rank, playLikeEffects));
         }
 
         public void StopReactionSequence()
@@ -200,7 +200,7 @@ namespace ResultScene.BuzzReaction
             _danmakuPool?.ReturnAllToPool();
         }
 
-        private IEnumerator ReactionSequenceRoutine(Rank rank)
+        private IEnumerator ReactionSequenceRoutine(Rank rank, bool playLikeEffects)
         {
             float heartMultiplier = rank switch
             {
@@ -226,9 +226,7 @@ namespace ResultScene.BuzzReaction
                 _ => _rankBAudioMultiplier,
             };
 
-            float heartInterval = _heartSpawnInterval / heartMultiplier;
             float danmakuInterval = _danmakuSpawnInterval / danmakuMultiplier;
-            float audioInterval = _baseAudioInterval / audioMultiplier;
 
             string[] currentDanmakuTexts = rank switch
             {
@@ -239,12 +237,17 @@ namespace ResultScene.BuzzReaction
             };
 
             // いいね数はResultSceneManagerだけが更新し、ここでは効果音と装飾演出のみ再生する。
-            StartCoroutine(CountUpAudioRoutine(audioInterval));
-
             // ハートと弾幕の生成を開始
             Coroutine heartSpawning = null;
-            if (_heartPool != null)
-                heartSpawning = StartCoroutine(SpawnHeartsRoutine(heartInterval));
+            if (playLikeEffects)
+            {
+                float heartInterval = _heartSpawnInterval / heartMultiplier;
+                float audioInterval = _baseAudioInterval / audioMultiplier;
+                StartCoroutine(CountUpAudioRoutine(audioInterval));
+
+                if (_heartPool != null)
+                    heartSpawning = StartCoroutine(SpawnHeartsRoutine(heartInterval));
+            }
 
             Coroutine danmakuSpawning = null;
             if (_danmakuPool != null)
@@ -253,14 +256,22 @@ namespace ResultScene.BuzzReaction
                 );
 
             // カウント中は定期的にパネルをバウンドさせる
-            float elapsed = 0f;
-            while (elapsed < _countUpDuration)
+            if (playLikeEffects)
             {
-                yield return StartCoroutine(PanelBounceRoutine());
-                elapsed += _bounceDuration;
-                // 見た目に応じて、次のバウンドまでに少し待機を入れることも可能
-                // yield return new WaitForSeconds(0.1f);
-                // elapsed += 0.1f;
+                float elapsed = 0f;
+                while (elapsed < _countUpDuration)
+                {
+                    yield return StartCoroutine(PanelBounceRoutine());
+                    elapsed += _bounceDuration;
+                    // 見た目に応じて、次のバウンドまでに少し待機を入れることも可能
+                    // yield return new WaitForSeconds(0.1f);
+                    // elapsed += 0.1f;
+                }
+            }
+            else
+            {
+                // 0いいねでもコメントだけは通常と同じ表示時間だけ流す。
+                yield return new WaitForSeconds(_countUpDuration);
             }
 
             // カウントアップ終了時にパーティクルの新規生成を停止
