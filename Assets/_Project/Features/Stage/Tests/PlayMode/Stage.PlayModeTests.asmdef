@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Project.Stage",
+    "Project.SoundSetting",
     "UniTask",
     "Result",
     "Unity.TextMeshPro",

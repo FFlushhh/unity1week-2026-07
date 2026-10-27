@@ -64,22 +64,25 @@ public class SoundManager : MonoBehaviour
         }
 
         AudioItem item = _audioDataList.seList[index];
-        if (item.clip != null)
+        if (item.clip == null)
         {
-            float finalVolume = _masterSeVolume * item.volume * volumeScale;
+            Debug.LogWarning($"[SoundManager] SE番号 {index} のAudioClipが未設定です。");
+            return;
+        }
 
-            if (Mathf.Approximately(pitch, 1.0f))
-            {
-                // 通常のSEは共通のAudioSourceで再生
-                _seAudioSource.pitch = 1.0f;
-                _seAudioSource.PlayOneShot(item.clip, finalVolume);
-            }
-            else
-            {
-                // ピッチが変更されている場合は専用のAudioSourceで再生（他のSEに影響を与えないため）
-                _pitchedSeAudioSource.pitch = pitch;
-                _pitchedSeAudioSource.PlayOneShot(item.clip, finalVolume);
-            }
+        float finalVolume = _masterSeVolume * item.volume * volumeScale;
+
+        if (Mathf.Approximately(pitch, 1.0f))
+        {
+            // 通常のSEは共通のAudioSourceで再生
+            _seAudioSource.pitch = 1.0f;
+            _seAudioSource.PlayOneShot(item.clip, finalVolume);
+        }
+        else
+        {
+            // ピッチが変更されている場合は専用のAudioSourceで再生（他のSEに影響を与えないため）
+            _pitchedSeAudioSource.pitch = pitch;
+            _pitchedSeAudioSource.PlayOneShot(item.clip, finalVolume);
         }
     }
 
@@ -95,20 +98,25 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
+        AudioItem item = _audioDataList.bgmList[index];
+        if (item.clip == null)
+        {
+            Debug.LogWarning($"[SoundManager] BGM番号 {index} のAudioClipが未設定です。");
+            return;
+        }
+
+        _bgmAudioSource.loop = true;
+
         // すでに同じ曲が流れている場合は何もしない
         if (_currentBgmIndex == index && _bgmAudioSource.isPlaying)
             return;
 
-        AudioItem item = _audioDataList.bgmList[index];
-        if (item.clip != null)
-        {
-            _currentBgmIndex = index;
-            _bgmAudioSource.clip = item.clip;
+        _currentBgmIndex = index;
+        _bgmAudioSource.clip = item.clip;
 
-            // 全体BGM音量 × 音源固有の音量倍率
-            _bgmAudioSource.volume = _masterBgmVolume * item.volume;
-            _bgmAudioSource.Play();
-        }
+        // 全体BGM音量 × 音源固有の音量倍率
+        _bgmAudioSource.volume = _masterBgmVolume * item.volume;
+        _bgmAudioSource.Play();
     }
 
     /// <summary>
@@ -166,16 +174,19 @@ public class SoundManager : MonoBehaviour
         }
 
         AudioItem item = _audioDataList.bgmList[index];
-        if (item.clip != null)
+        if (item.clip == null)
         {
-            _currentBgmIndex = index;
-            _bgmAudioSource.clip = item.clip;
-            _bgmAudioSource.volume = _masterBgmVolume * item.volume;
-
-            // ★ループをオフにして再生する
-            _bgmAudioSource.loop = false;
-
-            _bgmAudioSource.Play();
+            Debug.LogWarning($"[SoundManager] BGM番号 {index} のAudioClipが未設定です。");
+            return;
         }
+
+        _currentBgmIndex = index;
+        _bgmAudioSource.clip = item.clip;
+        _bgmAudioSource.volume = _masterBgmVolume * item.volume;
+
+        // ★ループをオフにして再生する
+        _bgmAudioSource.loop = false;
+
+        _bgmAudioSource.Play();
     }
 }

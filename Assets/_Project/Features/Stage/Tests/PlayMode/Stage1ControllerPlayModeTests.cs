@@ -258,6 +258,30 @@ public sealed class Stage1ControllerPlayModeTests
         Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.GameOver));
     }
 
+    [UnityTest]
+    public IEnumerator RepeatedGameOverRequestsStartThePresentationOnlyOnce()
+    {
+        var controller = CreateController(startFocusDuration: 0f, playingDuration: 10f);
+        var gameOverTransitionCount = 0;
+        controller.StateChanged += state =>
+        {
+            if (state == Stage1Controller.Stage1State.GameOver)
+            {
+                gameOverTransitionCount++;
+            }
+        };
+
+        yield return WaitForState(controller, Stage1Controller.Stage1State.Playing);
+
+        controller.EnterGameOver();
+        controller.EnterGameOver();
+        yield return null;
+
+        Assert.That(controller.CurrentState, Is.EqualTo(Stage1Controller.Stage1State.GameOver));
+        Assert.That(gameOverTransitionCount, Is.EqualTo(1));
+        Assert.That(controller.IsGameOverContentVisible, Is.True);
+    }
+
     private Stage1Controller CreateController(float startFocusDuration, float playingDuration)
     {
         var controllerObject = CreateGameObject("Stage1Controller");

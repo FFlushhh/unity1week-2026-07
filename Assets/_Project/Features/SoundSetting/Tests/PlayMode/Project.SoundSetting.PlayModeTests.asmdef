@@ -1,0 +1,19 @@
+{
+  "name": "Project.SoundSetting.PlayModeTests",
+  "rootNamespace": "",
+  "references": [
+    "Project.SoundSetting"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

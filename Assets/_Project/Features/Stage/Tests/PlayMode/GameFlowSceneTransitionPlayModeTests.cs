@@ -54,6 +54,10 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         yield return SceneManager.LoadSceneAsync("Game_Stage1", LoadSceneMode.Single);
         yield return null;
 
+        var soundManager = SoundManager.Instance;
+        Assert.That(soundManager, Is.Not.Null);
+        AssertBgmConfiguration(soundManager, expectedIndex: 5, expectedLoop: true);
+
         var stageController = UnityEngine.Object.FindAnyObjectByType<Stage1Controller>();
         var captureController =
             UnityEngine.Object.FindAnyObjectByType<StagePhotoCaptureController>();
@@ -78,10 +82,15 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         Assert.That(resultManager, Is.Not.Null);
         Assert.That(ResultDataTransporter.CurrentData, Is.Null);
         Assert.That(GetCapturedPhotoImage(resultManager).texture, Is.SameAs(capturedImage));
+        Assert.That(SoundManager.Instance, Is.SameAs(soundManager));
+        AssertBgmConfiguration(soundManager, expectedIndex: 2, expectedLoop: false);
 
         resultManager.OnNextButtonClicked();
         yield return WaitForActiveScene("Title");
         yield return WaitForDestroyed(capturedImage);
+
+        Assert.That(SoundManager.Instance, Is.SameAs(soundManager));
+        AssertBgmConfiguration(soundManager, expectedIndex: 0, expectedLoop: true);
 
         var startButton = GameObject.Find("StartButton").GetComponent<Button>();
         Assert.That(startButton, Is.Not.Null);
@@ -101,6 +110,8 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         Assert.That(freshCaptureController.HasCaptured, Is.False);
         Assert.That(freshCaptureController.CapturedPhoto, Is.Null);
         Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+        Assert.That(SoundManager.Instance, Is.SameAs(soundManager));
+        AssertBgmConfiguration(soundManager, expectedIndex: 5, expectedLoop: true);
     }
 
     [UnityTest]
@@ -120,6 +131,8 @@ public sealed class GameFlowSceneTransitionPlayModeTests
 
         Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Title"));
         Assert.That(ResultDataTransporter.CurrentData, Is.Null);
+        Assert.That(SoundManager.Instance, Is.Not.Null);
+        AssertBgmConfiguration(SoundManager.Instance, expectedIndex: 0, expectedLoop: true);
     }
 
     private static RawImage GetCapturedPhotoImage(ResultSceneManager manager)
@@ -127,6 +140,21 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         var field = typeof(ResultSceneManager).GetField("_capturedPhotoImage", PrivateInstance);
         Assert.That(field, Is.Not.Null);
         return (RawImage)field.GetValue(manager);
+    }
+
+    private static void AssertBgmConfiguration(
+        SoundManager soundManager,
+        int expectedIndex,
+        bool expectedLoop
+    )
+    {
+        var audioDataList = GetPrivateField<AudioDataList>(soundManager, "_audioDataList");
+        var bgmAudioSource = GetPrivateField<AudioSource>(soundManager, "_bgmAudioSource");
+        var expectedItem = audioDataList.bgmList[expectedIndex];
+
+        Assert.That(expectedItem.clip, Is.Not.Null);
+        Assert.That(bgmAudioSource.clip, Is.SameAs(expectedItem.clip));
+        Assert.That(bgmAudioSource.loop, Is.EqualTo(expectedLoop));
     }
 
     private static IEnumerator WaitForActiveScene(string expectedSceneName)
@@ -171,6 +199,13 @@ public sealed class GameFlowSceneTransitionPlayModeTests
         var field = target.GetType().GetField(fieldName, PrivateInstance);
         Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
         field.SetValue(target, value);
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName)
+    {
+        var field = target.GetType().GetField(fieldName, PrivateInstance);
+        Assert.That(field, Is.Not.Null, $"Field '{fieldName}' was not found.");
+        return (T)field.GetValue(target);
     }
 
     private static void InvokePrivateMethod(object target, string methodName, object argument)
