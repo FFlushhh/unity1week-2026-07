@@ -6,6 +6,8 @@ Unity特有の参照切れ、シーン競合、Prefab事故、`.meta`ファイ�
 
 ## 作業前
 
+環境構築は[セットアップ](setup.md)、自動テストと手動確認は[テスト](testing.md)を参照。
+
 1. 最新の`main`を取得する
 2. 作業ブランチを作る
 3. 編集予定のシーン・Prefab・ProjectSettingsを共有する
@@ -34,6 +36,10 @@ OS上でアセットだけを移動・削除すると、Prefabやシーンから
 `.meta`だけが残った場合や、アセットだけが存在する場合は、操作ミスの可能性があります。
 
 ## シーン
+
+通常の起動は`Title`から行う。`ProjectSettings/EditorBuildSettings.asset`では
+`Title`、`Game_Stage1`、`ResultScene`が有効で、`MockGameScene`は無効。
+unityroomへの送信コードはWebGLビルド時のみ動作する。実際の送信は対象環境で確認する。
 
 シーンファイルは競合しやすいため、原則として同じシーンを複数人で同時編集しません。
 
