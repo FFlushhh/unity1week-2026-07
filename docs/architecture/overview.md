@@ -9,6 +9,16 @@ Unity初心者でもレビューできることを重視します。
 
 ## 基本方針
 
+現行の進行はTitle → Game_Stage1 → ResultScene → Title。未撮影の場合は
+Game_Stage1内のGameOver UIを経由してTitleへ戻る。Stageは撮影画像、被写体の個数、
+強制0点フラグをResultへ渡し、Resultはスコア計算と表示を担当する。
+撮影画像は遷移時にStageからResultへ所有権を移し、Result側で破棄する。
+SoundManagerはシーンをまたいで音声を管理する。
+
+Runtimeアセンブリでは`Project.Stage`が`Result`とUniTaskなどを参照し、`Result`は
+`Project.SoundSetting`とUniTask、unityroomクライアントなどを参照する。各Featureの
+EditMode／PlayModeテストにも必要なasmdefがある。以下の構成例は配置方針を示す。
+
 - Vertical Slice構成を採用する
 - 機能ごとにファイルをまとめる
 - 機能間の直接依存を増やしすぎない

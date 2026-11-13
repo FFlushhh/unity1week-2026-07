@@ -10,6 +10,7 @@ READMEには概要だけを置き、詳細はこのディレクトリを正本�
 
 1. [プロジェクトREADME](../README.md)
 2. [開発への参加方法](../CONTRIBUTING.md)
+3. [開発環境のセットアップ](development/setup.md)
 3. [アーキテクチャ概要](architecture/overview.md)
 4. [ディレクトリ構成](architecture/directory-structure.md)
 5. [Unity開発フロー](development/unity-workflow.md)
@@ -35,6 +36,8 @@ READMEには概要だけを置き、詳細はこのディレクトリを正本�
 - [トラブルシューティング](development/troubleshooting.md)
 - [未決定事項](game/todo.md)
 - [設計判断記録](decisions/README.md)
+- [テストと動作確認](development/testing.md)
+- [素材・ライブラリ情報](credits.md)
 
 ## AIエージェント
 
