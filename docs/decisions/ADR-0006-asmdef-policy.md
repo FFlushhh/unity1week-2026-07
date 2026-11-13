@@ -8,6 +8,8 @@
 
 asmdefは必要になるまで導入しない。
 
+現在はStage、Result、SoundSettingのRuntimeとテストに必要なasmdefを導入済み。
+
 ## 導入条件
 
 - コンパイル時間短縮

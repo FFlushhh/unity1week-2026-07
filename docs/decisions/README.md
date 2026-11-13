@@ -10,6 +10,13 @@
 | ADR-0006 | asmdef運用 |
 | ADR-0007 | Unityバージョン固定 |
 | ADR-0008 | UnityYAMLMerge採用 |
+| [ADR-0009](ADR-0009-scriptableobject-policy.md) | ScriptableObject採用基準 |
+| [ADR-0010](ADR-0010-shared-directory-policy.md) | Shared配置基準 |
+| [ADR-0011](ADR-0011-scene-and-bootstrap-policy.md) | シーン構成 |
+| [ADR-0012](ADR-0012-testing-policy.md) | テスト方針 |
+| [ADR-0013](ADR-0013-unitask-policy.md) | UniTask方針 |
+| [ADR-0014](ADR-0014-photo-subject-visibility.md) | 撮影対象の可視判定 |
+| [ADR-0015](ADR-0015-camera-focus-blur-shader.md) | ピント合わせのぼかし |
 | ADR-0016 | WebGLでのIME（日本語入力）対応にWebGLSupportパッケージを採用 |
 | ADR-0017 | unityroomスコアボードへのスコア送信にunityroom-sdkを採用 |
 | ADR-0018 | ランダムピンボケの発生・保存画像・強制0点の扱い |

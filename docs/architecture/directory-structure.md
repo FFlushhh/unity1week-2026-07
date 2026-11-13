@@ -6,6 +6,10 @@
 
 ## 全体構成
 
+以下は配置方針の例であり、現在の実ディレクトリ一覧ではない。現行Featureは
+`GameOver`、`Result`、`SoundSetting`、`Stage`、`Title`。素材や設定には
+`Assets/Images`、`Assets/Sounds`、`Assets/Settings`配下にあるものもある。
+
 ```text
 Assets/
 ├── _Project/
@@ -81,6 +85,10 @@ Shared/
 - 所有先を決めるのが面倒という理由だけのもの
 
 ## Assets/_Project/Scenes
+
+現在のビルド設定で有効なシーンは`Title.unity`、`Game_Stage1.unity`、
+`ResultScene.unity`。`MockGameScene.unity`は無効。以下は配置方針の例であり、
+Bootstrapシーンを採用するという意味ではない。
 
 シーンを配置します。
 

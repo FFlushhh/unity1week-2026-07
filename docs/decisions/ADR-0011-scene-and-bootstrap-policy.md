@@ -33,6 +33,9 @@ MVPのゲームフローが決まり、Title、Game、SNS、Resultを担当者�
 
 現行MVPフローは次のとおりです。
 
+現在の受け渡しには撮影画像と被写体数に加え、ピンボケによる強制0点フラグも含む。
+詳細な現行仕様は[ゲーム仕様](../game/specifications.md)を参照する。
+
 ```text
 Title
 → Game_Stage1
