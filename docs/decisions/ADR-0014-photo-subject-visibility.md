@@ -16,17 +16,17 @@
 
 ## 決定
 
-- 撮影時だけ、各判断ポイント位置で`PhotoSubject`レイヤーの`Collider2D`を検索する。
+- 撮影時だけ、各判断ポイント位置で`PhotoSubject`レイヤーの`Collider2D`を検索する
 - `SpriteRenderer`の`Sorting Layer`、次に`Order in Layer`が対象より前面のColliderだけを
-  遮蔽物として扱う。判定でも表示と同じRenderer設定を正とする。
+  遮蔽物として扱う。判定でも表示と同じRenderer設定を正とする
 - 判断ポイントが前面Colliderに覆われていなければ、被写体の一部が重なっていても
-  得点対象にする。枠線上の判断ポイントは枠外のままとする。
+  得点対象にする。枠線上の判断ポイントは枠外のままとする
 - 同じ描画優先度は遮蔽とみなさない。重なり得る被写体には一意な`Order in Layer`を
-  設定し、主人公には全被写体より大きい値を設定できるようにする。
+  設定し、主人公には全被写体より大きい値を設定できるようにする
 - Collider形状は不透明部分の近似とする。仮Squareは`BoxCollider2D`、複雑な画像は必要に
-  応じて`PolygonCollider2D`などを使う。
+  応じて`PolygonCollider2D`などを使う
 - 写真画像のRenderTextureコピーはこの判定から独立させる。得点対象外の被写体も、
-  PhotoCameraの描画結果には残す。
+  PhotoCameraの描画結果には残す
 
 ## 理由
 
@@ -49,7 +49,7 @@ Collider形状を調整できる方式を採用します。
 ## 影響
 
 - 得点対象のPrefabは`StageSubject`、判断ポイント、対応する`SpriteRenderer`、`Collider2D`を
-  持ち、PhotoSubjectレイヤーへ配置する必要がある。
-- 透明部分や複雑な輪郭の判定精度はCollider形状に依存する。
+  持ち、PhotoSubjectレイヤーへ配置する必要がある
+- 透明部分や複雑な輪郭の判定精度はCollider形状に依存する
 - 将来ランダムな描画優先度を使う場合も、Rendererへ設定した値を変更し、判定専用の別の
-  優先度を作らない。
+  優先度を作らない

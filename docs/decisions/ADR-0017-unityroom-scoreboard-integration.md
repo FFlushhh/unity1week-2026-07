@@ -4,20 +4,20 @@
 
 公開版のリザルト画面で確定した合計いいね数を、unityroom（WebGLゲーム投稿サイト）の
 スコアランキング機能へ送信したい。従来`docs/game/specifications.md`の「Won't」に
-「オンラインランキング」を挙げていたが、ユーザーからの明示的な依頼により対応する。
+「オンラインランキング」を挙げていたが、スコープに追加して対応する。
 対応範囲は「スコアをunityroomのスコアボードへ送信する」までとし、ゲーム内にランキング
 一覧を表示するUIは作らない（unityroom側のゲームページで見る前提）。
 
 ## 選択肢
 
 1. **公式unityroom-sdkの導入（採用）**
-   - `https://github.com/unityroom/unityroom-sdk`。MITライセンス、Unity 2021.2以上対応。
+   - `https://github.com/unityroom/unityroom-sdk`。MITライセンス、Unity 2021.2以上対応
    - async/await対応、UniTaskとの併用が推奨されており、本プロジェクトは既に
      `com.cysharp.unitask`を導入済みのため追加コストが小さい。
 2. **旧nuskey8/unityroom-api（AnnulusGames由来）の利用**
-   - アーカイブ済みで非推奨。公式がunityroom-sdkへの移行を案内している。不採用。
+   - アーカイブ済みで非推奨。公式がunityroom-sdkへの移行を案内している。不採用
 3. **送信機能を実装しない**
-   - 要件を満たせない。不採用。
+   - 要件を満たせない。不採用
 
 ## 決定
 
@@ -33,8 +33,8 @@ HMAC認証用キーは`UnityroomScoreSubmitter`のInspectorへ直接設定し、
 
 ## 影響
 
-- `Packages/manifest.json`・`packages-lock.json`にunityroom-sdkの依存が追加される。
+- `Packages/manifest.json`・`packages-lock.json`にunityroom-sdkの依存が追加される
 - `docs/game/specifications.md`の「Won't」からオンラインランキングの記述を外し、
-  「Could」および「スコア」節へ送信タイミングと失敗時方針を追記した。
+  「Could」および「スコア」節へ送信タイミングと失敗時方針を追記した
 - unityroom管理画面でのスコアボード作成、HMAC認証用キーの発行は開発者が手動で行う
-  （AIによる代行不可）。
+  （AIによる代行不可）
